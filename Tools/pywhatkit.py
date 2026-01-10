@@ -1,4 +1,7 @@
 import pywhatkit
+import webbrowser
+import time
+import pyautogui
 
 def play_youtube(query: str):
     try:

@@ -2,51 +2,51 @@
   "conversation_history": [
     {
       "role": "user",
-      "content": "chhoti si umar"
+      "content": "you are really amzing then version 1.0"
     },
     {
       "role": "assistant",
-      "content": "Chhoti si umar mein bhi Shah Jahan ne Taj Mahal ka nirmān shuru kiya thā, Shubham sir. Usne apne प्रिय पत्नी Mumtaz Mahal की स्मृति में यह अमूल्य संपत्ति दुनिया को दिया था। इसका निर्माण 1632 से 1653 तक हुआ था, जो लगभग 22 साल का समय था।"
+      "content": "Thank you, sir! I appreciate your kind words. I'm always here to assist you better. If you have any more tasks or need further assistance, just let me know."
     },
     {
       "role": "user",
-      "content": " can you tell me the weather of kaithal"
+      "content": "speak in panjabi "
     },
     {
       "role": "assistant",
-      "content": "The weather in Kaithal is clear, Shubham sir. The temperature is 17.73°C, and it feels like 16.26°C. It's quite pleasant today!"
+      "content": "ਠੱਕ ਹੈ, ਸਾਹਿਬ! ਮੈਂ ਤੁਹਾਡੇ ਲਈ ਪੰਜਾਬੀ ਵਿਚ ਬੋਲਣ ਦਾ ਇੰਟਰਫੇਸ ਸਟਾਰਟ ਕਰ ਰਿਹਾ ਹਾਂ। ਕੀ ਆਪ ਕੋਈ ਵਿਸ਼ੇਸ਼ ਟਾਸਕ ਨੂੰ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?\n\n(Translation: Sure, sir! I'm starting the Punjabi interface for you. Do you have any specific task in mind?)"
     },
     {
       "role": "user",
-      "content": " give me a brief summary of our previous chats"
+      "content": "speak in bihari "
     },
     {
       "role": "assistant",
-      "content": "Certainly, Shubham sir. Here’s a brief summary of our previous chats:\n\n1. **Battery Check**: Your battery was at 33% and not charging. I advised you to plug in your device soon.\n2. **Poetry**: I recited a poem in Hindi about you, highlighting your skills and achievements.\n3. **Negative Comment**: Someone called you \"stupid,\" and I expressed disapproval and refused to continue until an apology was given.\n4. **Taj Mahal**: You asked who built the Taj Mahal. I explained that it was built by Mughal Emperor Shah Jahan in memory of his wife Mumtaz Mahal.\n5. **Weather**: You requested the weather in Kaithal. The weather was clear, with a temperature of 17.73°C and a feel-like temperature of 16.26°C.\n\nIs there anything specific you'd like to discuss further?"
+      "content": "ठीक है, साहब! मैं बिहारी में बोलने वाला हूँ। क्या आपको किसी विशेष काम में मदद चाहिए?\n\n(Translation: Sure, sir! I'm speaking in Bihari. Do you need help with anything specific?)"
     },
     {
       "role": "user",
-      "content": " search on wikipedia"
+      "content": "hi  "
     },
     {
       "role": "assistant",
-      "content": "Sure, Shubham sir. What topic would you like me to search on Wikipedia?"
+      "content": "Hello, sir! How can I assist you today?"
     },
     {
       "role": "user",
-      "content": " a genetic ai"
+      "content": "tell me battery "
     },
     {
       "role": "assistant",
-      "content": "{\n    \"tool\": \"wikipedia_search\",\n    \"args\": { \"query\": \"genetic AI\" }\n}"
+      "content": "Sir, your battery is at 33% and it is not charging. There's no low battery warning yet, but you might want to plug in your device soon."
     },
     {
       "role": "user",
-      "content": " check again"
+      "content": "ok check weather in kaithal and write down it in notepad "
     },
     {
       "role": "assistant",
-      "content": "{\n    \"tool\": \"wikipedia_search\",\n    \"args\": { \"query\": \"genetic AI\" }\n}"
+      "content": "{\n    \"tool\": \"open_app\",\n    \"args\": { \"app\": \"Notepad\" }\n}"
     }
   ]
 }

@@ -6,6 +6,11 @@ import time
 import pyautogui
 from AppOpener import open as appopen
 import pyautogui
+from ctypes import cast, POINTER
+from comtypes import CLSCTX_ALL
+from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+import screen_brightness_control as sbc
+
 
 
 def greet():
@@ -143,4 +148,197 @@ def close_app(app):
         return {
             "success": False,
             "message": e
+        }
+
+def volume_up(step=10):
+    try:
+        step = int(step)
+        if step <= 0:
+            raise ValueError("Step must be positive")
+
+        devices = AudioUtilities.GetSpeakers()
+        interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+        volume = cast(interface, POINTER(IAudioEndpointVolume))
+
+        current = volume.GetMasterVolumeLevelScalar()
+        new_volume = min(1.0, current + step / 100)
+
+        volume.SetMasterVolumeLevelScalar(new_volume, None)
+
+        return {
+            "status": "success",
+            "action": "volume_up",
+            "message": "Volume increased",
+            "previous": round(current * 100, 1),
+            "current": round(new_volume * 100, 1)
+        }
+
+    except ValueError as e:
+        return {
+            "status": "error",
+            "code": "INVALID_STEP",
+            "message": str(e)
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "code": "VOLUME_CONTROL_FAILED",
+            "message": str(e)
+        }
+
+def volume_down(step=10):
+    try:
+        step = int(step)
+        if step <= 0:
+            raise ValueError("Step must be positive")
+
+        devices = AudioUtilities.GetSpeakers()
+        interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+        volume = cast(interface, POINTER(IAudioEndpointVolume))
+
+        current = volume.GetMasterVolumeLevelScalar()
+        new_volume = max(0.0, current - step / 100)
+
+        volume.SetMasterVolumeLevelScalar(new_volume, None)
+
+        return {
+            "status": "success",
+            "action": "volume_down",
+            "message": "Volume decreased",
+            "previous": round(current * 100, 1),
+            "current": round(new_volume * 100, 1)
+        }
+
+    except ValueError as e:
+        return {
+            "status": "error",
+            "code": "INVALID_STEP",
+            "message": str(e)
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "code": "VOLUME_CONTROL_FAILED",
+            "message": str(e)
+        }
+
+def brightness_up(step=10):
+    try:
+        step = int(step)
+        if step <= 0:
+            raise ValueError("Step must be positive")
+
+        current = sbc.get_brightness(display=0)[0]
+        new_brightness = min(100, current + step)
+
+        sbc.set_brightness(new_brightness)
+
+        return {
+            "status": "success",
+            "action": "brightness_up",
+            "message": "Brightness increased",
+            "previous": current,
+            "current": new_brightness
+        }
+
+    except ValueError as e:
+        return {
+            "status": "error",
+            "code": "INVALID_STEP",
+            "message": str(e)
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "code": "BRIGHTNESS_CONTROL_FAILED",
+            "message": str(e)
+        }
+
+def brightness_down(step=10):
+    try:
+        step = int(step)
+        if step <= 0:
+            raise ValueError("Step must be positive")
+
+        current = sbc.get_brightness(display=0)[0]
+        new_brightness = max(0, current - step)
+
+        sbc.set_brightness(new_brightness)
+
+        return {
+            "status": "success",
+            "action": "brightness_down",
+            "message": "Brightness decreased",
+            "previous": current,
+            "current": new_brightness
+        }
+
+    except ValueError as e:
+        return {
+            "status": "error",
+            "code": "INVALID_STEP",
+            "message": str(e)
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "code": "BRIGHTNESS_CONTROL_FAILED",
+            "message": str(e)
+        }
+
+def mute_volume():
+    try:
+        devices = AudioUtilities.GetSpeakers()
+        interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+        volume = cast(interface, POINTER(IAudioEndpointVolume))
+
+        # Mute the volume
+        volume.SetMute(1, None)  # 1 = mute
+
+        current_level = volume.GetMasterVolumeLevelScalar()  # still returns volume level
+
+        return {
+            "status": "success",
+            "action": "mute_volume",
+            "message": "Volume muted",
+            "current_level": round(current_level * 100, 1),
+            "muted": True
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "code": "VOLUME_MUTE_FAILED",
+            "message": str(e),
+            "muted": False
+        }
+
+def unmute_volume():
+    try:
+        devices = AudioUtilities.GetSpeakers()
+        interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+        volume = cast(interface, POINTER(IAudioEndpointVolume))
+
+        # Unmute the volume
+        volume.SetMute(0, None)  # 0 = unmute
+        current_level = volume.GetMasterVolumeLevelScalar()
+
+        return {
+            "status": "success",
+            "action": "unmute_volume",
+            "message": "Volume unmuted",
+            "current_level": round(current_level * 100, 1),
+            "muted": False
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "code": "VOLUME_UNMUTE_FAILED",
+            "message": str(e),
+            "muted": None
         }
