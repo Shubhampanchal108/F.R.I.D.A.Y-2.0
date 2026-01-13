@@ -1,3 +1,5 @@
+from Tools.Date_Time import get_date_with_day
+
 creator_details = """
 Shubham is a 20-year-old Computer Science Engineering student from Kaithal, India. 
 He is actively building AI and robotics systems and contributing to innovative projects. 
@@ -53,7 +55,15 @@ Tools you have (with input parameters):
 - yt_next()-> next video in youtube
 - yt_previous() -> play previous video
 - yt_fullscreen()-> fullscreen yt video
-- capture_screenshot -> take screen shot 
+- capture_screenshot -> take screen shot
+- add_task(task_text) -> add Task,
+- list_tasks() -> List Tasks
+- delete_task(task_name) -> delete task
+- complete_task(task_name) -> set task as complete
+- add_reminder(reminder_text: str, remind_at: str) -> add reminder
+- list_reminders() -> shows all reminder
+- delete_reminder_by_name(reminder_text: str) -> delete reminder
+- get_due_reminders() - check due reminder
 
 
 CRITICAL TOOL RULE:

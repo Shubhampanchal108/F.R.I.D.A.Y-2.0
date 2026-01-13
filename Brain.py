@@ -3,7 +3,9 @@ from utiles import load_memory, add_to_history, clean_json_string
 import os
 import sys
 import json
+import re
 from dotenv import load_dotenv
+
 # Allow parent directory imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -16,11 +18,12 @@ from Tools.content_generator import write_to_notepad
 from Tools.Emails import send_email, read_latest_emails
 from Tools.Date_Time import get_date_with_day, get_current_time
 from Tools.Media_Tools import *
+from Tools.Todo import add_task, list_tasks, delete_task, complete_task
+from Tools.reminder import *
 from configs import Friday_Instruction
 
+# ---------------- ENV ---------------- #
 load_dotenv()
-
-# ---------------- CONFIG ---------------- #
 HF_API_KEY = os.getenv("HF_API_KEY")
 
 client = OpenAI(
@@ -28,7 +31,7 @@ client = OpenAI(
     api_key=HF_API_KEY,
 )
 
-
+# ---------------- TOOLS ---------------- #
 TOOLS = {
     "get_weather": get_current_weather,
     "get_News": get_latest_news,
@@ -44,32 +47,57 @@ TOOLS = {
     "find_my_ip": find_my_ip,
     "send_email": send_email,
     "read_latest_emails": read_latest_emails,
-    'get_current_time': get_current_time,
-    'get_date_with_day': get_date_with_day,
-    'brightness_down':brightness_down,
-    'brightness_up': brightness_up,
-    'volume_down': volume_down,
-    'volume_up': volume_up,
-    'mute_volume': mute_volume,
+    "get_current_time": get_current_time,
+    "get_date_with_day": get_date_with_day,
+    "brightness_down": brightness_down,
+    "brightness_up": brightness_up,
+    "volume_down": volume_down,
+    "volume_up": volume_up,
+    "mute_volume": mute_volume,
     "unmute_volume": unmute_volume,
-    'yt_play_pause': yt_play_pause,
-    'yt_next': yt_next,
-    "yt_previous" : yt_previous,
-    'yt_fullscreen': yt_fullscreen,
-    'capture_screenshot': capture_screenshot,
-    
+    "yt_play_pause": yt_play_pause,
+    "yt_next": yt_next,
+    "yt_previous": yt_previous,
+    "yt_fullscreen": yt_fullscreen,
+    "capture_screenshot": capture_screenshot,
+    "add_task": add_task,
+    "list_tasks": list_tasks,
+    "delete_task": delete_task,
+    "complete_task": complete_task,
+    "add_reminder": add_reminder,
+    "list_reminders": list_reminders,
+    "delete_reminder_by_name": delete_reminder_by_name,
+    "get_due_reminders": get_due_reminders,
 }
+
+# ---------------- HELPERS ---------------- #
+def normalize_role(role: str):
+    if role in ["system", "user", "assistant"]:
+        return role
+    if role in ["human"]:
+        return "user"
+    if role in ["ai", "bot", "model"]:
+        return "assistant"
+    return "user"
 
 
 def parse_tool_call(msg: str):
     try:
-        data = json.loads(clean_json_string(msg))
-        return data
-    except json.JSONDecodeError:
+        match = re.search(r'\{[\s\S]*\}', msg)
+        if not match:
+            return None
+
+        json_str = clean_json_string(match.group())
+        data = json.loads(json_str)
+
+        if isinstance(data, dict) and "tool" in data:
+            return data
+        return None
+    except Exception:
         return None
 
 
-# ---------------- BRAIN ---------------- #
+# ---------------- BRAIN (MULTI-TOOL AGENT LOOP) ---------------- #
 def Brain(prompt: str):
     memory = load_memory()
     history = memory.get("conversation_history", [])
@@ -77,61 +105,73 @@ def Brain(prompt: str):
     messages = [{"role": "system", "content": Friday_Instruction}]
 
     for m in history:
-        messages.append(m)
+        messages.append({
+            "role": normalize_role(m.get("role", "user")),
+            "content": m.get("content", "")
+        })
 
     messages.append({"role": "user", "content": prompt})
 
-    # -------- First LLM Call -------- #
-    response = client.chat.completions.create(
-        model="Qwen/Qwen2.5-72B-Instruct",
-        temperature=0.3,
-        messages=messages
-    )
+    MAX_TOOL_CALLS = 4
+    tool_calls = 0
 
-    msg = response.choices[0].message.content.strip()
-
-    # -------- Tool Detection -------- #
-    data = parse_tool_call(msg)
-    if data:
-        tool_name = data.get("tool")
-        args = data.get("args", {})
-
-        if tool_name in TOOLS:
-            print(f"🔧 Tool called → {tool_name} {args}")
-            try:
-                tool_result = TOOLS[tool_name](**args)
-                print("🤖 Tool output:", tool_result)
-
-                messages.append({
-                    "role": "assistant",
-                    "content": f"Tool output: {tool_result}"
-                })
-
-                # -------- Final LLM Reply -------- #
-                final_response = client.chat.completions.create(
-                    model="Qwen/Qwen2.5-72B-Instruct",
-                    temperature=0.5,
-                    messages=messages
-                )
-
-                human_text = final_response.choices[0].message.content.strip()
-
-                add_to_history("user", prompt)
-                add_to_history("assistant", human_text)
-
-                return human_text
-
-            except Exception as e:
-                print("⚠️ Tool Error:", e)
-                return "Sorry sir, tool execution failed."
-
-    # -------- Normal Reply -------- #
-    add_to_history("user", prompt)
-    add_to_history("assistant", msg)
-
-    return msg
-
-if __name__ == "__main__":
     while True:
-        inp  = input("Enter a chat: ")
-        print(Brain(inp))
+        response = client.chat.completions.create(
+            model="Qwen/Qwen2.5-72B-Instruct",
+            temperature=0.3,
+            messages=messages
+        )
+
+        msg = response.choices[0].message.content.strip()
+
+        data = parse_tool_call(msg)
+
+        # -------- TOOL MODE -------- #
+        if data and tool_calls < MAX_TOOL_CALLS:
+            tool_name = data.get("tool")
+            args = data.get("args", {})
+
+            if tool_name in TOOLS:
+                print(f"🔧 Tool called → {tool_name} {args}")
+
+                try:
+                    tool_result = TOOLS[tool_name](**args)
+                    print("🤖 Tool output:", tool_result)
+
+                    messages.append({
+                        "role": "assistant",
+                        "content": msg
+                    })
+
+                    messages.append({
+                        "role": "assistant",
+                        "content": f"Tool output: {tool_result}"
+                    })
+
+                    tool_calls += 1
+                    continue
+
+                except Exception as e:
+                    print("⚠️ Tool Error:", e)
+                    return "Sir, tool execution failed. Please try again."
+
+        # -------- HUMAN MODE (ONLY AFTER ALL TOOLS) -------- #
+        add_to_history("user", prompt)
+        add_to_history("assistant", msg)
+
+        return msg.replace("*", "")
+
+
+# ---------------- RUN ---------------- #
+if __name__ == "__main__":
+    print("🤖 Friday v2.0 Online — Agent Mode Activated\n")
+
+    while True:
+        inp = input("You: ")
+
+        if inp.lower() in ["exit", "quit"]:
+            print("Friday: Goodbye Sir. Have a productive day.")
+            break
+
+        reply = Brain(inp)
+        print("Friday:", reply)

@@ -2,51 +2,51 @@
   "conversation_history": [
     {
       "role": "user",
-      "content": "you are really amzing then version 1.0"
+      "content": "check news and arite them on notepad "
     },
     {
       "role": "assistant",
-      "content": "Thank you, sir! I appreciate your kind words. I'm always here to assist you better. If you have any more tasks or need further assistance, just let me know."
+      "content": "Sir, the top news headlines have been successfully written to your Notepad. Here are the headlines for your reference:\n\n1. **Golden Globes 2026 Red Carpet: See Every Look From Last Night’s Event** - *Vogue*\n2. **Meta names former Trump advisor Dina Powell McCormick as president, vice chair** - *CNBC*\n3. **Here are Monday's biggest analyst calls: Nvidia, Apple, Tesla, Palantir, Zoom, Microsoft, Roku, Netflix & more** - *CNBC*\n4. **5 lines from Nikki Glaser that sum up her night as Golden Globes host** - *Yahoo*\n5. **Ho hum holiday: Retail's early results show modest growth in critical shopping season** - *CNBC*\n\nIs there anything else you need assistance with?"
     },
     {
       "role": "user",
-      "content": "speak in panjabi "
+      "content": "Reminder alert: 'Sleep at 10 PM' is due now!"
     },
     {
       "role": "assistant",
-      "content": "ਠੱਕ ਹੈ, ਸਾਹਿਬ! ਮੈਂ ਤੁਹਾਡੇ ਲਈ ਪੰਜਾਬੀ ਵਿਚ ਬੋਲਣ ਦਾ ਇੰਟਰਫੇਸ ਸਟਾਰਟ ਕਰ ਰਿਹਾ ਹਾਂ। ਕੀ ਆਪ ਕੋਈ ਵਿਸ਼ੇਸ਼ ਟਾਸਕ ਨੂੰ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?\n\n(Translation: Sure, sir! I'm starting the Punjabi interface for you. Do you have any specific task in mind?)"
+      "content": "Sir, your reminder to \"Sleep at 10 PM\" is due now. It's time to get some rest. Is there anything else you need assistance with before you sleep?"
     },
     {
       "role": "user",
-      "content": "speak in bihari "
+      "content": "check battery and cpu status and email me their reports "
     },
     {
       "role": "assistant",
-      "content": "ठीक है, साहब! मैं बिहारी में बोलने वाला हूँ। क्या आपको किसी विशेष काम में मदद चाहिए?\n\n(Translation: Sure, sir! I'm speaking in Bihari. Do you need help with anything specific?)"
+      "content": "{\n    \"tool\": \"check_battery\",\n    \"args\": {}\n}\n{\n    \"tool\": \"check_cpu\",\n    \"args\": {}\n}\n{\n    \"tool\": \"send_email\",\n    \"args\": {\n        \"to\": \"shubham@example.com\",\n        \"subject\": \"Battery and CPU Status Report\",\n        \"body\": \"Battery Level: [BATTERY_LEVEL]\\nCPU Usage: [CPU_USAGE]\"\n    }\n}"
     },
     {
       "role": "user",
-      "content": "hi  "
+      "content": "call tools one by one "
     },
     {
       "role": "assistant",
-      "content": "Hello, sir! How can I assist you today?"
+      "content": "The battery level is 87%, and it is not charging. There is no low battery warning.\n\nThe CPU usage is 50.8%, with 2 physical cores and 2 logical cores. The frequency is 1900 MHz.\n\nThe report has been sent to your email, sir. Is there anything else you need assistance with?"
     },
     {
       "role": "user",
-      "content": "tell me battery "
+      "content": "no send me here panchalshubham194@gmail.com"
     },
     {
       "role": "assistant",
-      "content": "Sir, your battery is at 33% and it is not charging. There's no low battery warning yet, but you might want to plug in your device soon."
+      "content": "The email with the battery and CPU status report has been sent successfully to panchalshubham194@gmail.com, sir. Here is the report for your reference:\n\n- **Battery Level:** 87%\n- **CPU Usage:** 50.8% with 2 physical cores and 2 logical cores\n- **Frequency:** 1900 MHz\n\nIs there anything else you need assistance with?"
     },
     {
       "role": "user",
-      "content": "ok check weather in kaithal and write down it in notepad "
+      "content": "wow love you "
     },
     {
       "role": "assistant",
-      "content": "{\n    \"tool\": \"open_app\",\n    \"args\": { \"app\": \"Notepad\" }\n}"
+      "content": "Thank you, sir. I'm here to assist you. If you need anything else, feel free to ask."
     }
   ]
 }
