@@ -15,11 +15,12 @@ from Tools.News import get_latest_news
 from Tools.wikipedia import search_wikipedia
 from Tools.pywhatkit import *
 from Tools.content_generator import write_to_notepad
-from Tools.Emails import send_email, read_latest_emails
+from Tools.Emails import send_email, read_latest_emails, readmail_Full_body
 from Tools.Date_Time import get_date_with_day, get_current_time
 from Tools.Media_Tools import *
 from Tools.Todo import add_task, list_tasks, delete_task, complete_task
 from Tools.reminder import *
+from Tools.website_opner import open_website
 from configs import Friday_Instruction
 
 # ---------------- ENV ---------------- #
@@ -68,6 +69,8 @@ TOOLS = {
     "list_reminders": list_reminders,
     "delete_reminder_by_name": delete_reminder_by_name,
     "get_due_reminders": get_due_reminders,
+    "open_website": open_website,
+    "readmail_Full_body": readmail_Full_body
 }
 
 # ---------------- HELPERS ---------------- #
@@ -136,7 +139,7 @@ def Brain(prompt: str):
 
                 try:
                     tool_result = TOOLS[tool_name](**args)
-                    print("🤖 Tool output:", tool_result)
+                    # print("🤖 Tool output:", tool_result)
 
                     messages.append({
                         "role": "assistant",

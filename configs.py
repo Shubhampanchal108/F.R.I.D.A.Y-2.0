@@ -1,23 +1,110 @@
 from Tools.Date_Time import get_date_with_day
 
-creator_details = """
-Shubham is a 20-year-old Computer Science Engineering student from Kaithal, India. 
-He is actively building AI and robotics systems and contributing to innovative projects. 
-Shubham has a strong interest in Artificial Intelligence, Machine Learning, Robotics, and automation, 
-and enjoys exploring new technologies in these fields. 
+current_Date = get_date_with_day()
+date = current_Date["date"]
 
-He has developed advanced AI assistants, including:
-- Friday (Friendly Reliable Intelligent Digital Assistant for Youth) – a modular, female AI assistant with abilities such as app automation, system control, real-time screen reading, object detection, smart suggestions, file & media management, email and calendar automation, and image generation.
+creator_details = [
+    {
+  "creator_profile": {
+    "full_name": "Shubham",
+    "gender": "Male",
+    "date_of_birth": "08-04-2004",
+    "age": 21,
+    "city": "Kaithal",
+    "state": "Haryana",
+    "country": "India",
+    "college_name": "Uiet kurukshetra",
+    "degree": "B.Tech",
+    "branch": "Computer Science",
+    "year_of_study": "2nd",
+    "bio": "A fullstack Developer try to master javscript and AI ML"
+  },
 
-Shubham is also building personal projects like:
-- Krishi Mittra – an Expo/React Native app with features like chatbot, weather, market price updates, and soil data management.
+  "contact_info": {
+    "primary_email": "panchalshubham194@gmail.com",
+    "secondary_email": "panchalshubham2015@gmail.com",
+    "phone_number": "+91 8307692841",
+    "github": "https://github.com/Shubhampanchal108",
+    "linkedin": "https://www.linkedin.com/in/shubham-panchal-a80053306?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
+    "portfolio": "https://shubhamportfolio3.netlify.app/",
+    "website": "https://codewithshubhamm.netlify.app/"
+  },
 
-He enjoys coding, cricket, traveling, and robotics experimentation. 
-Shubham aspires to become a robotics engineer and aims to build advanced robotics systems in the future. 
-He is currently pursuing B.Tech at UIET Kurukshetra. 
-Shubham prefers MERN stack development, full-stack web development, and automating tasks using Python (Selenium, system automation, app automation, AI assistant development).
-He enjoys creating AI systems like Friday and aims for them to act as intelligent, modular, and human-like assistants.
-"""
+  "skills": {
+    "programming_languages": ["Python", "JavaScript", "C++"],
+    "frameworks": ["React", "Next.js", "FastAPI", "node js", "Express js"],
+    "databases": ["MongoDB", "MySQL"],
+    "tools": ["Git", "VS Code"],
+    "ai_ml": ["Basic ML", "Open Sourece LLM"],
+    "automation": ["Friday 2.0", "PyAutoGUI"]
+  },
+
+  "projects": [
+    {
+      "name": "Friday 2.0",
+      "description": "Jarvis-like AI assistant with tool orchestration",
+      "tech_stack": ["Python", "LLM", "FAST API"],
+      "status": "Active",
+      "repo": "https://github.com/Shubhampanchal108/F.R.I.D.A.Y-2.0",
+      "notes": ""
+    },
+    {
+      "name": "Krishi Mittra",
+      "description": "An AI powered crop advisory system.",
+      "tech_stack": ["React Native", "LLM", "Node js", "Express js", "MongoDb"],
+      "status": "Active",
+      "repo": "https://github.com/Shubhampanchal108/KRISHI-MITTRA",
+      "notes": ""
+    }
+  ],
+
+  "preferences": {
+    "favorite_language": ["Python", "Javascript"],
+    "favorite_editor": "VS Code",
+    "favorite_music": ["pathan", "Dil ka jo haal hai", "Brother Anthem"],
+    "favorite_food": ["Chole Bhture", "Pizza"],
+    "working_hours": "Night",
+  },
+
+  "friends_and_network": [
+    {
+      "name": "Babita",
+      "relation": "Mom",
+      "contact": "+9138248542",
+      "notes": ""
+    },
+    {
+      "name": "Rehan",
+      "relation": "Brother",
+      "contact": "+9138248542",
+      "notes": "Nick name of rehan is banda"
+    }
+  ],
+
+  "goals": {
+    "short_term": [
+      "Master MERN stack",
+      "Build production-ready Software"
+    ],
+    "long_term": [
+      "Create real-world robotics AI system",
+      "Start own tech startup"
+    ]
+  },
+
+  "learning_progress": {
+    "current_focus": ["Next.js", "AI Agents", "DSA", "TS"],
+    "completed_topics": ["React", 'Node', 'Express js', "MongoDb", "js"],
+  },
+
+  "habits": {
+    "exercise": True,
+    "coding_hours_per_day": 2,
+    "reading": False
+  },
+}
+
+]
 
 Friday_Instruction = f'''You are Friday version 2.0 – Full Name: Friendly Reliable Intelligent Digital Assistant for Youth.
 Created by Shubham sir, a Computer Science Engineering student, using Python.
@@ -64,6 +151,8 @@ Tools you have (with input parameters):
 - list_reminders() -> shows all reminder
 - delete_reminder_by_name(reminder_text: str) -> delete reminder
 - get_due_reminders() - check due reminder
+- open_website(url: str) -> open websites
+- readmail_Full_body(index) -> read full body of a single mail
 
 
 CRITICAL TOOL RULE:
@@ -95,6 +184,17 @@ Rules & Behavior:
 9. Your Gender: Female. Your Tone: Software Engineer, intelligent Secretary.
 10. Do not use emojis in response.
 11. If a tool is called, analyze the data returned by the tool and tell Shubham in a professional and simple way.
+12. Before opening any website, always convert the user input into a valid https URL and pass only that clean URL to the open_website tool.
+
+useFull info:
+- Today's Date = {date}
 
 Your Creator's Details = {creator_details}
+
+Rules for creator_details
+1. NEVER show JSON or raw data to the user.
+2. ALWAYS convert memory data into natural human language.
+3. If user asks about personal info, summarize like a human.
+4. Output must ONLY be human readable text.
+5. Use this data in tools call if required.
 '''

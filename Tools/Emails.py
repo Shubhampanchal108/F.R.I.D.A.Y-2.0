@@ -186,3 +186,65 @@ def send_email(to, subject, body):
                 server.quit()
         except:
             pass
+
+
+
+def extract_body(msg):
+    body = ""
+
+    if msg.is_multipart():
+        for part in msg.walk():
+            content_type = part.get_content_type()
+            disposition = str(part.get("Content-Disposition"))
+
+            # Plain text body
+            if content_type == "text/plain" and "attachment" not in disposition:
+                charset = part.get_content_charset() or "utf-8"
+                body += part.get_payload(decode=True).decode(charset, errors="ignore")
+
+            # HTML fallback (optional)
+            elif content_type == "text/html" and not body:
+                charset = part.get_content_charset() or "utf-8"
+                body += part.get_payload(decode=True).decode(charset, errors="ignore")
+
+    else:
+        charset = msg.get_content_charset() or "utf-8"
+        body = msg.get_payload(decode=True).decode(charset, errors="ignore")
+
+    return body.strip()
+
+
+def readmail_Full_body(index):
+    mail = None
+    try:
+        mail = imaplib.IMAP4_SSL("imap.gmail.com")
+        mail.login(EMAIL, PASSWORD)
+        mail.select("inbox")
+
+        status, data = mail.search(None, "ALL")
+        ids = data[0].split()
+
+        if len(ids) < index:
+            return {"status": "error", "message": "Invalid mail index"}
+
+        selected_id = ids[-index]
+        status, msg_data = mail.fetch(selected_id, "(RFC822)")
+        msg = email.message_from_bytes(msg_data[0][1])
+
+        subject = decode_text(msg.get("Subject"))
+        sender = decode_text(msg.get("From"))
+        body = extract_body(msg)   # ✅ same helper we created earlier
+
+        return {
+            "status": "success",
+            "from": sender,
+            "subject": subject,
+            "body": body
+        }
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+    finally:
+        if mail:
+            mail.logout()

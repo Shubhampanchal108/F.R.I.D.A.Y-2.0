@@ -30,6 +30,7 @@ FRIDAY 2.0 focuses on:
 * ✅ Agent loop (think → tool → observe → respond)
 * ✅ Context-aware conversations
 * ✅ Short-term memory
+* ✅ Long-term memory
 
 ---
 
@@ -71,22 +72,13 @@ FRIDAY can dynamically choose and execute tools like:
 
 ### 💬 Communication & Messaging
 
-* 📱 Send WhatsApp messages using natural language
+* 📱 Send WhatsApp messages using natural language (planned expansion)
 * ✉️ Send emails
-* 👤 Auto contact creation & saving
-
-Example:
-
-> "Rahul ko bol do aaj late ho jaunga"
-> FRIDAY extracts:
-
-* Recipient
-* Message
-* Sends automatically
+* 👤 Content writing like (Notes, Essays, Letters, Emails, summary)
 
 ---
 
-### 👁️ Smart Monitoring & Vision
+### 👁️ Smart Monitoring & Vision (planned expansion)
 
 * 👀 Screen monitoring
 * ⚠️ Mistake / anomaly detection
@@ -94,7 +86,7 @@ Example:
 
 ---
 
-### 👩‍💻 Coding Assistant Mode
+### 👩‍💻 Coding Assistant Mode (planned expansion)
 
 FRIDAY can:
 
@@ -140,7 +132,7 @@ Final Response
 * 🐍 Python
 * ⚡ FastAPI (backend – planned)
 * 🔗 LangChain (tool orchestration – planned)
-* 🧠 Gemini / Open-source LLMs
+* 🧠 Qwen/Qwen2.5-72B-Instruct ->  Open-source LLMs
 * 🗃️ Vector DB (future memory)
 
 ---
@@ -164,12 +156,11 @@ Final Response
 * ✔ Battery & CPU stats
 * ✔ WhatsApp messaging
 * ✔ Email sending
-* ✔ Contact creation
-* ✔ YT Music automation
-* ✔ Screen monitoring
-* ✔ Object detection
+* ✔ Content creation
+* ✔ Youtube automation
 * ✔ Short-term memory
 * ✔ Coding assistance
+* ✔ Task and Reminder Manager
 
 ---
 
@@ -205,16 +196,14 @@ Passionate about:
 
 * AI Agents
 * Automation
-* Robotics
 * Full-Stack Development
 
 Projects:
 
 * Friday AI Assistant
-* ELENA
+* Krishi Mittra
 * AI Assistants
-* Full-Stack Apps
-* Automation Bots
+* Full-Stack Apps Like (Youtube , spotify, E-Commerce)
 
 ---
 
