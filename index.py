@@ -3,7 +3,7 @@ from voice_input import SpeechRecognition
 from speak import speak
 from playsound import playsound
 from Tools.systems_tools import greet
-from Tools.reminder import get_due_reminders  # reminder checker function
+from Tools.reminder import get_due_reminders
 
 file_path = r"C:\Users\j\OneDrive\Desktop\shubham studio\F.R.I.D.A.Y\Database\docs\mixkit-sci-fi-click-900.wav"
 

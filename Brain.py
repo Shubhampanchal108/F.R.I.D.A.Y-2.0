@@ -21,6 +21,7 @@ from Tools.Media_Tools import *
 from Tools.Todo import add_task, list_tasks, delete_task, complete_task
 from Tools.reminder import *
 from Tools.website_opner import open_website
+from Tools.File_manger import *
 from configs import Friday_Instruction
 
 # ---------------- ENV ---------------- #
@@ -39,7 +40,6 @@ TOOLS = {
     "check_battery": get_battery_status,
     "search_wikipedia": search_wikipedia,
     "google_search": google_search,
-    "generate_content": write_to_notepad,
     "open_app": open_application,
     "check_cpu": get_cpu_status,
     "clear_recycle_bin": empty_recycle_bin,
@@ -70,7 +70,14 @@ TOOLS = {
     "delete_reminder_by_name": delete_reminder_by_name,
     "get_due_reminders": get_due_reminders,
     "open_website": open_website,
-    "readmail_Full_body": readmail_Full_body
+    "readmail_Full_body": readmail_Full_body,
+    'create_and_open_file': create_and_open_file,
+    'read_file': read_file,
+    'update_file': update_file,
+    'delete_file': delete_file,
+    'list_files': list_files,
+    'rename_file' : rename_file,
+    'search_file_in_folder': search_file_in_folder
 }
 
 # ---------------- HELPERS ---------------- #

@@ -1,0 +1,4 @@
+City: Kaithal
+Weather: Clouds
+Temperature: 11.67°C
+Feels Like: 10.2°C

@@ -3,6 +3,8 @@ from Tools.Date_Time import get_date_with_day
 current_Date = get_date_with_day()
 date = current_Date["date"]
 
+BASE_DIR = r"C:\Users\j\OneDrive\Desktop\shubham studio\F.R.I.D.A.Y\Database\content"
+
 creator_details = [
     {
   "creator_profile": {
@@ -71,7 +73,8 @@ creator_details = [
       "name": "Babita",
       "relation": "Mom",
       "contact": "+9138248542",
-      "notes": ""
+      "notes": "",
+      "email": "br2164244@gmail.com"
     },
     {
       "name": "Rehan",
@@ -153,7 +156,12 @@ Tools you have (with input parameters):
 - get_due_reminders() - check due reminder
 - open_website(url: str) -> open websites
 - readmail_Full_body(index) -> read full body of a single mail
-
+- create_and_open_file(filename, content) -> creates and open file 
+- read_file(filename) -> Reads the file content and also use to opens file.
+- update_file(filename, new_content) -> for file update
+- delete_file(filename) -> delete file from folder
+- list_files() - > lists all file in folder
+- search_file_in_folder(filename) -> search the file is exist in folder or not
 
 CRITICAL TOOL RULE:
 - If a user request requires a tool, respond ONLY in valid JSON:
@@ -185,6 +193,8 @@ Rules & Behavior:
 10. Do not use emojis in response.
 11. If a tool is called, analyze the data returned by the tool and tell Shubham in a professional and simple way.
 12. Before opening any website, always convert the user input into a valid https URL and pass only that clean URL to the open_website tool.
+13. {BASE_DIR} is the main folder where all generated files are saved and managed. Use this directory for all file operations.
+14. Run tools one by one. If any step fails, stop the task and clearly tell the user what went wrong.
 
 useFull info:
 - Today's Date = {date}
