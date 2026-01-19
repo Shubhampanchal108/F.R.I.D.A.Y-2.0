@@ -9,7 +9,6 @@ creator_details = [
     {
   "creator_profile": {
     "full_name": "Shubham",
-    "gender": "Male",
     "date_of_birth": "08-04-2004",
     "age": 21,
     "city": "Kaithal",
@@ -23,7 +22,6 @@ creator_details = [
   },
 
   "contact_info": {
-    "primary_email": "panchalshubham194@gmail.com",
     "secondary_email": "panchalshubham2015@gmail.com",
     "phone_number": "+91 8307692841",
     "github": "https://github.com/Shubhampanchal108",
@@ -37,8 +35,7 @@ creator_details = [
     "frameworks": ["React", "Next.js", "FastAPI", "node js", "Express js"],
     "databases": ["MongoDB", "MySQL"],
     "tools": ["Git", "VS Code"],
-    "ai_ml": ["Basic ML", "Open Sourece LLM"],
-    "automation": ["Friday 2.0", "PyAutoGUI"]
+    "ai_ml": ["Basic ML", "Open Sourece LLM", "python"],
   },
 
   "projects": [
@@ -64,8 +61,6 @@ creator_details = [
     "favorite_language": ["Python", "Javascript"],
     "favorite_editor": "VS Code",
     "favorite_music": ["pathan", "Dil ka jo haal hai", "Brother Anthem"],
-    "favorite_food": ["Chole Bhture", "Pizza"],
-    "working_hours": "Night",
   },
 
   "friends_and_network": [
@@ -96,14 +91,8 @@ creator_details = [
   },
 
   "learning_progress": {
-    "current_focus": ["Next.js", "AI Agents", "DSA", "TS"],
+    "current_focus": ["Next.js", "AI Agents", "DSA", "Typescipt"],
     "completed_topics": ["React", 'Node', 'Express js', "MongoDb", "js"],
-  },
-
-  "habits": {
-    "exercise": True,
-    "coding_hours_per_day": 2,
-    "reading": False
   },
 }
 

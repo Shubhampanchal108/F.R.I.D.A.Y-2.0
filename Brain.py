@@ -14,7 +14,6 @@ from Tools.systems_tools import *
 from Tools.News import get_latest_news
 from Tools.wikipedia import search_wikipedia
 from Tools.pywhatkit import *
-from Tools.content_generator import write_to_notepad
 from Tools.Emails import send_email, read_latest_emails, readmail_Full_body
 from Tools.Date_Time import get_date_with_day, get_current_time
 from Tools.Media_Tools import *
@@ -23,6 +22,7 @@ from Tools.reminder import *
 from Tools.website_opner import open_website
 from Tools.File_manger import *
 from configs import Friday_Instruction
+
 
 # ---------------- ENV ---------------- #
 load_dotenv()
@@ -76,8 +76,8 @@ TOOLS = {
     'update_file': update_file,
     'delete_file': delete_file,
     'list_files': list_files,
-    'rename_file' : rename_file,
-    'search_file_in_folder': search_file_in_folder
+    'rename_file': rename_file,
+    'search_file_in_folder': search_file_in_folder,
 }
 
 # ---------------- HELPERS ---------------- #
@@ -114,15 +114,17 @@ def Brain(prompt: str):
 
     messages = [{"role": "system", "content": Friday_Instruction}]
 
+    # 🧠 Load previous chat history
     for m in history:
         messages.append({
             "role": normalize_role(m.get("role", "user")),
             "content": m.get("content", "")
         })
 
+    # User prompt
     messages.append({"role": "user", "content": prompt})
 
-    MAX_TOOL_CALLS = 4
+    MAX_TOOL_CALLS = 6
     tool_calls = 0
 
     while True:
@@ -146,26 +148,27 @@ def Brain(prompt: str):
 
                 try:
                     tool_result = TOOLS[tool_name](**args)
-                    # print("🤖 Tool output:", tool_result)
-
                     messages.append({
                         "role": "assistant",
                         "content": msg
                     })
+                    add_to_history("assistant", msg)
 
                     messages.append({
                         "role": "assistant",
                         "content": f"Tool output: {tool_result}"
                     })
+                    add_to_history("assistant", f"Tool output: {tool_result}")
 
                     tool_calls += 1
                     continue
 
                 except Exception as e:
                     print("⚠️ Tool Error:", e)
-                    return "Sir, tool execution failed. Please try again."
+                    add_to_history("assistant", f"Tool error: {e}")
+                    return "Tool execution failed. Please try again."
 
-        # -------- HUMAN MODE (ONLY AFTER ALL TOOLS) -------- #
+        # -------- FINAL HUMAN RESPONSE -------- #
         add_to_history("user", prompt)
         add_to_history("assistant", msg)
 
@@ -174,7 +177,7 @@ def Brain(prompt: str):
 
 # ---------------- RUN ---------------- #
 if __name__ == "__main__":
-    print("🤖 Friday v2.0 Online — Agent Mode Activated\n")
+    print("🤖 Friday v2.0 Online — Vector Memory Activated\n")
 
     while True:
         inp = input("You: ")
