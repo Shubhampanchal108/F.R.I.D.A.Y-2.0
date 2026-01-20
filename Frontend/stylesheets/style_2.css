@@ -1,0 +1,57 @@
+.Input {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    height: 35px;
+    width: 90%;
+    margin-top: 10px;
+    border-radius: 8px;
+    color: #ffffff;
+    padding: 0 10px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(6px);
+}
+
+.Input:focus {
+    border-color: #00c3ff;
+    box-shadow: 0 0 8px rgba(0, 195, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.send-btn {
+    background: linear-gradient(135deg, #007bff, #00c3ff);
+    border: none;
+    height: 35px;
+    border-radius: 8px;
+    color: white;
+    padding: 0 15px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 8px rgba(0, 195, 255, 0.3);
+    margin-top: 10px;
+    width: 100%;
+}
+
+.send-btn:hover {
+    background: linear-gradient(135deg, #0056d6, #009dff);
+    box-shadow: 0 5px 12px rgba(0, 195, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+.send-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 6px rgba(0, 195, 255, 0.4);
+}
+
+#listen-btn.listening {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+#listen-btn.stopped {
+  border-color: var(--red);
+  color: var(--red);
+}

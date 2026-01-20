@@ -1,3 +1,10 @@
 {
-    "tasks": []
+    "tasks": [
+        {
+            "id": 1,
+            "task": "Learn Basics of RAG",
+            "done": false,
+            "created_at": "2026-01-19T21:44:39.971293"
+        }
+    ]
 }
