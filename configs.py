@@ -1,9 +1,13 @@
 from Tools.Date_Time import get_date_with_day
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 current_Date = get_date_with_day()
 date = current_Date["date"]
 
-BASE_DIR = r"C:\Users\j\OneDrive\Desktop\shubham studio\F.R.I.D.A.Y\Database\content"
+BASE_DIR = os.getenv("BASE_DIR")
 
 creator_details = [
     {

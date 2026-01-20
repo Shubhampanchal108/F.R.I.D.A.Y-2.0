@@ -1,9 +1,12 @@
 import json 
 import os
 import re
+from dotenv import load_dotenv
 
-MEMORY_FILE = r"C:\Users\j\OneDrive\Desktop\shubham studio\F.R.I.D.A.Y\Database\chats\memory.json"
-MAX_HISTORY = 12
+load_dotenv()
+
+MEMORY_FILE = os.getenv("MEMORY_FILE")
+MAX_HISTORY = 15
 
 # ---------------- MEMORY ---------------- #
 def load_memory():

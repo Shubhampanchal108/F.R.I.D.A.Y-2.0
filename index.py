@@ -4,17 +4,21 @@ from speak import speak
 from playsound import playsound
 from Tools.systems_tools import greet
 from Tools.reminder import get_due_reminders
+import os 
+from dotenv import load_dotenv
 
-file_path = r"C:\Users\j\OneDrive\Desktop\shubham studio\F.R.I.D.A.Y\Database\docs\mixkit-sci-fi-click-900.wav"
+load_dotenv()
+file_path = os.getenv("Sound_File")
+
+# ===== PROTOCOLS =====
+VOCAL_SENSE_PROTOCOL = False
+TYPE_ASSIST_PROTOCOL = True
+AUDIO_DRIVE_PROTOCOL = True
 
 if __name__ == "__main__":
 
     print(greet())
     speak(greet())
-
-    # ===== PROTOCOLS =====
-    VOCAL_SENSE_PROTOCOL = False
-    TYPE_ASSIST_PROTOCOL = True
 
     while True:
 

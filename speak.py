@@ -10,8 +10,6 @@ def speak(text, output_file=r"C:\Users\j\OneDrive\Desktop\shubham studio\JARVIS 
         tts.save(output_file)
         playsound(output_file)
 
-        # append_to_memory("model", text)
-
     finally:
         if os.path.exists(output_file):
             os.remove(output_file)
