@@ -37,7 +37,7 @@ if __name__ == "__main__":
             print("🎙️ Listening...")
             query = SpeechRecognition()
         else:
-            query = input("⌨️ Enter chat: ")
+            query = input("Enter chat: ")
 
         if not query:
             continue
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
         # ===== PLAY CLICK SOUND =====
         playsound(file_path)
-        print(f"User: {query}\n")
+        print(f"Shubham : {query}\n")
 
         # ===== PROCESS USER QUERY THROUGH BRAIN =====
         response = Brain(query_lower.replace("friday", ""))

@@ -1,32 +1,67 @@
-# mobile_tools_json.py
 import os
 import time
 import subprocess
 from urllib.parse import quote
-# from configs import contact
+from dotenv import load_dotenv
+import re
+from urllib.parse import quote
 
-contact = {
-
-}
+load_dotenv()
 
 def connect_mobile_with_bat(ip_address):
-    bat_path=r"C:\Users\j\OneDrive\Desktop\shubham studio\F.R.I.D.A.Y\Database\docs\device.bat"
+    bat_path = os.getenv("BAT_PATH")
+
+    if not bat_path or not os.path.exists(bat_path):
+        return {
+            "status": "error",
+            "code": "BAT_NOT_FOUND",
+            "message": "BAT file path not found. Please set BAT_PATH environment variable."
+        }
 
     try:
-        result = subprocess.run([bat_path, ip_address], shell=True, capture_output=True, text=True, timeout=20)
-        # Check if device connected
-        devices_result = subprocess.run(["adb", "devices"], capture_output=True, text=True)
-        lines = devices_result.stdout.strip().split("\n")
-        devices = [line for line in lines[1:] if line.strip() and "device" in line]
+        # 🚀 Run BAT file with IP argument
+        subprocess.run(
+            [bat_path, ip_address],
+            shell=True,
+            capture_output=True,
+            text=True
+        )
 
-        if len(devices) > 0:
-            return {"status": "success", "action": "connect_mobile", "message": f"Mobile connected using IP {ip_address}", "devices": devices}
+        # 📱 Check connected devices
+        devices_result = subprocess.run(
+            ["adb", "devices"],
+            capture_output=True,
+            text=True
+        )
+
+        lines = devices_result.stdout.strip().split("\n")
+        devices = [
+            line.split()[0]
+            for line in lines[1:]
+            if line.strip().endswith("device")
+        ]
+
+        if devices:
+            return {
+                "status": "success",
+                "action": "connect_mobile",
+                "message": f"✅ Mobile connected using IP {ip_address}",
+                "devices": devices
+            }
         else:
-            return {"status": "error", "code": "NO_DEVICE", "message": f"Mobile not connected using IP {ip_address}"}
+            return {
+                "status": "error",
+                "code": "NO_DEVICE",
+                "message": f"❌ Mobile not connected using IP {ip_address}"
+            }
 
     except Exception as e:
-        return {"status": "error", "code": "CONNECT_FAILED", "message": str(e)}
-    
+        return {
+            "status": "error",
+            "code": "CONNECT_FAILED",
+            "message": str(e)
+        }
+   
 
 # ---------------- Mobile Connection Check ----------------
 def is_mobile_connected():
@@ -53,7 +88,7 @@ def check_connection_json():
 
 
 # ---------------- Mobile Controls ----------------
-def unlock_device(pin_code="9445"):
+def unlock_device(pin_code):
     if not is_mobile_connected()[0]:
         return {"status": "error", "code": "NO_DEVICE", "message": "No mobile device connected"}
     try:
@@ -92,19 +127,45 @@ def Type(text):
 
 
 # ---------------- Phone Call ----------------
-def phone_call_with_mobile(contact_name):
-    if not is_mobile_connected()[0]:
-        return {"status": "error", "code": "NO_DEVICE", "message": "No mobile device connected"}
-    try:
-        contact_name = contact_name.lower()
-        phone_number = contact.get(contact_name)
-        if not phone_number:
-            return {"status": "error", "code": "CONTACT_NOT_FOUND", "message": f"No contact named {contact_name}"}
-        os.system(f'adb shell am start -a android.intent.action.CALL -d tel:{phone_number}')
-        return {"status": "success", "action": "phone_call", "message": f"Calling {contact_name}", "contact": contact_name}
-    except Exception as e:
-        return {"status": "error", "code": "CALL_FAILED", "message": str(e)}
 
+def phone_call_with_mobile(phone_number):
+    if not is_mobile_connected()[0]:
+        return {
+            "status": "error",
+            "code": "NO_DEVICE",
+            "message": "No mobile device connected"
+        }
+
+    try:
+        # ✅ Clean number (remove spaces, +, - etc)
+        phone_number = str(phone_number).strip()
+        phone_number = re.sub(r"[^\d]", "", phone_number)
+
+        if len(phone_number) < 8:
+            return {
+                "status": "error",
+                "code": "INVALID_NUMBER",
+                "message": "Invalid phone number provided"
+            }
+
+        # 📞 Make call using ADB
+        os.system(
+            f'adb shell am start -a android.intent.action.CALL -d tel:{phone_number}'
+        )
+
+        return {
+            "status": "success",
+            "action": "phone_call",
+            "message": f"Calling {phone_number}",
+            "number": phone_number
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "code": "CALL_FAILED",
+            "message": str(e)
+        }
 
 
 # ---------------- YouTube ----------------
@@ -136,23 +197,54 @@ def google_search_with_mobile(query):
 
 
 # ---------------- WhatsApp Message ----------------
-def send_whatsapp_message_mobile(contact_name, message):
+
+def send_whatsapp_message(phone_number, message):
     if not is_mobile_connected()[0]:
-        return {"status": "error", "code": "NO_DEVICE", "message": "No mobile device connected"}
+        return {
+            "status": "error",
+            "code": "NO_DEVICE",
+            "message": "No mobile device connected"
+        }
+
     try:
-        contact_name = contact_name.lower()
-        phone_number = contact.get(contact_name)
-        if not phone_number:
-            return {"status": "error", "code": "CONTACT_NOT_FOUND", "message": f"No contact named {contact_name}"}
+        # ✅ Clean phone number
+        phone_number = str(phone_number).strip()
+        phone_number = re.sub(r"[^\d]", "", phone_number)
 
+        if len(phone_number) < 8:
+            return {
+                "status": "error",
+                "code": "INVALID_NUMBER",
+                "message": "Invalid phone number"
+            }
+
+        # ✅ Encode message safely
         final_msg = quote(message)
-        os.system(f'adb shell am start -a android.intent.action.VIEW -d "https://wa.me/{phone_number}?text={final_msg}"')
+
+        # 📩 Open WhatsApp chat
+        os.system(
+            f'adb shell am start -a android.intent.action.VIEW '
+            f'-d "https://wa.me/{phone_number}?text={final_msg}"'
+        )
+
         time.sleep(2)
+
+        # 📤 Press Enter to Send
         os.system('adb shell input keyevent KEYCODE_ENTER')
+
+        # 🧹 Optional: close WhatsApp
         os.system('adb shell am force-stop com.whatsapp')
-        return {"status": "success", "action": "send_whatsapp", "message": f"Message sent to {contact_name}", "text": message}
+
+        return {
+            "status": "success",
+            "action": "send_whatsapp",
+            "message": f"Message sent to {phone_number}",
+            "text": message
+        }
+
     except Exception as e:
-        return {"status": "error", "code": "WHATSAPP_FAILED", "message": str(e)}
-
-
-print(connect_mobile_with_bat("10.229.241.226"))
+        return {
+            "status": "error",
+            "code": "WHATSAPP_FAILED",
+            "message": str(e)
+        }

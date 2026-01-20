@@ -2,51 +2,63 @@
   "conversation_history": [
     {
       "role": "assistant",
-      "content": "{\n    \"tool\": \"get_News\",\n    \"args\": {}\n}\n\nI will get the latest news updates for you, sir. Once I have the news, I'll let you know. \n\nIn the meantime, would you like me to open the YouTube app as well, sir?"
-    },
-    {
-      "role": "assistant",
-      "content": "Tool output: {'top_headlines': ['Trump urges lawmaker to challenge GOP senator who voted to convict him - The Washington Post', 'Piers Morgan Hospitalized After Fall, Undergoes Hip Replacement - TMZ', \"GOP Rep. McCaul says a US invasion of Greenland would mean 'war with NATO itself' - ABC News\", \"Peak travel: Viewing the U.S. from each state's highest point - CBS News\", 'Carney mulling $1B membership to Trump’s ‘Board of Peace’ - Politico']}"
+      "content": "Tool output: {'status': 'success', 'action': 'send_whatsapp', 'message': 'Message sent to 9138248542', 'text': 'Here are the latest news updates for today, Mom:\\n1. In historic first for Virginia, Adam Spanberger becomes first gentleman - The Washington Post\\n2. Is Curt Cignetti Delivering the Greatest Coaching Performance in Sports History? - The Ringer\\n3. Americans Are the Ones Paying for Tariffs, Study Finds - The Wall Street Journal\\n4. People Are Realizing How Smart Ben Affleck Is After He Articulated The Reality Of AI In Hollywood - BuzzFeed\\n5. UFC 324 roundtable: Is Paramount era kicking off with a dud? - MMA Fighting'}"
     },
     {
       "role": "user",
-      "content": "youtube app loading get news update"
+      "content": "send again "
     },
     {
       "role": "assistant",
-      "content": "Here are the latest news headlines, sir:\n\n1. **Trump urges lawmaker to challenge GOP senator who voted to convict him** - The Washington Post\n2. **Piers Morgan Hospitalized After Fall, Undergoes Hip Replacement** - TMZ\n3. **GOP Rep. McCaul says a US invasion of Greenland would mean 'war with NATO itself'** - ABC News\n4. **Peak travel: Viewing the U.S. from each state's highest point** - CBS News\n5. **Carney mulling $1B membership to Trump’s ‘Board of Peace’** - Politico\n\nWould you like me to open the YouTube app now, sir?"
+      "content": "The latest news updates have been sent to your mother via WhatsApp again, sir. Here are the headlines she received:\n\n1. In historic first for Virginia, Adam Spanberger becomes first gentleman - The Washington Post\n2. Is Curt Cignetti Delivering the Greatest Coaching Performance in Sports History? - The Ringer\n3. Americans Are the Ones Paying for Tariffs, Study Finds - The Wall Street Journal\n4. People Are Realizing How Smart Ben Affleck Is After He Articulated The Reality Of AI In Hollywood - BuzzFeed\n5. UFC 324 roundtable: Is Paramount era kicking off with a dud? - MMA Fighting\n\nIs there anything else you need assistance with, sir?"
+    },
+    {
+      "role": "assistant",
+      "content": "{\n    \"tool\": \"send_whatsapp_message\",\n    \"args\": { \"phone_number\": \"+9138248542\", \"message\": \"Mom, it's time to sleep. Have a good night! 😊\" }\n}"
+    },
+    {
+      "role": "assistant",
+      "content": "Tool output: {'status': 'success', 'action': 'send_whatsapp', 'message': 'Message sent to 9138248542', 'text': \"Mom, it's time to sleep. Have a good night! 😊\"}"
     },
     {
       "role": "user",
-      "content": "aapki rone ki awaaz"
+      "content": "unko slepping krne ko bolo "
     },
     {
       "role": "assistant",
-      "content": "I'm sorry, sir, but I don't have the capability to produce sounds or voice recordings. I can assist you with tasks, provide information, and manage your digital environment. Is there anything specific you need help with, sir?"
+      "content": "The message has been sent to your mother, sir. She received the following:\n\n\"Mom, it's time to sleep. Have a good night! 😊\"\n\nIs there anything else you need assistance with, sir?"
     },
     {
       "role": "assistant",
-      "content": "Certainly, sir. I'll open the File Explorer for you.\n\n{\n    \"tool\": \"open_app\",\n    \"args\": { \"app\": \"This PC\" }\n}\n\nThe \"This PC\" window should be open now, sir. Is there anything specific you need to do in File Explorer?"
+      "content": "{\n    \"tool\": \"send_whatsapp_message\",\n    \"args\": { \"phone_number\": \"+9138248542\", \"message\": \"Mom, it's time to sleep. Please take your medicine before sleeping. Have a good night! 😊\" }\n}"
     },
     {
       "role": "assistant",
-      "content": "Tool output: {'status': 'success', 'app': 'This PC', 'method': 'appopener'}"
+      "content": "Tool output: {'status': 'success', 'action': 'send_whatsapp', 'message': 'Message sent to 9138248542', 'text': \"Mom, it's time to sleep. Please take your medicine before sleeping. Have a good night! 😊\"}"
     },
     {
       "role": "user",
-      "content": "open this pc "
+      "content": "dwai lene k liye or bolo unko "
     },
     {
       "role": "assistant",
-      "content": "The \"This PC\" window is now open, sir. Is there anything specific you need to do in File Explorer, such as navigating to a particular folder or managing files?"
+      "content": "The message has been sent to your mother, sir. She received the following:\n\n\"Mom, it's time to sleep. Please take your medicine before sleeping. Have a good night! 😊\"\n\nIs there anything else you need assistance with, sir?"
+    },
+    {
+      "role": "assistant",
+      "content": "{\n    \"tool\": \"send_whatsapp_message\",\n    \"args\": { \"phone_number\": \"+9138248542\", \"message\": \"Mom, it's time to sleep. Please take your medicine before sleeping. Have a good night! 😊\" }\n}"
+    },
+    {
+      "role": "assistant",
+      "content": "Tool output: {'status': 'success', 'action': 'send_whatsapp', 'message': 'Message sent to 9138248542', 'text': \"Mom, it's time to sleep. Please take your medicine before sleeping. Have a good night! 😊\"}"
     },
     {
       "role": "user",
-      "content": "Reminder alert: 'Go to sleep' is due now!"
+      "content": "send again "
     },
     {
       "role": "assistant",
-      "content": "Sir, your reminder to \"Go to sleep\" is due now. It's important to get enough rest. Would you like to mark this reminder as complete or reschedule it for later?"
+      "content": "The message has been sent to your mother again, sir. She received the following:\n\n\"Mom, it's time to sleep. Please take your medicine before sleeping. Have a good night! 😊\"\n\nIs there anything else you need assistance with, sir?"
     }
   ]
 }

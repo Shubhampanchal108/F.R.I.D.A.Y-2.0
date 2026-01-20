@@ -1,31 +1,50 @@
-
 @echo off
-set /p DEVICE_IP=Enter device Ip_Address:
-echo Disconnecting old connections...
-adb disconnect
-echo Setting up connected device
-adb tcpip 5555
-echo Waiting for device to initialize
-timeout 3
-FOR /F "tokens=2" %%G IN ('adb shell ip addr show wlan0 ^|find "inet "') DO set ipfull=%%G
-FOR /F "tokens=1 delims=/" %%G in ("%ipfull%") DO set ip=%%G
-echo Connecting to device with IP %ip%...
-adb connect %ip%
+title Android Wireless ADB Connector
 
-@echo off
+REM ================================
+REM Get IP Address from Argument
+REM ================================
+set DEVICE_IP=%1
 
-rem Set the IP address of your Android device
-@REM set /p DEVICE_IP=Enter device Ip_Address:
+if "%DEVICE_IP%"=="" (
+    echo ERROR: IP Address not provided!
+    exit /b
+)
 
-rem Set the port number for ADB
+REM ================================
+REM ADB Port
+REM ================================
 set ADB_PORT=5555
+set ADB_PATH=adb
 
-rem Set the path to the ADB executable
-set ADB_PATH="adb"
+echo Device IP: %DEVICE_IP%
 
-rem Restart the ADB server
+REM ================================
+REM Restart ADB Server
+REM ================================
+echo Restarting ADB Server...
 %ADB_PATH% kill-server
 %ADB_PATH% start-server
 
-rem Connect to the Android device over Wi-Fi
+REM ================================
+REM Enable TCPIP Mode
+REM ================================
+echo Switching device to TCPIP mode...
+%ADB_PATH% tcpip %ADB_PORT%
+
+echo Waiting for device...
+timeout /t 3 >nul
+
+REM ================================
+REM Disconnect old connections
+REM ================================
+echo Disconnecting old connections...
+%ADB_PATH% disconnect
+
+REM ================================
+REM Connect Device
+REM ================================
+echo Connecting to device %DEVICE_IP%:%ADB_PORT% ...
 %ADB_PATH% connect %DEVICE_IP%:%ADB_PORT%
+
+echo DONE!

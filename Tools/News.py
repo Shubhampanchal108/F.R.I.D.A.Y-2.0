@@ -1,6 +1,10 @@
 import requests
+import os
+from dotenv import load_dotenv
 
-NEWS_API_KEY = "996ab15c58294d689db44016488f38a9"
+load_dotenv()
+
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
 def get_latest_news():
     url = f"https://newsapi.org/v2/top-headlines?country=us&apiKey={NEWS_API_KEY}"

@@ -21,6 +21,7 @@ from Tools.Todo import add_task, list_tasks, delete_task, complete_task
 from Tools.reminder import *
 from Tools.website_opner import open_website
 from Tools.File_manger import *
+from Tools.Mobile_Automation import check_connection_json, connect_mobile_with_bat, unlock_device, send_whatsapp_message, phone_call_with_mobile
 from configs import Friday_Instruction
 
 
@@ -78,6 +79,11 @@ TOOLS = {
     'list_files': list_files,
     'rename_file': rename_file,
     'search_file_in_folder': search_file_in_folder,
+    'connect_mobile_with_bat': connect_mobile_with_bat,
+    'check_connection_json': check_connection_json,
+    'unlock_device': unlock_device,
+    'send_whatsapp_message': send_whatsapp_message,
+    'phone_call_with_mobile': phone_call_with_mobile
 }
 
 # ---------------- HELPERS ---------------- #

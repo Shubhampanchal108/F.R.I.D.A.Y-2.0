@@ -1,8 +1,11 @@
 import json
 import os
 from datetime import datetime
+from dotenv import load_dotenv
 
-FILE = r"C:\Users\j\OneDrive\Desktop\shubham studio\F.R.I.D.A.Y\Database\docs\reminders.json"
+load_dotenv()
+
+FILE = os.getenv("Reminder_Path")
 
 # ------------------ FILE HELPERS ------------------
 

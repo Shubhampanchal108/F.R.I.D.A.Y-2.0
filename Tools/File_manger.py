@@ -1,11 +1,14 @@
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ==============================
 # CONFIG
 # ==============================
 
-BASE_DIR = r"C:\Users\j\OneDrive\Desktop\shubham studio\F.R.I.D.A.Y\Database\content"
+BASE_DIR = os.getenv("BASE_DIR")
 os.makedirs(BASE_DIR, exist_ok=True)
 
 # ==============================
