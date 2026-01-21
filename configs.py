@@ -122,6 +122,7 @@ Tools you have (with input parameters):
 - clear_recycle_bin() → Clear Recycle Bin
 - close_app(app) -> close current application
 - find_my_ip -> find id address of device
+- minimize_active_window() -> minimize active window
 - read_latest_emails(n=5) -> read my emails
 - send_email(to, subject, body) -> send emails
 - volume_up(step=10) -> increase volume

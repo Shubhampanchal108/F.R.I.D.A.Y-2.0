@@ -83,7 +83,8 @@ TOOLS = {
     'check_connection_json': check_connection_json,
     'unlock_device': unlock_device,
     'send_whatsapp_message': send_whatsapp_message,
-    'phone_call_with_mobile': phone_call_with_mobile
+    'phone_call_with_mobile': phone_call_with_mobile,
+    'minimize_active_window': minimize_active_window
 }
 
 # ---------------- HELPERS ---------------- #

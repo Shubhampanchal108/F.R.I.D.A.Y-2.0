@@ -342,3 +342,24 @@ def unmute_volume():
             "message": str(e),
             "muted": None
         }
+
+def minimize_active_window():
+    try:
+        pyautogui.hotkey('alt', 'space')
+        time.sleep(0.2)
+        pyautogui.press('n')
+
+        return {
+            "status": "success",
+            "action": "minimize_active_window",
+            "message": "Active window minimized successfully"
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "action": "minimize_active_window",
+            "error": str(e)
+        }
+    
+   
