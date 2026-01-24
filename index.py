@@ -8,17 +8,17 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-file_path = os.getenv("Sound_File")
+file_path = os.getenv("SOUND_FILE")
 
 # ===== PROTOCOLS =====
 VOCAL_SENSE_PROTOCOL = False
 TYPE_ASSIST_PROTOCOL = True
-AUDIO_DRIVE_PROTOCOL = True
+AUDIO_DRIVE_PROTOCOL = False
 
 if __name__ == "__main__":
 
     print(greet())
-    speak(greet())
+    speak(f"{greet()} How may I assist You")
 
     while True:
 
@@ -59,6 +59,16 @@ if __name__ == "__main__":
             print("🔁 Switched to TYPING mode")
             continue
 
+        if "off" in query_lower and "audio drive"  in query_lower:
+            speak("Disabling Audio drive protocol.")
+            AUDIO_DRIVE_PROTOCOL = False
+            continue
+
+        if "activate" in query_lower and "audio drive"  in query_lower:
+            speak("Activating Audio drive protocol.")
+            AUDIO_DRIVE_PROTOCOL = True
+            continue
+
         # ===== PLAY CLICK SOUND =====
         playsound(file_path)
         print(f"Shubham : {query}\n")
@@ -69,4 +79,6 @@ if __name__ == "__main__":
         if response:
             final_ans = response.replace("*", "")
             print("Friday:", final_ans)
-            speak(final_ans)
+            
+            if (AUDIO_DRIVE_PROTOCOL):
+                speak(final_ans)

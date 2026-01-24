@@ -136,7 +136,7 @@ def Brain(prompt: str):
 
     while True:
         response = client.chat.completions.create(
-            model="Qwen/Qwen2.5-72B-Instruct",
+            model="Qwen/Qwen3-Coder-480B-A35B-Instruct:novita",
             temperature=0.3,
             messages=messages
         )
