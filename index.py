@@ -13,7 +13,7 @@ file_path = os.getenv("SOUND_FILE")
 # ===== PROTOCOLS =====
 VOCAL_SENSE_PROTOCOL = False
 TYPE_ASSIST_PROTOCOL = True
-AUDIO_DRIVE_PROTOCOL = False
+AUDIO_DRIVE_PROTOCOL = True
 
 if __name__ == "__main__":
 
@@ -25,7 +25,6 @@ if __name__ == "__main__":
         # ===== CHECK DUE REMINDERS =====
         due_reminders = get_due_reminders()
         for reminder in due_reminders:
-            # Pass to Brain for smart alert
             response = Brain(f"Reminder alert: '{reminder}' is due now!")
             if response:
                 final_ans = response.replace("*", "")

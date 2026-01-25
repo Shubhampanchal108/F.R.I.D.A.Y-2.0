@@ -159,13 +159,11 @@ def Brain(prompt: str):
                         "role": "assistant",
                         "content": msg
                     })
-                    add_to_history("assistant", msg)
 
                     messages.append({
                         "role": "assistant",
                         "content": f"Tool output: {tool_result}"
                     })
-                    add_to_history("assistant", f"Tool output: {tool_result}")
 
                     tool_calls += 1
                     continue
