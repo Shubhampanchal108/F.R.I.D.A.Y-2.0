@@ -1,14 +1,13 @@
 from openai import OpenAI  # type: ignore
-from utiles import load_memory, add_to_history, clean_json_string
+from utiles import load_memory, add_to_history, normalize_role, parse_tool_call
 import os
 import sys
-import json
-import re
 from dotenv import load_dotenv
 
 # Allow parent directory imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+#Tools Imorts
 from Tools.weather import get_current_weather
 from Tools.systems_tools import *
 from Tools.News import get_latest_news
@@ -22,6 +21,7 @@ from Tools.reminder import *
 from Tools.website_opner import open_website
 from Tools.File_manger import *
 from Tools.Mobile_Automation import check_connection_json, connect_mobile_with_bat, unlock_device, send_whatsapp_message, phone_call_with_mobile
+from RAG import save_longterm_memory, search_vector_memory
 from configs import Friday_Instruction
 
 
@@ -84,35 +84,9 @@ TOOLS = {
     'unlock_device': unlock_device,
     'send_whatsapp_message': send_whatsapp_message,
     'phone_call_with_mobile': phone_call_with_mobile,
-    'minimize_active_window': minimize_active_window
+    'minimize_active_window': minimize_active_window,
+    'save_longterm_memory': save_longterm_memory,
 }
-
-# ---------------- HELPERS ---------------- #
-def normalize_role(role: str):
-    if role in ["system", "user", "assistant"]:
-        return role
-    if role in ["human"]:
-        return "user"
-    if role in ["ai", "bot", "model"]:
-        return "assistant"
-    return "user"
-
-
-def parse_tool_call(msg: str):
-    try:
-        match = re.search(r'\{[\s\S]*\}', msg)
-        if not match:
-            return None
-
-        json_str = clean_json_string(match.group())
-        data = json.loads(json_str)
-
-        if isinstance(data, dict) and "tool" in data:
-            return data
-        return None
-    except Exception:
-        return None
-
 
 # ---------------- BRAIN (MULTI-TOOL AGENT LOOP) ---------------- #
 def Brain(prompt: str):
@@ -128,16 +102,35 @@ def Brain(prompt: str):
             "content": m.get("content", "")
         })
 
+    # Retrieve relevant vector memories and include them in the context
+    try:
+        retrieved = search_vector_memory(query=prompt, top_k=2)
+        if retrieved:
+            mem_texts = []
+            for mem in retrieved:
+                txt = mem.get("text", "").replace("\n", " ")
+                md = mem.get("metadata", {}) or {}
+                tags = md.get("tags", "")
+                mem_texts.append(f"- {txt} (tags: {tags})")
+
+            memories_str = "\n".join(mem_texts)
+            messages.append({
+                "role": "assistant",
+                "content": f"Relevant memories:\n{memories_str}"
+            })
+    except Exception as e:
+        print("⚠️ Memory retrieval error:", e)
+
     # User prompt
     messages.append({"role": "user", "content": prompt})
 
-    MAX_TOOL_CALLS = 6
+    MAX_TOOL_CALLS = 5
     tool_calls = 0
 
     while True:
         response = client.chat.completions.create(
             model="Qwen/Qwen3-Coder-480B-A35B-Instruct:novita",
-            temperature=0.3,
+            temperature=0.2,
             messages=messages
         )
 

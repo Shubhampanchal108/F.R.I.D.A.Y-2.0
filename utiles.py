@@ -42,3 +42,29 @@ def clean_json_string(msg: str) -> str:
     msg = re.sub(r",\s*}", "}", msg)
     msg = re.sub(r",\s*]", "]", msg)
     return msg.strip()
+
+# ---------------- HELPERS ---------------- #
+def normalize_role(role: str):
+    if role in ["system", "user", "assistant"]:
+        return role
+    if role in ["human"]:
+        return "user"
+    if role in ["ai", "bot", "model"]:
+        return "assistant"
+    return "user"
+
+
+def parse_tool_call(msg: str):
+    try:
+        match = re.search(r'\{[\s\S]*\}', msg)
+        if not match:
+            return None
+
+        json_str = clean_json_string(match.group())
+        data = json.loads(json_str)
+
+        if isinstance(data, dict) and "tool" in data:
+            return data
+        return None
+    except Exception:
+        return None
