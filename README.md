@@ -54,9 +54,9 @@ FRIDAY can dynamically choose and execute tools like:
 
   * Real-time info retrieval
 
-* 🎵 **YouTube Music Automation**
+* 🎵 **YouTube Automation**
 
-  * Play songs directly from voice/text command
+  * Play videos directly from voice/text command
 
 ---
 
@@ -66,14 +66,15 @@ FRIDAY can dynamically choose and execute tools like:
 * 🧠 CPU usage check
 * 📂 Open & close applications
 * 🖥️ System commands execution
-* 📁 File & folder operations (planned expansion)
+* 📁 File & folder operations
 
 ---
 
 ### 💬 Communication & Messaging
 
-* 📱 Send WhatsApp messages using natural language (planned expansion)
+* 📱 Send WhatsApp messages using natural language.
 * ✉️ Send emails
+* ✉️ Read emails
 * 👤 Content writing like (Notes, Essays, Letters, Emails, summary)
 
 ---
@@ -103,7 +104,7 @@ FRIDAY can:
 ### 🧠 Memory System
 
 * 🗂️ Short-term memory implemented
-* 🧬 Planned long-term memory using:
+* 🧬 long-term memory using:
 
   * Vector Databases
   * Embedding-based recall
@@ -132,8 +133,8 @@ Final Response
 * 🐍 Python
 * ⚡ FastAPI (backend – planned)
 * 🔗 LangChain (tool orchestration – planned)
-* 🧠 Qwen/Qwen2.5-72B-Instruct ->  Open-source LLMs
-* 🗃️ Vector DB (future memory)
+* 🧠 Qwen/Qwen3-Coder-480B-A35B-Instruct:novita ->  Open-source LLMs
+* 🗃️ Vector DB.
 
 ---
 
@@ -142,7 +143,7 @@ Final Response
 * ✅ Policy-based tool access
 * ✅ Scoped file edits
 * ✅ Diff preview & undo
-* ✅ Permission layers (system / web / IDE)
+* ✅ Multi Input layers (system / web / IDE)
 
 ---
 
@@ -166,7 +167,7 @@ Final Response
 
 ## 🛣️ Roadmap
 
-### 🔥 Friday 2.5
+### 🔥 Friday 2.0
 
 * Long-term vector memory
 * Task planning agent
@@ -191,7 +192,7 @@ Final Response
 
 ## 🧑‍💻 Developer
 
-**Shubham (Shubhu) — CSE Student & AI Enthusiast**
+**Shubham — CSE Student**
 Passionate about:
 
 * AI Agents

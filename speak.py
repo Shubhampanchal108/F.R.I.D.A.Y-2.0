@@ -2,14 +2,29 @@ import os
 import queue
 import threading
 import time
-from playsound import playsound
 from gtts import gTTS
+
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
+import os
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+import pygame
+
+# ===============================
+# INIT PYGAME AUDIO
+# ===============================
+pygame.mixer.init()
 
 audio_queue = queue.Queue()
 STOP_SIGNAL = "STOP"
 
+AUDIO_FOLDER = "Database/audio"
+os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
+# ===============================
 # Split text into chunks
+# ===============================
 def split_text(text):
     try:
         sentences = text.split(".")
@@ -19,7 +34,9 @@ def split_text(text):
         return []
 
 
+# ===============================
 # Producer: create audio files
+# ===============================
 def audio_producer(text):
     try:
         chunks = split_text(text)
@@ -30,7 +47,7 @@ def audio_producer(text):
 
         for index, chunk in enumerate(chunks):
             try:
-                filename = f"Database//audio//voice_{index}.mp3"
+                filename = f"{AUDIO_FOLDER}/voice_{index}.mp3"
 
                 tts = gTTS(text=chunk)
                 tts.save(filename)
@@ -47,7 +64,9 @@ def audio_producer(text):
         audio_queue.put(STOP_SIGNAL)
 
 
-# Consumer: play audio files
+# ===============================
+# Consumer: play audio using pygame
+# ===============================
 def audio_consumer():
     try:
         while True:
@@ -61,24 +80,39 @@ def audio_consumer():
                     print("⚠️ File not found:", filename)
                     continue
 
-                playsound(filename)
+                # ▶️ Load & play
+                pygame.mixer.music.load(filename)
+                pygame.mixer.music.play()
+
+                # ⏳ Wait until playback finishes
+                while pygame.mixer.music.get_busy():
+                    time.sleep(0.05)
+
+                # 🛑 Release file lock properly (WINDOWS FIX)
+                pygame.mixer.music.stop()
+                pygame.mixer.music.unload()
                 time.sleep(0.1)
 
             except Exception as e:
                 print("❌ Play Error:", e)
 
             finally:
-                try:
-                    if os.path.exists(filename):
-                        os.remove(filename)
-                except Exception as e:
-                    print("❌ Delete Error:", e)
+                # 🧹 Safe delete with retry
+                for _ in range(5):
+                    try:
+                        if os.path.exists(filename):
+                            os.remove(filename)
+                            break
+                    except Exception:
+                        time.sleep(0.1)
 
     except Exception as e:
         print("❌ Consumer Crash:", e)
 
 
-# Main speak fucntion 
+# ===============================
+# Main speak function
+# ===============================
 def speak(text):
     try:
         if not text.strip():

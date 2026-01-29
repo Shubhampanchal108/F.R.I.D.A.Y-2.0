@@ -104,7 +104,7 @@ def Brain(prompt: str):
 
     # Retrieve relevant vector memories and include them in the context
     try:
-        retrieved = search_vector_memory(query=prompt, top_k=2)
+        retrieved = search_vector_memory(query=prompt, top_k=3)
         if retrieved:
             mem_texts = []
             for mem in retrieved:

@@ -59,8 +59,7 @@ def save_longterm_memory(
             ids=[str(uuid.uuid4())]
         )
 
-        print(f"✅ Saved in [{memory_type}] | Tags: {metadata['tags']}")
-        return True
+        return f"✅ Saved in [{memory_type}] | Tags: {metadata['tags']}"
 
     except Exception as e:
         print("❌ Save error:", e)
@@ -92,7 +91,9 @@ def search_vector_memory(
 
     except Exception as e:
         return("❌ Search error:", e)
-        return []
 
 
-
+if __name__ == "__main__":
+    while True:
+        q = input("Search your query: ")
+        print(search_vector_memory(q))

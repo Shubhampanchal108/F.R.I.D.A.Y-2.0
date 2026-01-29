@@ -34,39 +34,7 @@ creator_details = [
     "portfolio": "https://shubhamportfolio3.netlify.app/",
     "website": "https://codewithshubhamm.netlify.app/"
   },
-
-  "skills": {
-    "programming_languages": ["Python", "JavaScript", "C++"],
-    "frameworks": ["React", "Next.js", "FastAPI", "node js", "Express js"],
-    "databases": ["MongoDB", "MySQL"],
-    "tools": ["Git", "VS Code"],
-    "ai_ml": ["Basic ML", "Open Sourece LLM", "python"],
-  },
-
-  "projects": [
-    {
-      "name": "Friday 2.0",
-      "description": "Jarvis-like AI assistant with tool orchestration",
-      "tech_stack": ["Python", "LLM", "FAST API"],
-      "status": "Active",
-      "repo": "https://github.com/Shubhampanchal108/F.R.I.D.A.Y-2.0",
-      "notes": ""
-    },
-    {
-      "name": "Krishi Mittra",
-      "description": "An AI powered crop advisory system.",
-      "tech_stack": ["React Native", "LLM", "Node js", "Express js", "MongoDb"],
-      "status": "Active",
-      "repo": "https://github.com/Shubhampanchal108/KRISHI-MITTRA",
-      "notes": ""
-    }
-  ],
-
-  "preferences": {
-    "favorite_language": ["Python", "Javascript"],
-    "favorite_music": ["pathan", "Dil ka jo haal hai", "Brother Anthem"],
-  },
-
+  
   "friends_and_network": [
     {
       "name": "Babita",
@@ -74,29 +42,7 @@ creator_details = [
       "contact": "+9138248542",
       "email": "br2164244@gmail.com"
     },
-    {
-      "name": "Rehan",
-      "relation": "Brother",
-      "contact": "+9138248542",
-      "notes": "Nick name of rehan is banda"
-    }
   ],
-
-  "goals": {
-    "short_term": [
-      "Master MERN stack",
-      "Build production-ready Software"
-    ],
-    "long_term": [
-      "Create real-world software and AI system",
-      "Start own tech startup"
-    ]
-  },
-
-  "learning_progress": {
-    "current_focus": ["Next.js", "AI Agents", "DSA", "Typescipt"],
-    "completed_topics": ["React", 'Node', 'Express js', "MongoDb", "js"],
-  },
 }
 
 ]

@@ -1,28 +1,64 @@
 {
   "conversation_history": [
     {
-      "role": "user",
-      "content": "mere fav player ko google per search kro "
-    },
-    {
       "role": "assistant",
-      "content": "Sir, I've searched for your favorite player Virat Kohli on Google. The search results should now be showing his latest information, news, and updates. Is there anything specific about Virat Kohli you'd like to know?"
+      "content": "I've successfully opened the Krishi Mitra repository in your browser, sir. The GitHub page for your smart agriculture project is now loading. You can view the code, documentation, and project structure there.\n\nIs there anything specific you'd like to do with the Krishi Mitra project now that the repository is open? Perhaps you want to check certain files or documentation?"
     },
     {
       "role": "user",
-      "content": "m kya skills sikhu jo mujhe help kre jo m sikh rha hu wo thik bhi shik rha hu ya time waste "
+      "content": "april depository or open"
     },
     {
       "role": "assistant",
-      "content": "Based on my research, here are the key skills you should focus on as a full-stack developer:\n\n**Essential Technical Skills:**\n- **Frontend**: React, Next.js, HTML/CSS, JavaScript\n- **Backend**: Node.js, Express.js, Python (FastAPI/Flask)\n- **Database**: MongoDB, MySQL\n- **Version Control**: Git/GitHub\n- **Deployment**: Netlify, Vercel, Heroku\n\n**Current Assessment:**\nYou're already learning Next.js and have completed React, Node.js, Express.js, MongoDB, and JavaScript - this is excellent progress!\n\n**Recommendations:**\n1. Continue with Next.js as it's highly valuable\n2. Add Python backend frameworks (FastAPI) to your skillset\n3. Practice building full projects combining frontend and backend\n4. Learn database design and optimization\n\nYour current learning path isn't time waste - you're following the right trajectory. Just ensure to build projects that combine all these technologies together."
+      "content": "I've successfully opened the April Depository website in your browser, sir. The site has loaded properly and is now ready for you to access your files and documents.\n\nIs there anything specific you'd like to do with April Depository now, or would you like me to help you with any other tasks?"
     },
     {
       "role": "user",
-      "content": "ok thank for guiding "
+      "content": "apni repository open karo"
     },
     {
       "role": "assistant",
-      "content": "You're welcome, sir! I'm glad I could help guide your learning path. Your current focus on Next.js and full-stack development is excellent. Remember to practice regularly and build projects that combine your skills. Is there anything else you'd like assistance with today?"
+      "content": "I've successfully opened your GitHub repository in the browser, sir. Your profile page at https://github.com/Shubhampanchal108 is now loaded, where you can see all your projects including FRIDAY and Krishi Mitra.\n\nIs there anything specific you'd like to do with your GitHub repository now?"
+    },
+    {
+      "role": "user",
+      "content": "meri mummy ko call karo"
+    },
+    {
+      "role": "assistant",
+      "content": "Sir, I'm unable to make the call to your mother because no mobile device is currently connected to FRIDAY. To make calls, your mobile phone needs to be connected first.\n\nWould you like me to help you connect your mobile device, or should I try another method to assist you with contacting your mother?"
+    },
+    {
+      "role": "user",
+      "content": "another method kya hai tumhare"
+    },
+    {
+      "role": "assistant",
+      "content": "Sir, currently I don't have any alternative method to make calls since no mobile device is connected to FRIDAY. The call functionality requires your mobile phone to be paired with the system.\n\nHowever, I can help you with these alternatives:\n\n1. I can open WhatsApp Web if you want to send a message\n2. I can help you compose an email to your mother\n3. I can remind you to connect your mobile device later\n\nWould any of these options work for you right now, sir?"
+    },
+    {
+      "role": "user",
+      "content": "yah baat mujhe hindi mein samjha"
+    },
+    {
+      "role": "assistant",
+      "content": "सर, मैंने आपकी कृषि मित्र परियोजना के बारे में जो जानकारी सहेजी है, उसे हिंदी में समझाती हूं:\n\nकृषि मित्र एक स्मार्ट कृषि सहायता प्रोजेक्ट है जो किसानों को आधुनिक तकनीक के माध्यम से मदद करता है। इसका मुख्य उद्देश्य फसल प्रबंधन, मौसम निगरानी, मृदा विश्लेषण और खेती के निर्णय लेने को बुद्धिमान बनाना है। \n\nकृषि मित्र वास्तविक समय मौसम अपडेट प्रदान करता है, फसल सलाह देता है, सिंचाई योजना में मदद करता है, उर्वरक अनुशंसा करता है और रोग निर्धारण जैसी सुविधाओं का समर्थन करता है। यह किसानों को सही समय पर सही निर्णय लेने में मदद करता है जिससे उत्पादकता बढ़ती है और नुकसान कम होता है।\n\nकृषि मित्र प्रौद्योगिकी-संचालित खेती को बढ़ावा देता है और ग्रामीण कृषि को डिजिटल रूप से सशक्त बनाता है। कृषि मित्र का GitHub भंडार लिंक है: https://github.com/Shubhampanchal108/KRISHI-MITTRA\n\nक्या आप चाहेंगे कि मैं इस परियोजना के किसी विशेष पहलू को और विस्तार से समझाऊं?"
+    },
+    {
+      "role": "user",
+      "content": "liya dubai"
+    },
+    {
+      "role": "assistant",
+      "content": "I notice you mentioned \"liya dubai\" but I don't have specific information about this topic in my knowledge base. Could you please clarify what exactly you'd like to know about Dubai? \n\nAre you asking about:\n- Travel information to Dubai?\n- Something related to your projects?\n- Or something else entirely?\n\nPlease provide more context so I can assist you better, sir."
+    },
+    {
+      "role": "user",
+      "content": "hi"
+    },
+    {
+      "role": "assistant",
+      "content": "Hello sir! How can I assist you today? Would you like me to help with any of your projects, system tasks, or provide information about anything specific?"
     }
   ]
 }
