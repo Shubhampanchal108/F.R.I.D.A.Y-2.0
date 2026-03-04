@@ -1,64 +1,44 @@
 {
   "conversation_history": [
     {
+      "role": "user",
+      "content": "Hi how are you"
+    },
+    {
       "role": "assistant",
-      "content": "Here's a joke for you, sir:\n\nWhy don't scientists trust atoms?\n\nBecause they make up everything!\n\nHope that brought a smile to your face! Would you like to hear another one?"
+      "content": "Hello sir! I'm doing well, thank you for asking. I'm here and ready to assist you with whatever tasks or information you need. \n\nHow are you doing today? Is there anything specific I can help you with - perhaps managing your schedule, finding information, handling files, or assisting with any of your projects like FRIDAY or KRISHI MITRA?"
     },
     {
       "role": "user",
-      "content": "check news "
+      "content": "can you find some trans from delhi to rewa and tell me timings"
     },
     {
       "role": "assistant",
-      "content": "Here are today's top headlines, sir:\n\n1. Trump warns Minneapolis mayor about immigration policies\n2. Kanye West announces March release for his album 'Bully'\n3. Amazon layoffs: Latest updates from internal communications\n4. Northeast US faces severe weather with heavy snow and strong winds\n5. Tyson Fury to fight Arslanbek Makhmudov in his comeback match\n\nWould you like me to elaborate on any of these stories or check specific news categories for you?"
+      "content": "Sir, I found the transport options from Delhi to Rewa:\n\n**Train Options:**\n- **Anand Vihar T - Rewa SF Express (12428)**: \n  - Departs from New Delhi at 22:05 hrs\n  - Journey time: Approximately 13 hours 50 minutes\n  - Distance: 849 kilometers\n  - Arrives in Rewa around 11:55 AM next day\n\n- **REWA EXPRESS**: \n  - Departs from New Delhi at 21:15 hrs\n  - Journey time: Approximately 13 hours 55 minutes\n  - Arrives in Rewa by 11:10 AM next day\n\nBoth trains operate daily and cover the same distance. The Anand Vihar T - Rewa SF Express is slightly faster. These are the main train connections available between Delhi and Rewa.\n\nWould you like me to check bus services or flight options as well?"
     },
     {
       "role": "user",
-      "content": "hi"
+      "content": "open my mobile"
     },
     {
       "role": "assistant",
-      "content": "Hello sir! How can I assist you today? Would you like me to help with any tasks, check system status, or provide information about anything specific?"
+      "content": "Sir, I'm unable to connect to your mobile device from this web environment. The mobile connectivity features require the desktop version of FRIDAY to be running with proper network configuration between your computer and mobile device.\n\nTo use mobile connectivity features like unlocking your device or making calls, you would need to:\n1. Install FRIDAY on your computer\n2. Ensure both devices are on the same network\n3. Configure the connection properly\n\nIs there something specific you wanted to do with your mobile? I might be able to suggest alternative ways to accomplish it."
     },
     {
       "role": "user",
-      "content": "hi"
+      "content": "so friday tell me time"
     },
     {
       "role": "assistant",
-      "content": "Hello again, sir! How can I assist you today? Would you like me to help with any tasks, check system status, or provide information about anything specific?\n\nI noticed you've been working on your FRIDAY project lately - would you like me to help you test any new features or improvements?"
+      "content": "Sir, the current time is 21:36:26 (9:36 PM). Is there anything specific you'd like me to help you with regarding this time, or do you need assistance with any other tasks?"
     },
     {
       "role": "user",
-      "content": "kese ho"
+      "content": "open my linkid profile"
     },
     {
       "role": "assistant",
-      "content": "Main bilkul theek hoon, sir! Aapki service me taiyaar hoon. Kya aapko kisi task me madad chahiye? Ya koi specific cheez jankari chahiye?"
-    },
-    {
-      "role": "user",
-      "content": "hi"
-    },
-    {
-      "role": "assistant",
-      "content": "Hello sir! I'm doing well, thank you for asking. I'm here and ready to assist you with any tasks you might have. \n\nWould you like me to help you with anything specific today? Perhaps check some system information, open applications, or maybe work on your FRIDAY project that you've been developing?"
-    },
-    {
-      "role": "user",
-      "content": "check weather"
-    },
-    {
-      "role": "assistant",
-      "content": "Sir, here's the current weather in Kaithal:\n\n- Weather Condition: Cloudy\n- Temperature: 10.95°C\n- Feels Like: 9.93°C\n\nIt's quite cool today with overcast conditions. Perfect weather to stay indoors and work on your projects, sir! Would you like me to suggest any indoor activities or perhaps help you with your development work?"
-    },
-    {
-      "role": "user",
-      "content": "hi"
-    },
-    {
-      "role": "assistant",
-      "content": "Hello sir! How can I assist you today? Would you like me to help with any tasks, check system status, or provide information about anything specific?\n\nI'm here and ready to help with whatever you need - whether it's managing your projects, checking system performance, or just having a conversation. What would you like to do?"
+      "content": "Sir, I've successfully opened your LinkedIn profile in your default web browser. Your profile should now be visible at https://www.linkedin.com/in/shubham-panchal-a80053306.\n\nIs there anything specific you'd like to do with your LinkedIn profile now? Or is there anything else I can assist you with?"
     }
   ]
 }

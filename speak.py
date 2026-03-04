@@ -25,10 +25,42 @@ os.makedirs(AUDIO_FOLDER, exist_ok=True)
 # ===============================
 # Split text into chunks
 # ===============================
-def split_text(text):
+def split_text(text, max_len=100):
     try:
-        sentences = text.split(".")
-        return [s.strip() for s in sentences if s.strip()]
+        if not text:
+            return []
+
+        chunks = []
+        start = 0
+        i = 0
+        text_len = len(text)
+
+        while i < text_len:
+            if text[i] == ".":
+                chunk = text[start:i].strip()
+                if chunk:
+                    chunks.append(chunk)
+                start = i + 1
+
+            if i - start + 1 >= max_len:
+                window = text[start:i + 1]
+                cut = window.rfind(" ")
+                end = start + (cut if cut != -1 else len(window))
+                chunk = text[start:end].strip()
+                if chunk:
+                    chunks.append(chunk)
+                start = end
+                while start < text_len and text[start] in [" ", "."]:
+                    start += 1
+                i = start - 1
+
+            i += 1
+
+        tail = text[start:].strip()
+        if tail:
+            chunks.append(tail)
+
+        return chunks
     except Exception as e:
         print("❌ Split Error:", e)
         return []

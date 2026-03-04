@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 MEMORY_FILE = os.getenv("MEMORY_FILE")
-MAX_HISTORY = 15
+MAX_HISTORY = 10
 
 # ---------------- MEMORY ---------------- #
 def load_memory():

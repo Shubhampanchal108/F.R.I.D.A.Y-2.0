@@ -8,12 +8,13 @@ current_Date = get_date_with_day()
 date = current_Date["date"]
 
 BASE_DIR = os.getenv("BASE_DIR")
+Mobile_lock = os.getenv("MOBILE_LOCK_PIN")
 
 creator_details = [
     {
   "creator_profile": {
     "full_name": "Shubham",
-    "mobile_lock": "9445",
+    "mobile_lock": Mobile_lock,
     "date_of_birth": "08-04-2004",
     "age": 21,
     "city": "Kaithal",
@@ -62,7 +63,7 @@ Tools you have (with input parameters):
 - youtube_automation(query) → Youtube Automation
 - get_News() → News Checker
 - search_wikipedia(query) → Wikipedia Searching
-- google_search(query) → Google Searching
+- google_search(query) → your search engine.
 - open_app(app) → App Opener
 - check_cpu() → CPU Check
 - clear_recycle_bin() → Clear Recycle Bin
@@ -103,6 +104,7 @@ Tools you have (with input parameters):
 - connect_mobile_with_bat(ip_address) -> Connect mobile with friday.
 - check_connection_json() -> Check is mobile is connected or not.
 - unlock_device(pin_code) -> unlock mobile.
+- summrize_url(url: str) -> sumrize the url.
 - phone_call_with_mobile(phone_number) -> Makes call with mobile
 - send_whatsapp_message(phone_number, message) -> send Whatsapp message with mobile.
 - def save_longterm_memory(text: str,memory_type: str = "Long-Term-Memory",tags: list,importance: str = "medium",source: str = "user") -> to save long term memory
