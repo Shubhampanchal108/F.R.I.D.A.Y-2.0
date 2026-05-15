@@ -1,14 +1,16 @@
 import os
 from datetime import datetime
-from dotenv import load_dotenv
+import sys
 
-load_dotenv()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from path import CONTENT_PATH
+
 
 # ==============================
 # CONFIG
 # ==============================
 
-BASE_DIR = os.getenv("BASE_DIR")
+BASE_DIR = CONTENT_PATH
 os.makedirs(BASE_DIR, exist_ok=True)
 
 # ==============================

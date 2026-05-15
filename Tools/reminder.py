@@ -1,11 +1,13 @@
 import json
 import os
 from datetime import datetime
-from dotenv import load_dotenv
+import sys
 
-load_dotenv()
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from path import DOCS_PATH
 
-FILE = os.getenv("Reminder_Path")
+
+FILE = os.path.join(DOCS_PATH, "reminder.json")
 
 # ------------------ FILE HELPERS ------------------
 

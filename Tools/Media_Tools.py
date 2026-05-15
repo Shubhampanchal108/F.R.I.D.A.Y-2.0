@@ -18,8 +18,8 @@ def yt_play_pause():
 
 def yt_next():
     try:
-        pyautogui.press("shift")  # optional, if needed with 'n' for some browsers
-        pyautogui.press("n")      # YouTube next video shortcut
+        pyautogui.press("shift")  
+        pyautogui.press("n")    
         return {
             "status": "success",
             "action": "yt_next",

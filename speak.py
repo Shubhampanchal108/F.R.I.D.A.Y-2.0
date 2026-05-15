@@ -3,6 +3,7 @@ import queue
 import threading
 import time
 from gtts import gTTS
+from path import AUDIO_PATH
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -19,7 +20,7 @@ pygame.mixer.init()
 audio_queue = queue.Queue()
 STOP_SIGNAL = "STOP"
 
-AUDIO_FOLDER = "Database/audio"
+AUDIO_FOLDER = AUDIO_PATH
 os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
 # ===============================

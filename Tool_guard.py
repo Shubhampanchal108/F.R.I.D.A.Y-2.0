@@ -1,13 +1,9 @@
-# ================================
-# Tool Imports
-# ================================
-
 from Tools.weather import get_current_weather
 from Tools.systems_tools import *
 from Tools.News import get_latest_news
 from Tools.wikipedia import search_wikipedia
 from Tools.pywhatkit import play_youtube
-from Tools.Emails import send_email, read_latest_emails, readmail_Full_body
+from Tools.Emails import check_new_mail, send_email, read_latest_emails, readmail_Full_body
 from Tools.Date_Time import get_date_with_day, get_current_time
 from Tools.Media_Tools import *
 from Tools.Todo import add_task, list_tasks, delete_task, complete_task
@@ -51,7 +47,8 @@ MOBILE_ALLOWED = {
     "read_latest_emails",
     "readmail_Full_body",
     "save_longterm_memory",
-    "summrize_url"
+    "summrize_url",
+    "check_new_mail"
 }
 
 WEB_ALLOWED = {
@@ -75,7 +72,8 @@ WEB_ALLOWED = {
     "read_latest_emails",
     "readmail_Full_body",
     "save_longterm_memory",
-    "summrize_url"
+    "summrize_url",
+    "check_new_mail"
 }
 
 
@@ -93,17 +91,17 @@ class ToolRegistry:
     def get(self, name):
         return self._tools.get(name)
 
-    def is_allowed(self, tool_name, source):
+    def is_allowed(self, tool_name, origin):
 
         # Server gets full access
-        if source.lower() == "server":
+        if origin.lower() == "server":
             return True
 
-        if source.lower() == "mobile":
+        if origin.lower() == "mobile":
             if(tool_name in MOBILE_ALLOWED):
                 return True
 
-        if source.lower() == "web":
+        if origin.lower() == "web":
             if(tool_name in WEB_ALLOWED):
                 return True
 
@@ -130,6 +128,7 @@ TOOLS = {
         "read_latest_emails": read_latest_emails,
         "readmail_Full_body": readmail_Full_body,
         "save_longterm_memory": save_longterm_memory,
+        "check_new_mail": check_new_mail,
 
         # ---- System ----
         "open_app": open_application,
@@ -143,6 +142,7 @@ TOOLS = {
         "unmute_volume": unmute_volume,
         "capture_screenshot": capture_screenshot,
         "minimize_active_window": minimize_active_window,
+        "maximize_active_window": maximize_active_window,
 
         # ---- YouTube ----
         "youtube_automation": play_youtube,
@@ -197,15 +197,15 @@ def load_tools():
 # Execution Layer
 # ================================
 
-def execute_tool(tool_name, source, **kwargs):
+def execute_tool(tool_name, origin, **kwargs):
 
     tool = registry.get(tool_name)
 
     if not tool:
         return "❌ Tool not found."
 
-    if not registry.is_allowed(tool_name, source):
-        return f"🚫 {tool_name} not allowed for {source}"
+    if not registry.is_allowed(tool_name, origin):
+        return f"🚫 {tool_name} not allowed for {origin}"
 
     try:
         return tool(**kwargs)

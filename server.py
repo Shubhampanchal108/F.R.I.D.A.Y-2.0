@@ -7,7 +7,6 @@ from fastapi import FastAPI, Header, HTTPException, Request, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pymongo import MongoClient
-from dotenv import load_dotenv
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -19,17 +18,17 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(">")
+from config_driver import Check_Keys
 
 # -------------------------------
-# Load ENV
+# Load Configs
 # -------------------------------
-load_dotenv()
-MONGO_URL = os.getenv("DATABASE_URL")
+MONGODB_URL = Check_Keys("KEYS", "MONGODB_URL")
 
 # -------------------------------
 # MongoDB Setup
 # -------------------------------
-client = MongoClient(MONGO_URL)
+client = MongoClient(MONGODB_URL)
 db = client["FridayDB"]
 api_keys_collection = db["api_keys"]
 

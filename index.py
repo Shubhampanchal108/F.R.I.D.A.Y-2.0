@@ -2,22 +2,9 @@ from Brain import Brain
 from voice_input import SpeechRecognition
 from speak import speak
 from Tools.systems_tools import greet
-from Tools.reminder import get_due_reminders
-import os 
-from dotenv import load_dotenv
-import pygame
+from config_driver import Check_Keys
 
-load_dotenv()
-file_path = os.getenv("SOUND_FILE")
-
-# ===== INIT PYGAME AUDIO =====
-pygame.mixer.init()
-
-if file_path and os.path.exists(file_path):
-    try:
-        pygame.mixer.music.load(file_path)
-    except Exception as e:
-        print("🔊 Sound Load Error:", e)
+AUTH_PASSWORD = Check_Keys("KEYS", "AGENT_PASSWORD")
 
 # ===== PROTOCOLS =====
 VOCAL_SENSE_PROTOCOL = False
@@ -32,13 +19,6 @@ greeting = greet()
 print(greeting)
 speak(f"{greeting} How may I assist you")
 
-# ===== SAFE CLICK SOUND USING PYGAME =====
-def play_click():
-    if AUDIO_DRIVE_PROTOCOL and file_path and os.path.exists(file_path):
-        try:
-            pygame.mixer.music.play()
-        except Exception as e:
-            print("🔊 Play Error:", e)
 
 # ===== PROCESS RESPONSE =====
 def process_response(text):
@@ -53,15 +33,15 @@ def process_response(text):
 if __name__ == "__main__":
 
     while True:
+        password = input("Enter password: ")
 
-        # ===== CHECK DUE REMINDERS =====
-        try:
-            due_reminders = get_due_reminders()
-            for reminder in due_reminders:
-                process_response(f"Reminder alert: '{reminder}' is due now!")
-        except Exception as e:
-            print("⏰ Reminder Error:", e)
+        if (password == AUTH_PASSWORD):
+            print("✅ Authentication successful. Welcome back, Sir!\n")
+            break
+        else:
+            print("Wrong password sir. Do you remember what you enter in the AGETN_PASSWORD when you are configring the agent.\n")
 
+    while True:
         # ===== INPUT MODE =====
         if VOCAL_SENSE_PROTOCOL:
             print("🎙️ Listening...")
@@ -105,9 +85,6 @@ if __name__ == "__main__":
             speak("Activating Audio drive protocol.")
             print("🔊 Audio drive enabled")
             continue
-
-        # ===== PLAY CLICK SOUND =====
-        play_click()
 
         # ===== PROCESS USER QUERY =====
         clean_query = query_lower.replace("friday", "").strip()

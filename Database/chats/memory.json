@@ -2,43 +2,43 @@
   "conversation_history": [
     {
       "role": "user",
-      "content": "Hi how are you"
+      "content": "save this info in file"
     },
     {
       "role": "assistant",
-      "content": "Hello sir! I'm doing well, thank you for asking. I'm here and ready to assist you with whatever tasks or information you need. \n\nHow are you doing today? Is there anything specific I can help you with - perhaps managing your schedule, finding information, handling files, or assisting with any of your projects like FRIDAY or KRISHI MITRA?"
+      "content": "Sir, जानकारी सफलतापूर्वक **memory_info.txt** नाम की फ़ाइल में सहेज ली गई है। यह फ़ाइल आपके मुख्य फ़ोल्डर **C:\\Users\\j\\OneDrive\\Desktop\\shubham studio\\F.R.I.D.A.Y\\Database\\content** में खुली हुई है, इसलिए आप तुरंत देख सकते हैं। यदि और कोई फ़ाइल बनवानी या सामग्री अपडेट करनी हो तो बताइए।"
     },
     {
       "role": "user",
-      "content": "can you find some trans from delhi to rewa and tell me timings"
+      "content": "hello"
     },
     {
       "role": "assistant",
-      "content": "Sir, I found the transport options from Delhi to Rewa:\n\n**Train Options:**\n- **Anand Vihar T - Rewa SF Express (12428)**: \n  - Departs from New Delhi at 22:05 hrs\n  - Journey time: Approximately 13 hours 50 minutes\n  - Distance: 849 kilometers\n  - Arrives in Rewa around 11:55 AM next day\n\n- **REWA EXPRESS**: \n  - Departs from New Delhi at 21:15 hrs\n  - Journey time: Approximately 13 hours 55 minutes\n  - Arrives in Rewa by 11:10 AM next day\n\nBoth trains operate daily and cover the same distance. The Anand Vihar T - Rewa SF Express is slightly faster. These are the main train connections available between Delhi and Rewa.\n\nWould you like me to check bus services or flight options as well?"
+      "content": "Hello Sir, कैसे मदद कर सकता हूँ?"
     },
     {
       "role": "user",
-      "content": "open my mobile"
+      "content": "Who is Ajay tel in english"
     },
     {
       "role": "assistant",
-      "content": "Sir, I'm unable to connect to your mobile device from this web environment. The mobile connectivity features require the desktop version of FRIDAY to be running with proper network configuration between your computer and mobile device.\n\nTo use mobile connectivity features like unlocking your device or making calls, you would need to:\n1. Install FRIDAY on your computer\n2. Ensure both devices are on the same network\n3. Configure the connection properly\n\nIs there something specific you wanted to do with your mobile? I might be able to suggest alternative ways to accomplish it."
+      "content": "Sir, Ajay Tel (often written as Ajay Tel) appears to be a name rather than a widely recognized public figure; there are limited references online. The search results mainly show personal social‑media profiles and a few mentions in local news or business listings, indicating he might be a private individual or a professional in a specific region. If you have more context—like his profession, location, or any specific field—I can look up detailed information for you."
     },
     {
       "role": "user",
-      "content": "so friday tell me time"
+      "content": "mere bhai ka nme kya hai"
     },
     {
       "role": "assistant",
-      "content": "Sir, the current time is 21:36:26 (9:36 PM). Is there anything specific you'd like me to help you with regarding this time, or do you need assistance with any other tasks?"
+      "content": "Sir, मेरे पास आपके भाई का नाम संबंधी कोई जानकारी नहीं है। कृपया उनका नाम या कुछ और विवरण बताइए, ताकि मैं आगे मदद कर सकूँ।"
     },
     {
       "role": "user",
-      "content": "open my linkid profile"
+      "content": "who is ajay"
     },
     {
       "role": "assistant",
-      "content": "Sir, I've successfully opened your LinkedIn profile in your default web browser. Your profile should now be visible at https://www.linkedin.com/in/shubham-panchal-a80053306.\n\nIs there anything specific you'd like to do with your LinkedIn profile now? Or is there anything else I can assist you with?"
+      "content": "Sir, Ajay आपके मित्र और कॉलेज के सहपाठी हैं, जो महेंद्रगढ़, हरियाणा से हैं। उनका मोबाइल नंबर **8307249717** है। यदि आप उनसे संपर्क करना चाहते हैं या और कोई जानकारी चाहिए तो बताइए।"
     }
   ]
 }

@@ -1,7 +1,11 @@
 import requests
+import sys
+import os
 
-WEATHER_KEY = "2888314fe95f78d2be18da5a6099af04"
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from config_driver import Check_Keys
 
+WEATHER_KEY = Check_Keys("KEYS", "WEATHER_KEY")
 
 def get_current_weather(city: str):
     url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_KEY}"

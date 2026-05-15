@@ -1,11 +1,13 @@
 import json
 import os
-from dotenv import load_dotenv
 from datetime import datetime
 
-load_dotenv()
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from path import  DOCS_PATH
 
-FILE = r"C:\Users\j\OneDrive\Desktop\shubham studio\F.R.I.D.A.Y\Database\docs\todo.json"
+
+FILE = os.path.join(DOCS_PATH, "todo.json")
 
 # ------------------ FILE HELPERS ------------------
 

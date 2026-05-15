@@ -2,66 +2,50 @@ import os
 import time
 import subprocess
 from urllib.parse import quote
-from dotenv import load_dotenv
 import re
 from urllib.parse import quote
 
-load_dotenv()
 
-def connect_mobile_with_bat(ip_address):
-    bat_path = os.getenv("BAT_PATH")
+ADB_PATH = "adb" 
+ADB_PORT = "5555"
 
-    if not bat_path or not os.path.exists(bat_path):
-        return {
-            "status": "error",
-            "code": "BAT_NOT_FOUND",
-            "message": "BAT file path not found. Please set BAT_PATH environment variable."
-        }
+def run_cmd(command):
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return result.stdout.strip()
 
-    try:
-        # 🚀 Run BAT file with IP argument
-        subprocess.run(
-            [bat_path, ip_address],
-            shell=True,
-            capture_output=True,
-            text=True
-        )
+def connect_mobile_with_bat(device_ip):
+    if not device_ip:
+        print("❌ IP Address required!")
+        return
 
-        # 📱 Check connected devices
-        devices_result = subprocess.run(
-            ["adb", "devices"],
-            capture_output=True,
-            text=True
-        )
+    print(f"📱 Device IP: {device_ip}")
 
-        lines = devices_result.stdout.strip().split("\n")
-        devices = [
-            line.split()[0]
-            for line in lines[1:]
-            if line.strip().endswith("device")
-        ]
+    # 🔁 Restart ADB Server
+    print("🔄 Restarting ADB server...")
+    print(run_cmd(f"{ADB_PATH} kill-server"))
+    print(run_cmd(f"{ADB_PATH} start-server"))
 
-        if devices:
-            return {
-                "status": "success",
-                "action": "connect_mobile",
-                "message": f"✅ Mobile connected using IP {ip_address}",
-                "devices": devices
-            }
-        else:
-            return {
-                "status": "error",
-                "code": "NO_DEVICE",
-                "message": f"❌ Mobile not connected using IP {ip_address}"
-            }
+    # 📡 Enable TCPIP Mode
+    print("📡 Switching to TCPIP mode...")
+    print(run_cmd(f"{ADB_PATH} tcpip {ADB_PORT}"))
 
-    except Exception as e:
-        return {
-            "status": "error",
-            "code": "CONNECT_FAILED",
-            "message": str(e)
-        }
-   
+    print("⏳ Waiting for device...")
+    time.sleep(3)
+
+    # 🔌 Disconnect old connections
+    print("🔌 Disconnecting old connections...")
+    print(run_cmd(f"{ADB_PATH} disconnect"))
+
+    # ✅ Connect device
+    print(f"🚀 Connecting to {device_ip}:{ADB_PORT} ...")
+    output = run_cmd(f"{ADB_PATH} connect {device_ip}:{ADB_PORT}")
+    print(output)
+
+    if "connected" in output.lower():
+        return {"status": "success", "message": f"Connected to {device_ip}:{ADB_PORT}"}
+    else:
+        return {"status": "error", "message": "Connection failed!"}
+
 
 # ---------------- Mobile Connection Check ----------------
 def is_mobile_connected():
@@ -248,3 +232,9 @@ def send_whatsapp_message(phone_number, message):
             "code": "WHATSAPP_FAILED",
             "message": str(e)
         }
+
+# 👉 run
+if __name__ == "__main__":
+    ip = input("Enter Device IP: ")
+    google_search_with_mobile("F.R.I.D.A.Y AI Assistant")
+    # connect_mobile_with_bat(ip)

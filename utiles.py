@@ -1,17 +1,20 @@
 import json 
 import os
 import re
-from dotenv import load_dotenv
+from path import CHATS_PATH, DOCS_PATH
 
-load_dotenv()
 
-MEMORY_FILE = os.getenv("MEMORY_FILE")
+MEMORY_FILE = os.path.join(CHATS_PATH, "memory.json")
+CONFIG_FILE = os.path.join(DOCS_PATH, "config.json")
 MAX_HISTORY = 10
 
 # ---------------- MEMORY ---------------- #
 def load_memory():
     if not os.path.exists(MEMORY_FILE):
-        return {"conversation_history": []}
+        os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
+
+        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+            json.dump({"conversation_history": []}, f)
 
     with open(MEMORY_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -68,3 +71,53 @@ def parse_tool_call(msg: str):
         return None
     except Exception:
         return None
+
+# ---------------- CONFIGS ---------------- #
+
+Default_Data = {
+  "KEYS": 
+    {
+      "WEATHER_KEY": "",
+      "LLM_KEY": "",
+      "EMAIL": "",
+      "PASSWORD": "",
+      "AGENT_PASSWORD": "",
+      "TAVILY_API_KEY":"",
+      "NEWS_API_KEY": "",
+      "MONGODB_URL": "mongodb://localhost:27017/"
+    },
+
+  "LLM" :
+    {
+      "LLM_SERVICE_PROVIDER_URL": "",
+      "MODEL": ""
+    },
+
+  "USER":
+    {
+      "Name": "",
+      "email": "",
+      "phone_number": "",
+      "github": "",
+      "linkedin": ""
+    }
+}
+
+
+def search(key):
+    try:
+        if not os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, "w") as file:
+                json.dump(Default_Data, file, indent=4)
+
+        # ✅ read file
+        with open(CONFIG_FILE, "r") as file:
+            data = json.load(file)
+
+        # ✅ search key
+        return data.get(key, "Key not found ❌")
+
+    except json.JSONDecodeError:
+        return "Invalid JSON ❌"
+
+search("KEYS")

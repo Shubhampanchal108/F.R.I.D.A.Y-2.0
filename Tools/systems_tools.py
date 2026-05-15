@@ -362,4 +362,18 @@ def minimize_active_window():
             "error": str(e)
         }
     
-   
+def maximize_active_window():
+    try:
+        pyautogui.hotkey('alt', 'tab')
+        return {
+            "status": "success",
+            "action": "maximize_active_window",
+            "message": "Active window maximized successfully"
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "action": "maximize_active_window",
+            "error": str(e)
+        }

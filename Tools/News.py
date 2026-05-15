@@ -1,10 +1,11 @@
 import requests
+import sys
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from config_driver import Check_Keys
 
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+NEWS_API_KEY = Check_Keys("KEYS", "NEWS_API_KEY")
 
 def get_latest_news():
     url = f"https://newsapi.org/v2/top-headlines?country=us&apiKey={NEWS_API_KEY}"

@@ -3,17 +3,15 @@ from sentence_transformers import SentenceTransformer
 import os
 from datetime import datetime, timezone
 import uuid
-from dotenv import load_dotenv
+from path import RAG_PATH
 
-load_dotenv()
-
-# RAG Configuration
-RAG_PATH = os.getenv("RAG_PATH", "friday_memory_db") 
 os.makedirs(RAG_PATH, exist_ok=True)
 
+# Initialize ChromaDB
 client = chromadb.PersistentClient(path=RAG_PATH)
+
 COLLECTION_NAME = "Friday_memory"
-collection = client.get_or_create_collection(COLLECTION_NAME)
+collection = client.get_or_create_collection(name=COLLECTION_NAME)
 
 model = None
 

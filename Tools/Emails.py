@@ -4,14 +4,15 @@ import email
 from email.header import decode_header
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from dotenv import load_dotenv
-import os
 import re
+import sys
+import os
 
-load_dotenv()
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from config_driver import Check_Keys
 
-EMAIL = os.getenv("EMAIL")
-PASSWORD = os.getenv("PASSWORD")
+EMAIL = Check_Keys("KEYS", "EMAIL")
+PASSWORD = Check_Keys("KEYS", "PASSWORD")
 
 
 def decode_text(text):
@@ -94,6 +95,39 @@ def read_latest_emails(n=5):
         except:
             pass
 
+#Check new Mails
+def check_new_mail():
+
+    mail = imaplib.IMAP4_SSL("imap.gmail.com")
+    mail.login(EMAIL, PASSWORD)
+
+    mail.select("inbox")
+
+    status, messages = mail.search(None, "UNSEEN")
+
+    mail_ids = messages[0].split()
+
+    if mail_ids:
+
+        latest_id = mail_ids[-1]
+
+        status, data = mail.fetch(latest_id, "(RFC822)")
+
+        raw_email = data[0][1]
+
+        msg = email.message_from_bytes(raw_email)
+
+        sender = msg["from"]
+        subject = msg["subject"]
+
+        return {
+            "type": "email",
+            "sender": sender,
+            "subject": subject,
+            "message": f"New mail recived. Sender: {sender}. Subject: {subject}"
+        }
+
+    return None
 
 #send Mail
 def is_valid_email(email):

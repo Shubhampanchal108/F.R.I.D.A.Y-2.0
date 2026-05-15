@@ -1,10 +1,11 @@
 import requests
+import sys
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from config_driver import Check_Keys
 
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+TAVILY_API_KEY = Check_Keys("KEYS", "TAVILY_API_KEY")
 
 
 def google_search(query: str, max_results: int = 2):

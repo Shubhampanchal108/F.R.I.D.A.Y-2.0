@@ -2,7 +2,6 @@ from openai import OpenAI  # type: ignore
 from utiles import load_memory, add_to_history, normalize_role, parse_tool_call
 import os
 import sys
-from dotenv import load_dotenv
 
 # Allow parent directory imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -10,20 +9,23 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from RAG import search_vector_memory
 from configs import Friday_Instruction
 from Tool_guard import load_tools, execute_tool, TOOLS
+from config_driver import Check_Keys
 
 registry = load_tools()
 
 # ---------------- ENV ---------------- #
-load_dotenv()
-HF_API_KEY = os.getenv("HF_API_KEY")
+LLM_KEY = Check_Keys("KEYS", "LLM_KEY")
+BASE_URL = Check_Keys("LLM", "LLM_SERVICE_PROVIDER_URL")
+MODEL = Check_Keys("LLM", "MODEL")
 
 client = OpenAI(
-    base_url="https://router.huggingface.co/v1",
-    api_key=HF_API_KEY,
+    base_url=BASE_URL,
+    api_key=LLM_KEY,
 )
 
+
 # ---------------- BRAIN (MULTI-TOOL AGENT LOOP) ---------------- #
-def Brain(prompt: str, source='server'):
+def Brain(prompt: str, origin='server'):
     memory = load_memory()
     history = memory.get("conversation_history", [])
 
@@ -63,8 +65,8 @@ def Brain(prompt: str, source='server'):
 
     while True:
         response = client.chat.completions.create(
-            model="Qwen/Qwen3-Coder-480B-A35B-Instruct:novita",
-            temperature=0.3,
+            model= MODEL,
+            temperature=0.0,
             messages=messages
         )
 
@@ -83,7 +85,7 @@ def Brain(prompt: str, source='server'):
                 try:
                     tool_result = execute_tool(
                         tool_name=tool_name,
-                        source=source,
+                        origin=origin,
                         **args
                     )
                     messages.append({
