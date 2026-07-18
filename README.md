@@ -87,7 +87,7 @@ FRIDAY can dynamically choose and execute tools like:
 
 ---
 
-### 👩‍💻 Coding Assistant Mode (planned expansion)
+### 👩‍💻 Coding Assistant Mode
 
 FRIDAY can:
 

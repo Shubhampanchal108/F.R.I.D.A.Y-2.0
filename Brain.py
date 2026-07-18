@@ -66,7 +66,7 @@ def Brain(prompt: str, origin='server'):
     while True:
         response = client.chat.completions.create(
             model= MODEL,
-            temperature=0.0,
+            temperature=0.3,
             messages=messages
         )
 

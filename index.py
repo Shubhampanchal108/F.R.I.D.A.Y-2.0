@@ -3,16 +3,21 @@ from voice_input import SpeechRecognition
 from speak import speak
 from Tools.systems_tools import greet
 from config_driver import Check_Keys
+import time
+import os
 
+#Diamond_100
 AUTH_PASSWORD = Check_Keys("KEYS", "AGENT_PASSWORD")
 
 # ===== PROTOCOLS =====
 VOCAL_SENSE_PROTOCOL = False
 TYPE_ASSIST_PROTOCOL = True
 AUDIO_DRIVE_PROTOCOL = True
+LIVE_STREAM_PROTOCOL = False
 
 VOICE_COMMANDS = ["switch to voice", "voice mode"]
 TYPE_COMMANDS = ["switch to typing", "type mode"]
+STREAM_COMMANDS = ["switch to live stream", "stream mode"]
 
 # ===== GREETING =====
 greeting = greet()
@@ -72,6 +77,10 @@ if __name__ == "__main__":
             TYPE_ASSIST_PROTOCOL = True
             speak("Type assist protocol activated")
             print("🔁 Switched to TYPING mode")
+            continue
+
+        if any(cmd in query_lower for cmd in STREAM_COMMANDS):
+            speak("This feature is temprary unavalible sir.")
             continue
 
         if "off" in query_lower and "audio drive" in query_lower:
