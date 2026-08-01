@@ -13,19 +13,22 @@ from config_driver import Check_Keys
 
 registry = load_tools()
 
-# ---------------- ENV ---------------- #
-LLM_KEY = Check_Keys("KEYS", "LLM_KEY")
-BASE_URL = Check_Keys("LLM", "LLM_SERVICE_PROVIDER_URL")
-MODEL = Check_Keys("LLM", "MODEL")
-
-client = OpenAI(
-    base_url=BASE_URL,
-    api_key=LLM_KEY,
-)
-
 
 # ---------------- BRAIN (MULTI-TOOL AGENT LOOP) ---------------- #
-def Brain(prompt: str, origin='server'):
+def Brain(prompt: str, origin='server', source=None, tool_callback=None):
+    if source is not None:
+        origin = source
+        
+    # Dynamically fetch current configuration keys
+    llm_key = Check_Keys("KEYS", "LLM_KEY")
+    base_url = Check_Keys("LLM", "LLM_SERVICE_PROVIDER_URL")
+    model = Check_Keys("LLM", "MODEL")
+
+    client = OpenAI(
+        base_url=base_url if base_url else None,
+        api_key=llm_key,
+    )
+
     memory = load_memory()
     history = memory.get("conversation_history", [])
 
@@ -64,13 +67,29 @@ def Brain(prompt: str, origin='server'):
     tool_calls = 0
 
     while True:
-        response = client.chat.completions.create(
-            model= MODEL,
-            temperature=0.3,
-            messages=messages
-        )
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                temperature=0.3,
+                messages=messages,
+                timeout=25.0
+            )
 
-        msg = response.choices[0].message.content.strip()
+            if not response or not response.choices:
+                return "Sir, the AI service returned an empty response. Please try asking again."
+
+            msg = response.choices[0].message.content
+            if not msg:
+                return "Sir, I received an empty text reply from the language model."
+            
+            msg = msg.strip()
+
+        except Exception as api_err:
+            err_str = str(api_err)
+            print(f"⚠️ LLM API Error: {err_str}")
+            if "timeout" in err_str.lower():
+                return "Sir, the LLM service connection timed out after 25 seconds. Please check your internet connection or try again."
+            return f"Sir, I encountered an LLM API error: {err_str}. You can check your model/keys in /config."
 
         data = parse_tool_call(msg)
 
@@ -80,7 +99,14 @@ def Brain(prompt: str, origin='server'):
             args = data.get("args", {})
 
             if tool_name in TOOLS:
-                print(f"🔧 Tool called → {tool_name} {args}")
+                tool_msg = f"Executing tool: {tool_name} {args if args else ''}"
+                if tool_callback:
+                    try:
+                        tool_callback(tool_name, args)
+                    except Exception:
+                        pass
+                else:
+                    print(f"🔧 Tool called → {tool_name} {args}")
 
                 try:
                     tool_result = execute_tool(
@@ -104,7 +130,7 @@ def Brain(prompt: str, origin='server'):
                 except Exception as e:
                     print("⚠️ Tool Error:", e)
                     add_to_history("assistant", f"Tool error: {e}")
-                    return "Tool execution failed. Please try again."
+                    return f"Tool execution failed for '{tool_name}': {e}"
 
         # -------- FINAL HUMAN RESPONSE -------- #
         add_to_history("user", prompt)
@@ -115,7 +141,7 @@ def Brain(prompt: str, origin='server'):
 
 # ---------------- RUN ---------------- #
 if __name__ == "__main__":
-    print("🤖 Friday v2.0 Online — Vector Memory Activated\n")
+    print("🤖 Friday Online — Vector Memory Activated\n")
 
     while True:
         inp = input("You: ")

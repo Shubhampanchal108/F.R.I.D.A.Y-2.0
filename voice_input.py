@@ -1,23 +1,24 @@
-# speech_to_text_online.py
 import speech_recognition as sr
 
 def SpeechRecognition():
     recognizer = sr.Recognizer()
-    mic = sr.Microphone()  
-
-    with mic as source:
-        recognizer.adjust_for_ambient_noise(source, duration=0.8)
-        try:
-            audio = recognizer.listen(source, timeout=1, phrase_time_limit=5)
-        except sr.WaitTimeoutError:
-            pass
+    mic = sr.Microphone()
 
     try:
-        text = recognizer.recognize_google(audio)
-        return text
+        with mic as source:
+            recognizer.adjust_for_ambient_noise(source, duration=0.5)
+            try:
+                audio = recognizer.listen(source, timeout=3, phrase_time_limit=8)
+            except sr.WaitTimeoutError:
+                return None
+
+        if audio:
+            text = recognizer.recognize_google(audio)
+            return text.strip() if text else None
     except sr.UnknownValueError:
-        pass
+        return None
     except sr.RequestError as e:
-        pass
-    except Exception as e:
-        pass
+        print(f"\n⚠️ Google Speech Recognition API Error: {e}\n")
+        return None
+    except Exception:
+        return None

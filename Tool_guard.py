@@ -19,6 +19,10 @@ from Tools.Mobile_Automation import (
 )
 from Tools.browser import google_search, summrize_url 
 from RAG import save_longterm_memory
+from Tools.Vision import analyze_screen
+from Tools.code_interpreter import run_python_code
+from Tools.browser_autopilot import extract_webpage_content
+from sub_agents import deep_research_agent, code_reviewer_agent
 
 
 # ================================
@@ -120,6 +124,7 @@ TOOLS = {
         "get_weather": get_current_weather,
         "get_News": get_latest_news,
         "check_battery": get_battery_status,
+        "check_cpu": get_cpu_status,
         "search_wikipedia": search_wikipedia,
         "google_search": google_search,
         "find_my_ip": find_my_ip,
@@ -129,6 +134,13 @@ TOOLS = {
         "readmail_Full_body": readmail_Full_body,
         "save_longterm_memory": save_longterm_memory,
         "check_new_mail": check_new_mail,
+
+        # ---- V4.0 Advanced Agent Tools ----
+        "analyze_screen": analyze_screen,
+        "run_python_code": run_python_code,
+        "extract_webpage_content": extract_webpage_content,
+        "deep_research_agent": deep_research_agent,
+        "code_reviewer_agent": code_reviewer_agent,
 
         # ---- System ----
         "open_app": open_application,

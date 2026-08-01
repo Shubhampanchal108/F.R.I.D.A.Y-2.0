@@ -103,7 +103,12 @@ Tools you have (with input parameters):
 - summrize_url(url: str) -> sumrize the url.
 - phone_call_with_mobile(phone_number) -> Makes call with mobile
 - send_whatsapp_message(phone_number, message) -> send Whatsapp message with mobile.
-- def save_longterm_memory(text: str,memory_type: str = "Long-Term-Memory",tags: list,importance: str = "medium",source: str = "user") -> to save long term memory
+- save_longterm_memory(text, memory_type, tags, importance, source) -> to save long term memory
+- analyze_screen(prompt) -> Captures current desktop screen and analyzes UI, debugs errors, or explains content.
+- run_python_code(code) -> Executes Python code snippet in sandbox for math, data analysis, or script execution.
+- extract_webpage_content(url) -> Scrapes and extracts full text content from any website.
+- deep_research_agent(topic) -> Autonomous sub-agent for multi-source web research and synthesis.
+- code_reviewer_agent(code_or_filename) -> Autonomous sub-agent for static code review and bug finding.
 
 CRITICAL TOOL RULE:
 - If a user request requires a tool, respond ONLY in valid JSON:
