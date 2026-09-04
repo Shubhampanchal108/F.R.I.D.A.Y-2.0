@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ F.R.I.D.A.Y 2.0 — Official AI Assistant Documentation</title>
+  <meta name="description" content="Comprehensive documentation and user guide for F.R.I.D.A.Y 2.0 Autonomous Desktop AI Super-Agent.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+<body>
+
+  <!-- ================= TOP HEADER BAR ================= -->
+  <header class="top-header">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <button class="mobile-toggle-btn" id="mobileMenuToggle" aria-label="Toggle Navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <a href="#" class="brand-wrapper">
+        <img src="assets/logo.png" alt="F.R.I.D.A.Y Logo" class="brand-logo-img">
+        <div>
+          <div class="brand-title">F.R.I.D.A.Y</div>
+        </div>
+      </a>
+      <span class="brand-version">v2.0 Super-Agent</span>
+    </div>
+
+    <!-- Search Engine Bar -->
+    <div class="search-wrapper">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="globalSearch" class="search-input" placeholder="Search features, tools, commands, architecture (e.g. Vision, /briefing, ADB)...">
+    </div>
+
+    <!-- Header Actions & Theme Switcher -->
+    <div class="header-actions">
+      <button class="theme-toggle-btn" id="themeToggle" title="Switch Theme">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+      <a href="assets/Friday_Agent.exe" download class="btn-primary">
+        <i class="fa-solid fa-download"></i> Download F.R.I.D.A.Y
+      </a>
+      <a href="#tools-catalog" class="btn-outline">
+        <i class="fa-solid fa-toolbox"></i> 40+ Tools
+      </a>
+    </div>
+  </header>
+
+  <div class="app-container">
+
+    <!-- ================= LEFT SIDEBAR NAVIGATION ================= -->
+    <aside class="sidebar">
+      <div class="sidebar-group">
+        <div class="sidebar-title"><i class="fa-solid fa-compass"></i> Navigation</div>
+        <ul class="sidebar-menu">
+          <li class="sidebar-item"><a href="#overview" class="sidebar-link active"><i class="fa-solid fa-eye"></i> Overview & Features</a></li>
+          <li class="sidebar-item"><a href="#quickstart" class="sidebar-link"><i class="fa-solid fa-bolt"></i> Installation & Setup</a></li>
+          <li class="sidebar-item"><a href="#slash-commands" class="sidebar-link"><i class="fa-solid fa-terminal"></i> Slash Commands <span class="sidebar-badge">10</span></a></li>
+          <li class="sidebar-item"><a href="#architecture" class="sidebar-link"><i class="fa-solid fa-network-wired"></i> System Architecture</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-title"><i class="fa-solid fa-robot"></i> Super-Agent Features</div>
+        <ul class="sidebar-menu">
+          <li class="sidebar-item"><a href="#feature-vision" class="sidebar-link"><i class="fa-solid fa-display"></i> Screen Vision Perception</a></li>
+          <li class="sidebar-item"><a href="#feature-sandbox" class="sidebar-link"><i class="fa-brands fa-python"></i> Python Code Interpreter</a></li>
+          <li class="sidebar-item"><a href="#feature-briefing" class="sidebar-link"><i class="fa-solid fa-sun"></i> Morning Briefing Watchdog</a></li>
+          <li class="sidebar-item"><a href="#feature-subagents" class="sidebar-link"><i class="fa-solid fa-brain"></i> Research & Reviewer Sub-Agents</a></li>
+          <li class="sidebar-item"><a href="#feature-wakeword" class="sidebar-link"><i class="fa-solid fa-microphone"></i> Hands-Free Wake-Word</a></li>
+          <li class="sidebar-item"><a href="#feature-memory" class="sidebar-link"><i class="fa-solid fa-database"></i> Vector RAG Dual Memory</a></li>
+          <li class="sidebar-item"><a href="#feature-security" class="sidebar-link"><i class="fa-solid fa-shield-halved"></i> Access Control List (ACL)</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-title"><i class="fa-solid fa-toolbox"></i> Tool Catalog</div>
+        <ul class="sidebar-menu">
+          <li class="sidebar-item"><a href="#tools-catalog" class="sidebar-link"><i class="fa-solid fa-list-check"></i> Complete 40+ Tool Reference</a></li>
+          <li class="sidebar-item"><a href="#mobile-automation" class="sidebar-link"><i class="fa-solid fa-mobile-screen-button"></i> Mobile ADB Automation</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-title"><i class="fa-solid fa-wrench"></i> Support</div>
+        <ul class="sidebar-menu">
+          <li class="sidebar-item"><a href="#simulator" class="sidebar-link"><i class="fa-solid fa-gamepad"></i> Command Simulator</a></li>
+          <li class="sidebar-item"><a href="#troubleshooting" class="sidebar-link"><i class="fa-solid fa-circle-question"></i> Troubleshooting & FAQ</a></li>
+          <li class="sidebar-item"><a href="#developer" class="sidebar-link"><i class="fa-solid fa-user-astronaut"></i> Developer & Credits</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- ================= MAIN VIEWPORT CONTENT ================= -->
+    <main class="main-viewport">
+
+      <!-- SECTION 1: OVERVIEW & FEATURES -->
+      <section id="overview" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-shield-halved"></i> JARVIS-Class Autonomous Agent</div>
+          <h1 class="section-title" style="display: flex; align-items: center; gap: 0.8rem;">
+            <img src="assets/logo.png" alt="F.R.I.D.A.Y Logo" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover;">
+            <span>F.R.I.D.A.Y <span style="color: var(--accent-primary);">2.0</span> Documentation</span>
+          </h1>
+          <p class="section-subtitle">
+            <strong>Friendly Reliable Intelligent Digital Assistant for Youth</strong> is an enterprise-grade, continuous background desktop AI agent built in Python. Features include Screen Perception, Python Code Execution Sandbox, Proactive Morning Briefings, Deep Research Sub-Agents, ChromaDB Vector Memory RAG, and ADB Mobile Autopilot.
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-cyan);"><i class="fa-solid fa-eye"></i></div>
+            <div class="feature-name">Desktop Vision Perception</div>
+            <div class="feature-desc">Takes real-time screenshots and sends them to Vision LLMs to analyze code errors, summarize open documents, or inspect charts.</div>
+            <span class="tool-badge">analyze_screen</span>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-magenta);"><i class="fa-brands fa-python"></i></div>
+            <div class="feature-name">Python Code Sandbox</div>
+            <div class="feature-desc">Executes Python snippets safely inside isolated subprocesses with stdout capture and 15s automatic timeout guardrails.</div>
+            <span class="tool-badge">run_python_code</span>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-green);"><i class="fa-solid fa-sun"></i></div>
+            <div class="feature-name">Proactive Watchdog Daemon</div>
+            <div class="feature-desc">Continuous background thread monitoring due reminders, battery health, news, and weather to deliver proactive morning briefings.</div>
+            <span class="command-badge">daemon.py</span>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-primary);"><i class="fa-solid fa-brain"></i></div>
+            <div class="feature-name">Deep Research Sub-Agent</div>
+            <div class="feature-desc">Autonomous multi-step web search agent that scrapes dynamic web pages, synthesizes research, and builds comprehensive reports.</div>
+            <span class="tool-badge">deep_research_agent</span>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-amber);"><i class="fa-solid fa-database"></i></div>
+            <div class="feature-name">ChromaDB Vector RAG Memory</div>
+            <div class="feature-desc">Persistent vector embeddings memory that learns your preferences, project details, and past conversations across sessions.</div>
+            <span class="tool-badge">save_longterm_memory</span>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-cyan);"><i class="fa-solid fa-mobile-screen-button"></i></div>
+            <div class="feature-name">Mobile ADB Autopilot</div>
+            <div class="feature-desc">Controls Android smartphones via ADB: send WhatsApp messages, make phone calls, and unlock your device seamlessly.</div>
+            <span class="tool-badge">send_whatsapp_message</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: QUICK START & SETUP -->
+      <section id="quickstart" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-rocket"></i> Getting Started</div>
+          <h2 class="section-title">Download & Setup Guide</h2>
+          <p class="section-subtitle">Get F.R.I.D.A.Y 2.0 running on your computer as a standalone Windows executable or developer Python package.</p>
+        </div>
+
+        <!-- RECOMMENDED METHOD: STANDALONE EXE -->
+        <div class="glass-card" style="border-color: var(--accent-primary); background: var(--bg-card);">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+            <div>
+              <span class="origin-badge origin-server" style="font-size: 0.75rem; padding: 3px 10px; margin-bottom: 0.5rem; display: inline-block;">RECOMMENDED FOR USERS</span>
+              <h3 style="font-size: 1.4rem; color: var(--text-primary); font-weight: 800;"><i class="fa-solid fa-file-zipper" style="color: var(--accent-primary);"></i> Download F.R.I.D.A.Y Standalone Agent (.exe)</h3>
+              <p style="color: var(--text-secondary); margin-top: 0.4rem; max-width: 650px;">
+                No Python installation, virtual environment, or terminal commands needed! Download the pre-compiled <strong>Friday_Agent.exe</strong> executable for Windows.
+              </p>
+            </div>
+            <a href="assets/Friday_Agent.exe" download class="btn-primary" style="padding: 0.85rem 1.6rem; font-size: 1rem; border-radius: var(--radius-md);">
+              <i class="fa-solid fa-download"></i> Download Friday_Agent.exe
+            </a>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+            <div>
+              <strong style="color: var(--text-primary);"><i class="fa-solid fa-1" style="color: var(--accent-cyan);"></i> Step 1: Download</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;">Click the download button to save <code>Friday_Agent.exe</code>.</p>
+            </div>
+            <div>
+              <strong style="color: var(--text-primary);"><i class="fa-solid fa-2" style="color: var(--accent-green);"></i> Step 2: Run Executable</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;">Double-click <code>Friday_Agent.exe</code> on Windows 10/11.</p>
+            </div>
+            <div>
+              <strong style="color: var(--text-primary);"><i class="fa-solid fa-3" style="color: var(--accent-amber);"></i> Step 3: Setup Wizard</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;">Follow the interactive setup wizard to configure your AI key.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3 class="card-title"><i class="fa-solid fa-laptop-code" style="color: var(--accent-primary);"></i> System Requirements</h3>
+          <ul style="padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.8;">
+            <li><strong>Supported OS:</strong> Windows 10 / Windows 11 (64-bit).</li>
+            <li><strong>Hardware:</strong> Minimum 4GB RAM, Microphone for voice input, Speakers for audio response.</li>
+            <li><strong>Internet Connection:</strong> Required for LLM API connection & web research.</li>
+          </ul>
+        </div>
+
+        <div class="glass-card">
+          <h3 class="card-title"><i class="fa-solid fa-code" style="color: var(--accent-magenta);"></i> Developer Setup (Run from Python Source Code)</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 0.75rem;">If you wish to modify or contribute to F.R.I.D.A.Y's source code, clone the repository and run via Python 3.10+:</p>
+
+          <div class="code-block-wrapper">
+            <div class="code-header">
+              <span>POWERSHELL / BASH</span>
+              <button class="code-copy-btn"><i class="fa-regular fa-copy"></i> Copy Commands</button>
+            </div>
+            <pre class="code-block"># Clone Repository
+git clone https://github.com/Shubhampanchal108/F.R.I.D.A.Y.git
+cd F.R.I.D.A.Y
+
+# Create & Activate Virtual Environment
+python -m venv .venv
+.venv\Scripts\activate   # On Windows
+
+# Install Dependencies
+pip install -r requirements.txt
+
+# Launch F.R.I.D.A.Y Super-Agent
+python index.py</pre>
+          </div>
+        </div>
+
+        <div class="callout callout-tip">
+          <i class="fa-solid fa-wand-magic-sparkles callout-icon"></i>
+          <div>
+            <strong>Interactive Setup Wizard:</strong> On your first launch, F.R.I.D.A.Y detects missing configurations and automatically starts the <strong>First-Time Setup Wizard</strong>! You will be guided to enter your preferred LLM Provider URL (OpenAI / Groq / Ollama / Gemini), API Key, User Name, and Access Password.
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3 class="card-title"><i class="fa-solid fa-sliders" style="color: var(--accent-green);"></i> Dynamic Config Editor (/config)</h3>
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            You can change your settings at any time without opening code files! Simply type <span class="command-badge">/config</span> in the HUD terminal to view or update keys, model names, voice speed, or passwords with masked key privacy.
+          </p>
+        </div>
+      </section>
+
+      <!-- SECTION 3: SLASH COMMANDS PALETTE -->
+      <section id="slash-commands" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-gamepad"></i> Control Center</div>
+          <h2 class="section-title">Terminal Slash Commands</h2>
+          <p class="section-subtitle">Control F.R.I.D.A.Y's operational modes, hardware audio, reminders, and system status instantly from the command line.</p>
+        </div>
+
+        <div class="custom-table-wrapper">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Command</th>
+                <th>Mode / Function</th>
+                <th>Detailed Description & Practical Use Case</th>
+                <th>How to Trigger</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="command-badge copyable-cmd">/voice</span></td>
+                <td>Speech Recognition Mode</td>
+                <td>Switches input mode to continuous microphone voice recognition using PyAudio & SpeechRecognition. <em>Use case: Hands-free coding or listening while working away from keyboard.</em></td>
+                <td>Type <code class="inline-code">/voice</code> & press Enter</td>
+              </tr>
+              <tr>
+                <td><span class="command-badge copyable-cmd">/type</span></td>
+                <td>Text Typing Mode</td>
+                <td>Switches input mode to silent text typing. <em>Use case: Working in quiet environments, libraries, or noisy rooms.</em></td>
+                <td>Type <code class="inline-code">/type</code> & press Enter</td>
+              </tr>
+              <tr>
+                <td><span class="command-badge copyable-cmd">/audio</span></td>
+                <td>Speech Voice Drive Toggle</td>
+                <td>Toggles F.R.I.D.A.Y's voice synthesizer ON/OFF (<code class="inline-code">gTTS</code> + <code class="inline-code">pygame</code>). <em>Use case: Mute voice replies during meetings while keeping terminal active.</em></td>
+                <td>Type <code class="inline-code">/audio</code></td>
+              </tr>
+              <tr>
+                <td><span class="command-badge copyable-cmd">/briefing</span></td>
+                <td>Morning Briefing Trigger</td>
+                <td>Manually triggers an instant voice briefing containing weather, due reminders, battery status, and news. <em>Use case: Starting your day or resuming work after lunch.</em></td>
+                <td>Type <code class="inline-code">/briefing</code></td>
+              </tr>
+              <tr>
+                <td><span class="command-badge copyable-cmd">/wakeword</span></td>
+                <td>Hands-Free Wake Listener</td>
+                <td>Toggles background background wake-word thread. Listens for keyword <strong>"Friday"</strong> to activate voice input. <em>Use case: Room voice control without clicking anything.</em></td>
+                <td>Type <code class="inline-code">/wakeword</code></td>
+              </tr>
+              <tr>
+                <td><span class="command-badge copyable-cmd">/status</span></td>
+                <td>System Health HUD</td>
+                <td>Displays dynamic system status: CPU load %, Battery percentage, active background daemon threads, and ChromaDB vector count. <em>Use case: Checking system resources.</em></td>
+                <td>Type <code class="inline-code">/status</code></td>
+              </tr>
+              <tr>
+                <td><span class="command-badge copyable-cmd">/reminders</span></td>
+                <td>Reminders Dashboard</td>
+                <td>Lists all active and due reminders scheduled in local JSON database. <em>Use case: Reviewing daily schedule.</em></td>
+                <td>Type <code class="inline-code">/reminders</code></td>
+              </tr>
+              <tr>
+                <td><span class="command-badge copyable-cmd">/config</span></td>
+                <td>Interactive Config Editor</td>
+                <td>Launches terminal wizard to edit API Keys, Provider Base URLs, LLM Model names, and Security Passwords safely. <em>Use case: Changing models or keys.</em></td>
+                <td>Type <code class="inline-code">/config</code></td>
+              </tr>
+              <tr>
+                <td><span class="command-badge copyable-cmd">/clear</span></td>
+                <td>Clear HUD Screen</td>
+                <td>Clears terminal console view while preserving session chat history and background daemon threads.</td>
+                <td>Type <code class="inline-code">/clear</code></td>
+              </tr>
+              <tr>
+                <td><span class="command-badge copyable-cmd">/exit</span></td>
+                <td>Shutdown Agent</td>
+                <td>Safely stops all background threads (Daemon, WakeWord listener), saves persistent memory, and closes CLI cleanly.</td>
+                <td>Type <code class="inline-code">/exit</code> or <code class="inline-code">quit</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION 4: ARCHITECTURE -->
+      <section id="architecture" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-network-wired"></i> Architecture</div>
+          <h2 class="section-title">System Flow & Infrastructure</h2>
+          <p class="section-subtitle">Understanding F.R.I.D.A.Y's multi-layered async architecture: CLI Interface, Event Watchdog Daemon, Brain Loop, RAG Vector Engine, and Security ACL Guard.</p>
+        </div>
+
+        <div class="glass-card">
+          <h3 class="card-title"><i class="fa-solid fa-diagram-project" style="color: var(--accent-primary);"></i> Architectural Flowchart</h3>
+          <div class="code-block-wrapper">
+            <pre class="code-block" style="color: var(--accent-cyan);">
+┌────────────────────────────────────────────────────────────────────────┐
+│                        F.R.I.D.A.Y  CLI HUD                           │
+│       - Rich Console Output  - Voice / Typing Toggle  - Slash Palette  │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+           ┌────────────────────────┴────────────────────────┐
+           ▼                                                 ▼
+┌─────────────────────────────┐                   ┌─────────────────────────────┐
+│   CLI Interface / Input     │                   │   Background Event Daemon   │
+│   - Speech / Typing Input   │                   │   - Due Reminder Watchdog   │
+│   - Wake-Word Listener      │                   │   - Morning Voice Briefing  │
+└──────────────┬──────────────┘                   │   - Windows Desktop Alerts  │
+               │                                  └──────────────┬──────────────┘
+               │                                                 │
+               └────────────────────┬────────────────────────────┘
+                                    │
+                                    ▼
+                     ┌─────────────────────────────┐
+                     │      Brain Engine Loop      │
+                     │  - OpenAI / Ollama Client   │
+                     │  - ChromaDB Vector RAG      │
+                     │  - Dynamic Memory Context   │
+                     └──────────────┬──────────────┘
+                                    │
+                                    ▼
+                     ┌─────────────────────────────┐
+                     │   Access Control List (ACL) │
+                     │   - Tool Guard Security     │
+                     │   - Origin Permissions      │
+                     └──────────────┬──────────────┘
+                                    │
+                                    ▼
+                     ┌─────────────────────────────┐
+                     │   40+ Native Tools Engine   │
+                     │   - Vision Perception       │
+                     │   - Python Sandbox Code     │
+                     │   - Mobile ADB Autopilot    │
+                     │   - Research Sub-Agents     │
+                     └─────────────────────────────┘</pre>
+          </div>
+        </div>
+
+        <div class="feature-grid">
+          <div class="glass-card" style="margin-bottom: 0;">
+            <h4 style="color: var(--accent-primary); font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-brain"></i> Brain Loop (<code class="inline-code">Brain.py</code>)</h4>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+              The central cognitive processor. Formats system instructions, loads short-term chat history, injects user profile facts, queries ChromaDB vector memories, parses JSON tool calls, executes functions up to 4 call iterations, and yields final synthesized voice responses.
+            </p>
+          </div>
+
+          <div class="glass-card" style="margin-bottom: 0;">
+            <h4 style="color: var(--accent-green); font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-clock-rotate-left"></i> Background Daemon (<code class="inline-code">daemon.py</code>)</h4>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+              Runs as a non-blocking background thread. Constantly checks local JSON databases for due reminders every 10 seconds. When triggered, it fires native Windows balloon notifications and speaks aloud via voice synthesis.
+            </p>
+          </div>
+
+          <div class="glass-card" style="margin-bottom: 0;">
+            <h4 style="color: var(--accent-magenta); font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-shield-halved"></i> Access Control ACL (<code class="inline-code">Tool_guard.py</code>)</h4>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+              Enforces origin-based security boundaries. Ensures dangerous system actions (e.g., executing code, deleting files, turning off PC) are restricted to local <code class="inline-code">SERVER</code> origins, while web and mobile clients are granted safe scoped access.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: SUPER-AGENT FEATURES DEEP DIVES -->
+      <section id="feature-vision" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-eye"></i> Feature 1</div>
+          <h2 class="section-title">📸 Desktop Screen Vision Perception</h2>
+          <p class="section-subtitle">Give F.R.I.D.A.Y eyes to see whatever is visible on your primary computer display.</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="tool-usecase-box">
+            <div class="tool-usecase-title">Real-World Use Cases</div>
+            <ul style="padding-left: 1.2rem; margin-top: 0.3rem; line-height: 1.6;">
+              <li><strong>Debugging Code Errors:</strong> When your IDE or terminal shows a complex stack trace, ask F.R.I.D.A.Y to "look at my screen and tell me what is causing this bug".</li>
+              <li><strong>Document & Chart Analysis:</strong> Inspect open PDFs, dashboards, Excel charts, or web pages without copy-pasting text manually.</li>
+              <li><strong>UI Design Feedback:</strong> Capture UI mockups and ask for aesthetic suggestions.</li>
+            </ul>
+          </div>
+
+          <h4 style="color: var(--text-primary); margin-top: 1rem;">How to Use (Voice & CLI)</h4>
+          <div class="tool-example-box">
+            <span>"Friday, analyze my screen and explain what error is showing in my terminal."</span>
+            <i class="fa-regular fa-copy tool-copy-icon"></i>
+          </div>
+          <div class="tool-example-box">
+            <span>"Look at this graph on my screen and summarize the key trends."</span>
+            <i class="fa-regular fa-copy tool-copy-icon"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUPER-AGENT FEATURE 2: PYTHON SANDBOX -->
+      <section id="feature-sandbox" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-brands fa-python"></i> Feature 2</div>
+          <h2 class="section-title">🐍 Python Code Interpreter Sandbox</h2>
+          <p class="section-subtitle">Execute dynamic Python code snippets inside an isolated sandbox subprocess safely.</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="tool-usecase-box">
+            <div class="tool-usecase-title">Real-World Use Cases</div>
+            <ul style="padding-left: 1.2rem; margin-top: 0.3rem; line-height: 1.6;">
+              <li><strong>Mathematical Computations:</strong> Solve matrix operations, statistical data analysis, or complex calculus formulas instantly.</li>
+              <li><strong>Data Processing & File Automation:</strong> Convert JSON files, clean CSV tables, or parse large log files programmatically.</li>
+              <li><strong>Utility Scripts:</strong> Generate test passwords, compute hashes, or test API payloads on the fly.</li>
+            </ul>
+          </div>
+
+          <h4 style="color: var(--text-primary); margin-top: 1rem;">How to Use (Voice & CLI)</h4>
+          <div class="tool-example-box">
+            <span>"Run python code to find the 100th prime number and output execution time."</span>
+            <i class="fa-regular fa-copy tool-copy-icon"></i>
+          </div>
+
+          <div class="callout callout-warning">
+            <i class="fa-solid fa-triangle-exclamation callout-icon"></i>
+            <div>
+              <strong>Subprocess Guardrails:</strong> Python execution automatically enforces a <strong>15-second execution timeout limit</strong> to prevent infinite loops, memory leaks, or unhandled process locks.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUPER-AGENT FEATURE 3: MORNING BRIEFING -->
+      <section id="feature-briefing" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-sun"></i> Feature 3</div>
+          <h2 class="section-title">🌅 Proactive Morning Briefing Watchdog</h2>
+          <p class="section-subtitle">Start your day like Tony Stark with custom voice briefings and native desktop notifications.</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="tool-usecase-box">
+            <div class="tool-usecase-title">What Morning Briefing Synthesizes</div>
+            <ul style="padding-left: 1.2rem; margin-top: 0.3rem; line-height: 1.6;">
+              <li><strong>Weather Report:</strong> Current temperature, humidity, and condition forecast.</li>
+              <li><strong>Pending Schedule & Reminders:</strong> Tasks and reminders due for today.</li>
+              <li><strong>Battery & System Health:</strong> Battery percentage, charging status, and CPU load warnings.</li>
+              <li><strong>Top News Headlines:</strong> Latest trending tech/world headlines.</li>
+            </ul>
+          </div>
+
+          <h4 style="color: var(--text-primary); margin-top: 1rem;">How to Trigger</h4>
+          <div class="tool-example-box">
+            <span>Type /briefing in terminal or ask voice: "Friday, give me my morning briefing."</span>
+            <i class="fa-regular fa-copy tool-copy-icon"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUPER-AGENT FEATURE 4: SUB-AGENTS -->
+      <section id="feature-subagents" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-brain"></i> Feature 4</div>
+          <h2 class="section-title">🤖 Autonomous Specialized Sub-Agents</h2>
+          <p class="section-subtitle">Delegate heavy multi-step tasks to dedicated sub-agent workers that report back with full reports.</p>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-cyan);"><i class="fa-solid fa-globe"></i></div>
+            <div class="feature-name">Deep Research Sub-Agent</div>
+            <span class="tool-badge">deep_research_agent</span>
+            <div class="feature-desc" style="margin-top: 0.75rem;">
+              Performs autonomous multi-query web searches, extracts main text from web pages, synthesizes research findings, and saves formatted markdown research reports.
+            </div>
+            <div class="tool-example-box">
+              <span>"Conduct deep research on AI agent frameworks in 2026."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-magenta);"><i class="fa-solid fa-code-compare"></i></div>
+            <div class="feature-name">Code Reviewer Sub-Agent</div>
+            <span class="tool-badge">code_reviewer_agent</span>
+            <div class="feature-desc" style="margin-top: 0.75rem;">
+              Analyzes Python files or full project modules for security risks, unhandled edge cases, performance bottlenecks, and provides refactoring recommendations.
+            </div>
+            <div class="tool-example-box">
+              <span>"Review code in Brain.py for bugs."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUPER-AGENT FEATURE 5: WAKE WORD -->
+      <section id="feature-wakeword" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-microphone"></i> Feature 5</div>
+          <h2 class="section-title">🎙️ Hands-Free Wake-Word Listener</h2>
+          <p class="section-subtitle">Activate F.R.I.D.A.Y completely hands-free by simply saying "Friday" or "Hey Friday".</p>
+        </div>
+
+        <div class="glass-card">
+          <p style="color: var(--text-secondary); font-size: 0.95rem;">
+            When enabled via <span class="command-badge">/wakeword</span>, F.R.I.D.A.Y runs a continuous low-overhead microphone listener (<code class="inline-code">wake_word.py</code>). Once the keyword is detected, an audio chime plays, and F.R.I.D.A.Y listens for your full voice command automatically.
+          </p>
+        </div>
+      </section>
+
+      <!-- SUPER-AGENT FEATURE 6: VECTOR RAG MEMORY -->
+      <section id="feature-memory" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-database"></i> Feature 6</div>
+          <h2 class="section-title">🧠 ChromaDB Vector RAG & Dual Memory</h2>
+          <p class="section-subtitle">F.R.I.D.A.Y remembers key facts, user preferences, and project context across sessions.</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="feature-grid" style="grid-template-columns: 1fr 1fr; margin-top: 0;">
+            <div>
+              <h4 style="color: var(--accent-cyan);"><i class="fa-solid fa-comments"></i> Short-Term Memory</h4>
+              <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.4rem;">
+                Maintains rolling conversation history in local JSON database for context continuity in current chat session.
+              </p>
+            </div>
+            <div>
+              <h4 style="color: var(--accent-magenta);"><i class="fa-solid fa-brain"></i> Long-Term Vector Memory (ChromaDB)</h4>
+              <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.4rem;">
+                Automatically extracts user facts (e.g. "My favorite language is Python", "My server IP is 192.168.1.50") and indexes them into ChromaDB vector store for semantic retrieval.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUPER-AGENT FEATURE 7: ACL SECURITY -->
+      <section id="feature-security" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-shield-halved"></i> Security Layer</div>
+          <h2 class="section-title">🛡️ Access Control List (ACL Guard)</h2>
+          <p class="section-subtitle">Granular security matrix preventing unauthorized remote command execution.</p>
+        </div>
+
+        <div class="custom-table-wrapper">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Origin Level</th>
+                <th>Allowed Tool Scope</th>
+                <th>Security Restrictions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="origin-badge origin-server">SERVER (Local PC)</span></td>
+                <td>Full Access to All 40+ Tools</td>
+                <td>Unrestricted access for local CLI user on primary desktop.</td>
+              </tr>
+              <tr>
+                <td><span class="origin-badge origin-mobile">MOBILE (ADB / App)</span></td>
+                <td>Weather, News, Reminders, WhatsApp, Email, Search</td>
+                <td>Restricted: Cannot run arbitrary Python code or modify local PC system files.</td>
+              </tr>
+              <tr>
+                <td><span class="origin-badge origin-web">WEB (Remote API)</span></td>
+                <td>Information Queries, Weather, Reminders, Search</td>
+                <td>Restricted: System automation, screen vision, and file deletion are blocked.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION 6: COMPLETE 40+ TOOLS CATALOG -->
+      <section id="tools-catalog" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-toolbox"></i> Complete Reference Manual</div>
+          <h2 class="section-title">🛠️ Complete 40+ Tool Catalog</h2>
+          <p class="section-subtitle">Filter by category to explore every native tool, its function, use cases, and exact triggers.</p>
+        </div>
+
+        <!-- Filter Category Tabs -->
+        <div class="tool-filter-bar">
+          <button class="filter-btn active" data-category="all">All Tools (40+)</button>
+          <button class="filter-btn" data-category="vision-code">Vision & Code</button>
+          <button class="filter-btn" data-category="subagents">Sub-Agents & Research</button>
+          <button class="filter-btn" data-category="system">System & Hardware</button>
+          <button class="filter-btn" data-category="mobile">Mobile ADB Automation</button>
+          <button class="filter-btn" data-category="email-tasks">Emails & Tasks</button>
+          <button class="filter-btn" data-category="files">Files & Utilities</button>
+        </div>
+
+        <!-- Tool Cards Grid -->
+        <div class="tools-grid">
+
+          <!-- CARD 1 -->
+          <div class="tool-card" data-category="vision-code">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">analyze_screen</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Captures instant desktop screenshot and sends it to Vision LLM for visual perception.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Debug terminal errors, summarize open documents/charts visually.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Analyze my screen and explain what error is present."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 2 -->
+          <div class="tool-card" data-category="vision-code">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">run_python_code</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Executes Python code in isolated subprocess sandbox with stdout capture and 15s timeout.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Solve math formulas, process CSVs, write dynamic scripts on the fly.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Run python code to generate prime numbers up to 100."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 3 -->
+          <div class="tool-card" data-category="subagents">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">deep_research_agent</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Autonomous multi-step search agent that conducts deep web research & outputs reports.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Gather market trends, research complex academic topics automatically.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Run deep research on quantum computing in 2026."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 4 -->
+          <div class="tool-card" data-category="subagents">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">code_reviewer_agent</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Static analysis sub-agent that scans codebase for security bugs and refactoring tips.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Audit Python modules before pushing code to production.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Review code in Brain.py for bugs."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 5 -->
+          <div class="tool-card" data-category="subagents">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">extract_webpage_content</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Scrapes main readable text content from dynamic URLs, removing nav clutter.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Read full tech blog posts or documentation pages programmatically.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Extract text content from https://example.com/blog"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 6 -->
+          <div class="tool-card" data-category="system">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">check_battery</span>
+                <span class="origin-badge origin-server">ALL</span>
+              </div>
+              <p class="feature-desc">Checks system battery percentage, power plug status, and estimated remaining time.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Monitor laptop battery level while away from charger.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Friday, what is my battery status?"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 7 -->
+          <div class="tool-card" data-category="system">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">check_cpu</span>
+                <span class="origin-badge origin-server">ALL</span>
+              </div>
+              <p class="feature-desc">Reports active CPU usage percentage across system cores using psutil.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Check if heavy background processes are slowing down the PC.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Check CPU usage."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 8 -->
+          <div class="tool-card" data-category="system">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">open_app</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Launches any Windows application or installed program by name (e.g. Chrome, Notepad, VS Code).</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Hands-free app launching without searching Start menu.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Open Chrome" or "Launch Notepad"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 9 -->
+          <div class="tool-card" data-category="system">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">volume_up / volume_down</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Adjusts Windows master sound volume level dynamically.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Adjust volume while watching videos or playing audio hands-free.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Turn volume up" or "Increase sound"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 10 -->
+          <div class="tool-card" data-category="mobile">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">send_whatsapp_message</span>
+                <span class="origin-badge origin-mobile">MOBILE</span>
+              </div>
+              <p class="feature-desc">Sends direct WhatsApp text messages to specified contact numbers via ADB bridge.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Send WhatsApp messages hands-free from computer terminal.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Send WhatsApp message to +919876543210 saying Hello!"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 11 -->
+          <div class="tool-card" data-category="mobile">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">phone_call_with_mobile</span>
+                <span class="origin-badge origin-mobile">MOBILE</span>
+              </div>
+              <p class="feature-desc">Dials phone numbers directly on connected Android mobile phone using ADB shell intent.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Make emergency calls or quick dial contacts via voice.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Call +919876543210 using mobile."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 12 -->
+          <div class="tool-card" data-category="mobile">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">unlock_device</span>
+                <span class="origin-badge origin-mobile">MOBILE</span>
+              </div>
+              <p class="feature-desc">Sends key event wake-up commands to unlock connected Android mobile phone.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Wake up phone screen remotely before sending commands.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Unlock my mobile phone."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 13 -->
+          <div class="tool-card" data-category="email-tasks">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">send_email</span>
+                <span class="origin-badge origin-server">ALL</span>
+              </div>
+              <p class="feature-desc">Sends emails with subject and body via configured SMTP server credentials.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Dispatch quick email summaries or alerts to colleagues.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Send email to user@example.com with subject Status Update"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 14 -->
+          <div class="tool-card" data-category="email-tasks">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">read_latest_emails</span>
+                <span class="origin-badge origin-server">ALL</span>
+              </div>
+              <p class="feature-desc">Fetches recent inbox subject lines and sender details via IMAP protocol.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Check unread emails during morning routine.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Read my latest unread emails."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 15 -->
+          <div class="tool-card" data-category="email-tasks">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">add_reminder / list_reminders</span>
+                <span class="origin-badge origin-server">ALL</span>
+              </div>
+              <p class="feature-desc">Schedules timed reminders monitored by the background watchdog daemon.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Never miss meetings, medicine times, or project deadlines.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Remind me to submit report at 5:00 PM."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 16 -->
+          <div class="tool-card" data-category="files">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">create_and_open_file</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Creates new local files on disk and automatically opens them in default text editor.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Quick note-taking or drafting code boilerplate.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Create a file named notes.txt with text Hello World"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION 7: INTERACTIVE COMMAND SIMULATOR -->
+      <section id="simulator" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-gamepad"></i> Interactive Sandbox</div>
+          <h2 class="section-title">⚡ Command Simulator</h2>
+          <p class="section-subtitle">Try typing slash commands or voice queries below to preview how F.R.I.D.A.Y's Brain engine responds!</p>
+        </div>
+
+        <div class="tester-box">
+          <h3 style="color: var(--accent-primary); font-size: 1.1rem;"><i class="fa-solid fa-terminal"></i> Try F.R.I.D.A.Y Terminal Input</h3>
+          <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.2rem;">Try typing: <code class="inline-code">/status</code>, <code class="inline-code">/briefing</code>, <code class="inline-code">analyze my screen</code>, or <code class="inline-code">deep research quantum computing</code></p>
+          
+          <div class="tester-input-group">
+            <input type="text" id="simInput" class="tester-input" placeholder="Type a slash command or voice query (e.g. /status)..." value="/status">
+            <button id="simRunBtn" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Run Intent</button>
+          </div>
+
+          <div id="simOutput" class="tester-output">
+            Press "Run Intent" to simulate F.R.I.D.A.Y HUD response...
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 8: TROUBLESHOOTING & FAQ -->
+      <section id="troubleshooting" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-circle-question"></i> Support & FAQ</div>
+          <h2 class="section-title">Troubleshooting & FAQ</h2>
+          <p class="section-subtitle">Solutions for common installation and runtime errors.</p>
+        </div>
+
+        <div class="glass-card">
+          <h4 style="color: var(--accent-amber);"><i class="fa-solid fa-triangle-exclamation"></i> 1. PyAudio Installation Failed on Windows</h4>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.4rem;">
+            If <code class="inline-code">pip install PyAudio</code> throws C++ compilation errors, install the wheel directly or run:
+            <br><code class="inline-code">pip install pipwin && pipwin install pyaudio</code>
+          </p>
+
+          <h4 style="color: var(--accent-amber); margin-top: 1.25rem;"><i class="fa-solid fa-mobile-screen-button"></i> 2. ADB Mobile Device Not Detected</h4>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.4rem;">
+            Ensure <strong>USB Debugging</strong> is enabled in Developer Options on your phone. Connect via USB and run <code class="inline-code">adb devices</code> in Command Prompt to verify connection.
+          </p>
+
+          <h4 style="color: var(--accent-amber); margin-top: 1.25rem;"><i class="fa-solid fa-key"></i> 3. OpenAI / LLM API Key Error</h4>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.4rem;">
+            Launch the interactive config editor by typing <span class="command-badge">/config</span> in HUD terminal and verify your API Key and Provider Base URL.
+          </p>
+        </div>
+      </section>
+
+      <!-- SECTION 9: DEVELOPER & CREDITS -->
+      <section id="developer" class="doc-section">
+        <div class="glass-card" style="border-color: var(--accent-primary); text-align: center; padding: 2.5rem;">
+          <img src="assets/logo.png" alt="F.R.I.D.A.Y Logo" style="width: 64px; height: 64px; border-radius: 14px; margin-bottom: 1rem; box-shadow: 0 0 20px var(--accent-glow); object-fit: cover;">
+          <h2 style="font-size: 1.8rem; color: var(--text-primary);">Developed by <span style="color: var(--accent-primary);">Shubham</span></h2>
+          <p style="color: var(--text-secondary); max-width: 600px; margin: 0.5rem auto 1.5rem auto; font-size: 0.95rem;">
+            Computer Science Engineering Student, Full-Stack & AI/ML Developer. Passionate about building autonomous AI agents and futuristic interactive software.
+          </p>
+
+          <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+            <a href="https://shubhamportfolio3.netlify.app/" target="_blank" class="btn-primary">
+              <i class="fa-solid fa-globe"></i> Live Portfolio
+            </a>
+            <a href="https://github.com/Shubhampanchal108" target="_blank" class="btn-outline">
+              <i class="fa-brands fa-github"></i> GitHub Profile
+            </a>
+            <a href="https://www.linkedin.com/in/shubham-panchal-a80053306" target="_blank" class="btn-outline">
+              <i class="fa-brands fa-linkedin"></i> LinkedIn
+            </a>
+          </div>
+
+          <p style="margin-top: 2rem; font-size: 0.8rem; color: var(--text-secondary);">
+            <em>"One day, F.R.I.D.A.Y will not just assist — she will collaborate." 🚀🤖</em>
+          </p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

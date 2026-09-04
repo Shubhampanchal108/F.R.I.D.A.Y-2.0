@@ -116,10 +116,32 @@ class FridayDaemon:
         except Exception as e:
             self._log_event("Daemon Check Error", str(e), level="ERROR")
 
+    def _check_proactive_memories(self):
+        """Periodically check for time-relevant memories to surface proactively."""
+        try:
+            from memory_controller import get_proactive_memories
+            memories = get_proactive_memories()
+            for mem in memories:
+                text = mem.get("text", "")
+                if text:
+                    self.send_desktop_notification(
+                        "Memory Recall",
+                        f"Sir, I recall something relevant: {text[:120]}"
+                    )
+        except Exception as e:
+            self._log_event("Memory Surfacing Error", str(e), level="ERROR")
+
     def _loop(self):
         self._log_event("Daemon Started", "Background monitoring active.")
+        cycle_count = 0
         while not self._stop_event.is_set():
             self._check_due_reminders()
+
+            # Proactive memory surfacing every ~5 minutes (20 cycles at 15s interval)
+            cycle_count += 1
+            if cycle_count % 20 == 0:
+                self._check_proactive_memories()
+
             # Wait for next check interval or until stopped
             self._stop_event.wait(self.check_interval)
 

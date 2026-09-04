@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/Architecture-Async%20Daemon%20%2B%20Sub--Agents-00ff87?style=for-the-badge&logo=cpu&logoColor=white" alt="Async Daemon" />
 </p>
 
-> **F.R.I.D.A.Y** (*Friendly Reliable Intelligent Digital Assistant for Youth*) is a **JARVIS-class Autonomous Desktop AI Agent** built in Python. Designed to run as a continuous background daemon and a rich cyberpunk terminal interface, F.R.I.D.A.Y features **Screen Perception**, **Python Code Execution Sandbox**, **Proactive Morning Briefings**, **Deep Web Research Sub-Agents**, **ChromaDB Vector RAG Memory**, and **Hands-Free Wake-Word Activation**.
+> **F.R.I.D.A.Y** (_Friendly Reliable Intelligent Digital Assistant for Youth_) is a **JARVIS-class Autonomous Desktop AI Agent** built in Python. Designed to run as a continuous background daemon and a rich cyberpunk terminal interface, F.R.I.D.A.Y features **Screen Perception**, **Python Code Execution Sandbox**, **Proactive Morning Briefings**, **Deep Web Research Sub-Agents**, **ChromaDB Vector RAG Memory**, and **Hands-Free Wake-Word Activation**.
 
 ---
 
@@ -29,29 +29,37 @@
 ## 🔥 Key Super-Agent Capabilities
 
 ### 📸 1. Screen Vision Perception (`JARVIS Vision`)
+
 Give F.R.I.D.A.Y eyes to see your desktop screen:
+
 - **`analyze_screen(prompt)`**: Takes an instant desktop screenshot and sends it to Vision LLMs.
 - **Capabilities**: Debug code errors visible on screen, summarize documents open in apps, or analyze UI charts.
 
 ### 🐍 2. Python Code Execution Sandbox
+
 - **`run_python_code(code)`**: Safely executes Python snippets in an isolated subprocess with stdout/stderr capture and 15s timeout safeguards.
 - **Capabilities**: Solve math problems, process Excel/CSV files, generate charts, or write automation scripts on the fly.
 
 ### 🌅 3. Proactive Morning Briefing Daemon
+
 - **Continuous Watchdog**: Runs as a background daemon thread (`daemon.py`).
 - **`trigger_morning_briefing()`**: Synthesizes weather forecast, pending reminders, battery health, and top news into a voice announcement and native **Windows Desktop Notification**.
 
 ### 🤖 4. Specialized Autonomous Sub-Agents
+
 - 🌐 **Deep Researcher Sub-Agent (`deep_research_agent`)**: Performs multi-query web searches, scrapes dynamic web pages, and synthesizes structured research reports.
 - 💻 **Code Reviewer Sub-Agent (`code_reviewer_agent`)**: Analyzes codebase files for bugs, security risks, efficiency, and refactoring tips.
 
 ### 🌐 5. Web Autopilot Scraper
+
 - **`extract_webpage_content(url)`**: Scrapes readable main text content from dynamic websites and technical documentation.
 
 ### 🎙️ 6. Hands-Free Wake-Word Listener
+
 - **`WakeWordListener`**: Background listener checking for keywords (`"Friday"`, `"Hey Friday"`) to trigger voice listening without touching the keyboard.
 
 ### ⚙️ 7. First-Time Setup Wizard & Dynamic Config Manager
+
 - **`run_first_time_setup()`**: Interactive setup wizard that launches automatically on new machines to set up LLM API keys, provider URLs, security passwords, and user profile details.
 - **`interactive_config_editor()` (`/config`)**: On-the-fly terminal menu to view or update any configuration setting with masked API key privacy.
 
@@ -98,10 +106,12 @@ Give F.R.I.D.A.Y eyes to see your desktop screen:
 ## 💻 Installation & Quick Start
 
 ### 1. Prerequisites
+
 - **Python 3.10+** installed.
 - Recommended OS: **Windows 10/11** (Supports Linux/macOS).
 
 ### 2. Clone & Setup Virtual Environment
+
 ```bash
 git clone https://github.com/Shubhampanchal108/F.R.I.D.A.Y.git
 cd F.R.I.D.A.Y
@@ -112,11 +122,13 @@ python -m venv .venv
 ```
 
 ### 3. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 4. Run F.R.I.D.A.Y
+
 ```bash
 python index.py
 ```
@@ -127,18 +139,18 @@ python index.py
 
 ## 🎮 Command Palette & Slash Commands
 
-| Command | Description |
-| :--- | :--- |
-| `/voice` | Switch to Voice Recognition Mode (`SpeechRecognition`) |
-| `/type` | Switch to Typing Mode |
-| `/audio` | Toggle Speech Audio Drive ON/OFF (`gTTS` + `pygame`) |
-| `/briefing` | Trigger Proactive Voice & Desktop Morning Briefing |
-| `/wakeword` | Toggle Hands-Free Background Wake-Word Activation (`"Friday"`) |
-| `/status` | Display System Health HUD (CPU %, Battery, Vector Memory, Daemon Logs) |
-| `/reminders` | Display Pending & Active Reminders |
-| `/config` | Open Dynamic Configuration Editor Wizard |
-| `/clear` | Clear Terminal Dashboard |
-| `/exit` | Shutdown F.R.I.D.A.Y Agent & Background Daemon cleanly |
+| Command      | Description                                                            |
+| :----------- | :--------------------------------------------------------------------- |
+| `/voice`     | Switch to Voice Recognition Mode (`SpeechRecognition`)                 |
+| `/type`      | Switch to Typing Mode                                                  |
+| `/audio`     | Toggle Speech Audio Drive ON/OFF (`gTTS` + `pygame`)                   |
+| `/briefing`  | Trigger Proactive Voice & Desktop Morning Briefing                     |
+| `/wakeword`  | Toggle Hands-Free Background Wake-Word Activation (`"Friday"`)         |
+| `/status`    | Display System Health HUD (CPU %, Battery, Vector Memory, Daemon Logs) |
+| `/reminders` | Display Pending & Active Reminders                                     |
+| `/config`    | Open Dynamic Configuration Editor Wizard                               |
+| `/clear`     | Clear Terminal Dashboard                                               |
+| `/exit`      | Shutdown F.R.I.D.A.Y Agent & Background Daemon cleanly                 |
 
 ---
 
@@ -159,7 +171,8 @@ python index.py
 
 ## 🧑‍💻 Developer & Credits
 
-**Shubham** — *Computer Science Engineering Student, Full-Stack & AI/ML Developer*
+**Shubham** — _Computer Science Engineering Student, Full-Stack & AI/ML Developer_
+
 - 🌐 **Portfolio**: [shubhamportfolio3.netlify.app](https://shubhamportfolio3.netlify.app/)
 - 💻 **GitHub**: [@Shubhampanchal108](https://github.com/Shubhampanchal108)
 - 🔗 **LinkedIn**: [Shubham Panchal](https://www.linkedin.com/in/shubham-panchal-a80053306)
@@ -168,4 +181,4 @@ python index.py
 
 ## ❤️ Vision
 
-> *"One day, F.R.I.D.A.Y will not just assist — she will collaborate."* 🚀🤖
+> _"One day, F.R.I.D.A.Y will not just assist — she will collaborate."_ 🚀🤖

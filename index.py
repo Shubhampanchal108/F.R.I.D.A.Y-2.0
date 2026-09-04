@@ -16,6 +16,8 @@ from config_driver import Check_Keys, is_agent_configured, run_first_time_setup,
 
 from cli_interface import FridayCLI, console
 from daemon import daemon_instance
+from memory_controller import save_session_summary, get_last_session_context
+from utiles import load_memory
 
 VOICE_COMMANDS = ["switch to voice", "voice mode", "/voice"]
 TYPE_COMMANDS = ["switch to typing", "type mode", "/type"]
@@ -59,6 +61,17 @@ def main():
     if cli.audio_drive:
         speak(f"{greeting} How may I assist you, Sir?")
 
+    # Cross-session continuity — show what happened last time
+    try:
+        last_context = get_last_session_context()
+        if last_context:
+            continuity_msg = f"By the way Sir, last time we were discussing: {last_context}"
+            cli.render_agent_response(continuity_msg)
+            if cli.audio_drive:
+                speak(continuity_msg)
+    except Exception:
+        pass
+
     # ===== MAIN INTERACTIVE LOOP =====
     try:
         while True:
@@ -87,9 +100,16 @@ def main():
 
             # --- SLASH / PROTOCOL COMMANDS ---
             if query_lower in ["/exit", "exit", "quit", "goodbye"]:
-                cli.render_agent_response("Goodbye Sir. Shutting down systems.")
+                cli.render_agent_response("Goodbye Sir. Saving session memory and shutting down.")
                 if cli.audio_drive:
                     speak("Goodbye Sir. Have a productive day.")
+                # Save session summary as episodic memory before exit
+                try:
+                    memory = load_memory()
+                    history = memory.get("conversation_history", [])
+                    save_session_summary(history)
+                except Exception:
+                    pass
                 break
 
             if query_lower in ["/help", "help"]:
@@ -168,6 +188,14 @@ def main():
                     speak(final_ans)
 
     finally:
+        # Save session summary on any exit (including Ctrl+C)
+        try:
+            memory = load_memory()
+            history = memory.get("conversation_history", [])
+            save_session_summary(history)
+        except Exception:
+            pass
+
         # Shutdown daemon cleanly on exit
         daemon_instance.stop()
         console.print("\n[dim cyan]🟢 F.R.I.D.A.Y Daemon and CLI shut down cleanly. Good day, Sir![/dim cyan]")

@@ -7,6 +7,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from RAG import search_vector_memory
+from memory_controller import auto_extract_memories, get_last_session_context, get_user_profile_summary
 from configs import Friday_Instruction
 from Tool_guard import load_tools, execute_tool, TOOLS
 from config_driver import Check_Keys
@@ -41,21 +42,44 @@ def Brain(prompt: str, origin='server', source=None, tool_callback=None):
             "content": m.get("content", "")
         })
 
-    # Retrieve relevant vector memories and include them in the context
+    # Cross-session continuity — inject last session context
     try:
-        retrieved = search_vector_memory(query=prompt, top_k=3)
+        last_session = get_last_session_context()
+        if last_session:
+            messages.append({
+                "role": "system",
+                "content": f"[LAST SESSION CONTEXT] {last_session}"
+            })
+    except Exception:
+        pass
+
+    # Dynamic user profile — inject learned preferences & facts
+    try:
+        profile_summary = get_user_profile_summary()
+        if profile_summary:
+            messages.append({
+                "role": "system",
+                "content": f"[USER PROFILE]\n{profile_summary}"
+            })
+    except Exception:
+        pass
+
+    # Retrieve relevant vector memories with relevance filtering
+    try:
+        retrieved = search_vector_memory(query=prompt, top_k=5)
         if retrieved:
             mem_texts = []
             for mem in retrieved:
                 txt = mem.get("text", "").replace("\n", " ")
                 md = mem.get("metadata", {}) or {}
                 tags = md.get("tags", "")
-                mem_texts.append(f"- {txt} (tags: {tags})")
+                importance = md.get("importance", "medium")
+                mem_texts.append(f"- {txt} (tags: {tags}, importance: {importance})")
 
             memories_str = "\n".join(mem_texts)
             messages.append({
-                "role": "assistant",
-                "content": f"Relevant memories:\n{memories_str}"
+                "role": "system",
+                "content": f"[MEMORY CONTEXT] Relevant memories about the user:\n{memories_str}"
             })
     except Exception as e:
         print("⚠️ Memory retrieval error:", e)
@@ -135,6 +159,17 @@ def Brain(prompt: str, origin='server', source=None, tool_callback=None):
         # -------- FINAL HUMAN RESPONSE -------- #
         add_to_history("user", prompt)
         add_to_history("assistant", msg)
+
+        # Auto-extract memories in background thread (non-blocking)
+        try:
+            import threading
+            threading.Thread(
+                target=auto_extract_memories,
+                args=(prompt, msg),
+                daemon=True
+            ).start()
+        except Exception:
+            pass
 
         return msg.replace("*", "")
 
