@@ -234,17 +234,33 @@ function initScrollSpy() {
    -------------------------------------------------------------------------- */
 function initMobileMenu() {
     const toggleBtn = document.getElementById('mobileMenuToggle');
+    const closeBtn = document.getElementById('sidebarCloseBtn');
     const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    function toggleMenu() {
+        if (sidebar) sidebar.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('active');
+    }
+
+    function closeMenu() {
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('active');
+    }
 
     if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
+        toggleBtn.addEventListener('click', toggleMenu);
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeMenu);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', closeMenu);
+        }
 
         document.querySelectorAll('.sidebar-link').forEach(link => {
-            link.addEventListener('click', () => {
-                sidebar.classList.remove('open');
-            });
+            link.addEventListener('click', closeMenu);
         });
     }
 }

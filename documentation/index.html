@@ -29,7 +29,7 @@
     <!-- Search Engine Bar -->
     <div class="search-wrapper">
       <i class="fa-solid fa-magnifying-glass search-icon"></i>
-      <input type="text" id="globalSearch" class="search-input" placeholder="Search features, tools, commands, architecture (e.g. Vision, /briefing, ADB)...">
+      <input type="text" id="globalSearch" class="search-input" placeholder="Search tools, commands, features...">
     </div>
 
     <!-- Header Actions & Theme Switcher -->
@@ -37,19 +37,32 @@
       <button class="theme-toggle-btn" id="themeToggle" title="Switch Theme">
         <i class="fa-solid fa-moon"></i>
       </button>
-      <a href="assets/Friday_Agent.exe" download class="btn-primary">
-        <i class="fa-solid fa-download"></i> Download F.R.I.D.A.Y
+      <a href="assets/Friday_Agent.exe" download class="btn-primary" title="Download F.R.I.D.A.Y Agent">
+        <i class="fa-solid fa-download"></i> <span class="btn-text">Download</span>
       </a>
-      <a href="#tools-catalog" class="btn-outline">
-        <i class="fa-solid fa-toolbox"></i> 40+ Tools
+      <a href="#tools-catalog" class="btn-outline btn-tools">
+        <i class="fa-solid fa-toolbox"></i> <span class="btn-text">40+ Tools</span>
       </a>
     </div>
   </header>
 
   <div class="app-container">
 
+    <!-- Mobile Navigation Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <!-- ================= LEFT SIDEBAR NAVIGATION ================= -->
     <aside class="sidebar">
+      <div class="sidebar-header-mobile">
+        <a href="#" class="brand-wrapper">
+          <img src="assets/logo.png" alt="F.R.I.D.A.Y Logo" class="brand-logo-img">
+          <div class="brand-title">F.R.I.D.A.Y</div>
+        </a>
+        <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close Navigation">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
       <div class="sidebar-group">
         <div class="sidebar-title"><i class="fa-solid fa-compass"></i> Navigation</div>
         <ul class="sidebar-menu">
@@ -162,7 +175,7 @@
 
         <!-- RECOMMENDED METHOD: STANDALONE EXE -->
         <div class="glass-card" style="border-color: var(--accent-primary); background: var(--bg-card);">
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+          <div class="download-card-header">
             <div>
               <span class="origin-badge origin-server" style="font-size: 0.75rem; padding: 3px 10px; margin-bottom: 0.5rem; display: inline-block;">RECOMMENDED FOR USERS</span>
               <h3 style="font-size: 1.4rem; color: var(--text-primary); font-weight: 800;"><i class="fa-solid fa-file-zipper" style="color: var(--accent-primary);"></i> Download F.R.I.D.A.Y Standalone Agent (.exe)</h3>
@@ -175,7 +188,7 @@
             </a>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+          <div class="quickstart-steps-grid">
             <div>
               <strong style="color: var(--text-primary);"><i class="fa-solid fa-1" style="color: var(--accent-cyan);"></i> Step 1: Download</strong>
               <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;">Click the download button to save <code>Friday_Agent.exe</code>.</p>
@@ -248,7 +261,7 @@ python index.py</pre>
           <p class="section-subtitle">Control F.R.I.D.A.Y's operational modes, hardware audio, reminders, and system status instantly from the command line.</p>
         </div>
 
-        <div class="custom-table-wrapper">
+        <div class="custom-table-wrapper responsive-table">
           <table class="custom-table">
             <thead>
               <tr>
@@ -260,64 +273,64 @@ python index.py</pre>
             </thead>
             <tbody>
               <tr>
-                <td><span class="command-badge copyable-cmd">/voice</span></td>
-                <td>Speech Recognition Mode</td>
-                <td>Switches input mode to continuous microphone voice recognition using PyAudio & SpeechRecognition. <em>Use case: Hands-free coding or listening while working away from keyboard.</em></td>
-                <td>Type <code class="inline-code">/voice</code> & press Enter</td>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/voice</span></td>
+                <td data-label="Mode / Function">Speech Recognition Mode</td>
+                <td data-label="Description">Switches input mode to continuous microphone voice recognition using PyAudio & SpeechRecognition. <em>Use case: Hands-free coding or listening while working away from keyboard.</em></td>
+                <td data-label="Trigger">Type <code class="inline-code">/voice</code> & press Enter</td>
               </tr>
               <tr>
-                <td><span class="command-badge copyable-cmd">/type</span></td>
-                <td>Text Typing Mode</td>
-                <td>Switches input mode to silent text typing. <em>Use case: Working in quiet environments, libraries, or noisy rooms.</em></td>
-                <td>Type <code class="inline-code">/type</code> & press Enter</td>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/type</span></td>
+                <td data-label="Mode / Function">Text Typing Mode</td>
+                <td data-label="Description">Switches input mode to silent text typing. <em>Use case: Working in quiet environments, libraries, or noisy rooms.</em></td>
+                <td data-label="Trigger">Type <code class="inline-code">/type</code> & press Enter</td>
               </tr>
               <tr>
-                <td><span class="command-badge copyable-cmd">/audio</span></td>
-                <td>Speech Voice Drive Toggle</td>
-                <td>Toggles F.R.I.D.A.Y's voice synthesizer ON/OFF (<code class="inline-code">gTTS</code> + <code class="inline-code">pygame</code>). <em>Use case: Mute voice replies during meetings while keeping terminal active.</em></td>
-                <td>Type <code class="inline-code">/audio</code></td>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/audio</span></td>
+                <td data-label="Mode / Function">Speech Voice Drive Toggle</td>
+                <td data-label="Description">Toggles F.R.I.D.A.Y's voice synthesizer ON/OFF (<code class="inline-code">gTTS</code> + <code class="inline-code">pygame</code>). <em>Use case: Mute voice replies during meetings while keeping terminal active.</em></td>
+                <td data-label="Trigger">Type <code class="inline-code">/audio</code></td>
               </tr>
               <tr>
-                <td><span class="command-badge copyable-cmd">/briefing</span></td>
-                <td>Morning Briefing Trigger</td>
-                <td>Manually triggers an instant voice briefing containing weather, due reminders, battery status, and news. <em>Use case: Starting your day or resuming work after lunch.</em></td>
-                <td>Type <code class="inline-code">/briefing</code></td>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/briefing</span></td>
+                <td data-label="Mode / Function">Morning Briefing Trigger</td>
+                <td data-label="Description">Manually triggers an instant voice briefing containing weather, due reminders, battery status, and news. <em>Use case: Starting your day or resuming work after lunch.</em></td>
+                <td data-label="Trigger">Type <code class="inline-code">/briefing</code></td>
               </tr>
               <tr>
-                <td><span class="command-badge copyable-cmd">/wakeword</span></td>
-                <td>Hands-Free Wake Listener</td>
-                <td>Toggles background background wake-word thread. Listens for keyword <strong>"Friday"</strong> to activate voice input. <em>Use case: Room voice control without clicking anything.</em></td>
-                <td>Type <code class="inline-code">/wakeword</code></td>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/wakeword</span></td>
+                <td data-label="Mode / Function">Hands-Free Wake Listener</td>
+                <td data-label="Description">Toggles background background wake-word thread. Listens for keyword <strong>"Friday"</strong> to activate voice input. <em>Use case: Room voice control without clicking anything.</em></td>
+                <td data-label="Trigger">Type <code class="inline-code">/wakeword</code></td>
               </tr>
               <tr>
-                <td><span class="command-badge copyable-cmd">/status</span></td>
-                <td>System Health HUD</td>
-                <td>Displays dynamic system status: CPU load %, Battery percentage, active background daemon threads, and ChromaDB vector count. <em>Use case: Checking system resources.</em></td>
-                <td>Type <code class="inline-code">/status</code></td>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/status</span></td>
+                <td data-label="Mode / Function">System Health HUD</td>
+                <td data-label="Description">Displays dynamic system status: CPU load %, Battery percentage, active background daemon threads, and ChromaDB vector count. <em>Use case: Checking system resources.</em></td>
+                <td data-label="Trigger">Type <code class="inline-code">/status</code></td>
               </tr>
               <tr>
-                <td><span class="command-badge copyable-cmd">/reminders</span></td>
-                <td>Reminders Dashboard</td>
-                <td>Lists all active and due reminders scheduled in local JSON database. <em>Use case: Reviewing daily schedule.</em></td>
-                <td>Type <code class="inline-code">/reminders</code></td>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/reminders</span></td>
+                <td data-label="Mode / Function">Reminders Dashboard</td>
+                <td data-label="Description">Lists all active and due reminders scheduled in local JSON database. <em>Use case: Reviewing daily schedule.</em></td>
+                <td data-label="Trigger">Type <code class="inline-code">/reminders</code></td>
               </tr>
               <tr>
-                <td><span class="command-badge copyable-cmd">/config</span></td>
-                <td>Interactive Config Editor</td>
-                <td>Launches terminal wizard to edit API Keys, Provider Base URLs, LLM Model names, and Security Passwords safely. <em>Use case: Changing models or keys.</em></td>
-                <td>Type <code class="inline-code">/config</code></td>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/config</span></td>
+                <td data-label="Mode / Function">Interactive Config Editor</td>
+                <td data-label="Description">Launches terminal wizard to edit API Keys, Provider Base URLs, LLM Model names, and Security Passwords safely. <em>Use case: Changing models or keys.</em></td>
+                <td data-label="Trigger">Type <code class="inline-code">/config</code></td>
               </tr>
               <tr>
-                <td><span class="command-badge copyable-cmd">/clear</span></td>
-                <td>Clear HUD Screen</td>
-                <td>Clears terminal console view while preserving session chat history and background daemon threads.</td>
-                <td>Type <code class="inline-code">/clear</code></td>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/clear</span></td>
+                <td data-label="Mode / Function">Clear HUD Screen</td>
+                <td data-label="Description">Clears terminal console view while preserving session chat history and background daemon threads.</td>
+                <td data-label="Trigger">Type <code class="inline-code">/clear</code></td>
               </tr>
               <tr>
-                <td><span class="command-badge copyable-cmd">/exit</span></td>
-                <td>Shutdown Agent</td>
-                <td>Safely stops all background threads (Daemon, WakeWord listener), saves persistent memory, and closes CLI cleanly.</td>
-                <td>Type <code class="inline-code">/exit</code> or <code class="inline-code">quit</code></td>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/exit</span></td>
+                <td data-label="Mode / Function">Shutdown Agent</td>
+                <td data-label="Description">Safely stops all background threads (Daemon, WakeWord listener), saves persistent memory, and closes CLI cleanly.</td>
+                <td data-label="Trigger">Type <code class="inline-code">/exit</code> or <code class="inline-code">quit</code></td>
               </tr>
             </tbody>
           </table>
@@ -553,7 +566,7 @@ python index.py</pre>
         </div>
 
         <div class="glass-card">
-          <div class="feature-grid" style="grid-template-columns: 1fr 1fr; margin-top: 0;">
+          <div class="feature-grid dual-memory-grid" style="margin-top: 0;">
             <div>
               <h4 style="color: var(--accent-cyan);"><i class="fa-solid fa-comments"></i> Short-Term Memory</h4>
               <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.4rem;">
@@ -578,7 +591,7 @@ python index.py</pre>
           <p class="section-subtitle">Granular security matrix preventing unauthorized remote command execution.</p>
         </div>
 
-        <div class="custom-table-wrapper">
+        <div class="custom-table-wrapper responsive-table">
           <table class="custom-table">
             <thead>
               <tr>
@@ -589,19 +602,19 @@ python index.py</pre>
             </thead>
             <tbody>
               <tr>
-                <td><span class="origin-badge origin-server">SERVER (Local PC)</span></td>
-                <td>Full Access to All 40+ Tools</td>
-                <td>Unrestricted access for local CLI user on primary desktop.</td>
+                <td data-label="Origin Level"><span class="origin-badge origin-server">SERVER (Local PC)</span></td>
+                <td data-label="Allowed Scope">Full Access to All 40+ Tools</td>
+                <td data-label="Restrictions">Unrestricted access for local CLI user on primary desktop.</td>
               </tr>
               <tr>
-                <td><span class="origin-badge origin-mobile">MOBILE (ADB / App)</span></td>
-                <td>Weather, News, Reminders, WhatsApp, Email, Search</td>
-                <td>Restricted: Cannot run arbitrary Python code or modify local PC system files.</td>
+                <td data-label="Origin Level"><span class="origin-badge origin-mobile">MOBILE (ADB / App)</span></td>
+                <td data-label="Allowed Scope">Weather, News, Reminders, WhatsApp, Email, Search</td>
+                <td data-label="Restrictions">Restricted: Cannot run arbitrary Python code or modify local PC system files.</td>
               </tr>
               <tr>
-                <td><span class="origin-badge origin-web">WEB (Remote API)</span></td>
-                <td>Information Queries, Weather, Reminders, Search</td>
-                <td>Restricted: System automation, screen vision, and file deletion are blocked.</td>
+                <td data-label="Origin Level"><span class="origin-badge origin-web">WEB (Remote API)</span></td>
+                <td data-label="Allowed Scope">Information Queries, Weather, Reminders, Search</td>
+                <td data-label="Restrictions">Restricted: System automation, screen vision, and file deletion are blocked.</td>
               </tr>
             </tbody>
           </table>
