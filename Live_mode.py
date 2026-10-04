@@ -44,7 +44,8 @@ Friday_Details = (
     "3. Keep spoken replies concise, natural, and conversational (around 1-3 sentences unless explaining a complex problem). "
     "4. Support both English and natural Hindi (Hinglish) based on user query. "
     "5. Do NOT output raw JSON or code tags in spoken audio. "
-    "6. You have DIRECT access to live system tools (adjusting volume, brightness, battery check, launching apps, closing apps, taking screenshots, searching web, weather, tasks, reminders). When the user asks you to perform an action or check system information, CALL the corresponding tool immediately, and after receiving the result, inform the user concisely in natural voice."
+    "6. You have DIRECT access to live system tools (adjusting volume, brightness, battery check, launching apps, closing apps, taking screenshots, searching web, weather, tasks, reminders). When the user asks you to perform an action or check system information, CALL the corresponding tool immediately, and after receiving the result, inform the user concisely in natural voice. "
+    "7. REAL-TIME DYNAMIC VISION: Visual frames are continuously streamed to you. ALWAYS observe and describe the CURRENT / MOST RECENT frame you received. Screens and camera scenes change dynamically — never assume an older screen or application is still active if the current frame shows a different window or scene."
 )
 
 # Function declarations for Gemini Live Multimodal Function Calling
@@ -289,10 +290,10 @@ class AudioLoop:
     def __init__(self, video_mode=DEFAULT_MODE):
         self.video_mode = video_mode
         self.audio_in_queue = None
-        self.out_queue = None
         self.session = None
         self.audio_stream = None
         self.output_stream = None
+        self.send_lock = asyncio.Lock()
 
         # Flags for playback and termination
         self.is_playing = asyncio.Event()
@@ -316,10 +317,11 @@ class AudioLoop:
                 break
 
             try:
-                await self.session.send_client_content(
-                    turns=[types.Content(role="user", parts=[types.Part(text=text)])],
-                    turn_complete=True
-                )
+                async with self.send_lock:
+                    await self.session.send_client_content(
+                        turns=[types.Content(role="user", parts=[types.Part(text=text)])],
+                        turn_complete=True
+                    )
             except Exception as e:
                 console.print(f"[dim red]⚠️ Text notice: {e}[/dim red]")
 
@@ -329,10 +331,10 @@ class AudioLoop:
             return None
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = PIL.Image.fromarray(frame_rgb)
-        img.thumbnail([1024, 1024])
+        img.thumbnail([640, 480])
 
         image_io = io.BytesIO()
-        img.save(image_io, format="JPEG", quality=75)
+        img.save(image_io, format="JPEG", quality=55)
         return types.Blob(data=image_io.getvalue(), mime_type="image/jpeg")
 
     async def get_frames(self):
@@ -342,16 +344,30 @@ class AudioLoop:
             return
 
         try:
+            # Send initial webcam frame immediately
+            init_blob = await asyncio.to_thread(self._get_frame, cap)
+            if init_blob:
+                try:
+                    async with self.send_lock:
+                        await self.session.send_realtime_input(media=init_blob)
+                except Exception:
+                    pass
+
             while not self.stop_event.is_set():
+                await asyncio.sleep(1.0)
+                if self.stop_event.is_set():
+                    break
+
                 blob = await asyncio.to_thread(self._get_frame, cap)
                 if blob is None:
-                    await asyncio.sleep(0.5)
                     continue
-                await asyncio.sleep(1.0)
+
                 try:
-                    await self.out_queue.put(blob)
+                    async with self.send_lock:
+                        await self.session.send_realtime_input(media=blob)
                 except Exception:
-                    break
+                    if self.stop_event.is_set():
+                        break
         finally:
             cap.release()
 
@@ -360,39 +376,48 @@ class AudioLoop:
             with mss.mss() as sct:
                 monitor = sct.monitors[1] if len(sct.monitors) > 1 else sct.monitors[0]
                 i = sct.grab(monitor)
-
                 img = PIL.Image.frombytes("RGB", i.size, i.rgb)
-                img.thumbnail([1024, 1024])
-
+                img.thumbnail([640, 480])
                 image_io = io.BytesIO()
-                img.save(image_io, format="JPEG", quality=70)
+                img.save(image_io, format="JPEG", quality=55)
                 return types.Blob(data=image_io.getvalue(), mime_type="image/jpeg")
         except Exception:
-            return None
+            try:
+                import PIL.ImageGrab
+                img = PIL.ImageGrab.grab()
+                img.thumbnail([640, 480])
+                image_io = io.BytesIO()
+                img.save(image_io, format="JPEG", quality=55)
+                return types.Blob(data=image_io.getvalue(), mime_type="image/jpeg")
+            except Exception:
+                return None
 
     async def get_screen(self):
-        while not self.stop_event.is_set():
-            blob = await asyncio.to_thread(self._get_screen)
-            if blob is None:
-                await asyncio.sleep(1.0)
-                continue
-            await asyncio.sleep(1.0)
+        # Send initial screen frame immediately
+        init_blob = await asyncio.to_thread(self._get_screen)
+        if init_blob:
             try:
-                await self.out_queue.put(blob)
+                async with self.send_lock:
+                    await self.session.send_realtime_input(media=init_blob)
             except Exception:
+                pass
+
+        while not self.stop_event.is_set():
+            # Send clean, fresh screen frame every 1.5s (prevents token backlog)
+            await asyncio.sleep(1.5)
+            if self.stop_event.is_set():
                 break
 
-    async def send_realtime(self):
-        while not self.stop_event.is_set():
-            try:
-                blob = await asyncio.wait_for(self.out_queue.get(), timeout=0.2)
-                await self.session.send_realtime_input(media=blob)
-            except asyncio.TimeoutError:
+            blob = await asyncio.to_thread(self._get_screen)
+            if blob is None:
                 continue
-            except Exception as e:
+
+            try:
+                async with self.send_lock:
+                    await self.session.send_realtime_input(media=blob)
+            except Exception:
                 if self.stop_event.is_set():
                     break
-                await asyncio.sleep(0.05)
 
     async def listen_audio(self):
         try:
@@ -410,20 +435,24 @@ class AudioLoop:
             console.print(f"\n[bold red]⚠️ Microphone Init Error: {e}[/bold red]")
             return
 
-        kwargs = {"exception_on_overflow": False} if __debug__ else {}
+        kwargs = {"exception_on_overflow": False}
         while not self.stop_event.is_set():
-            if self.is_playing.is_set():
-                await asyncio.sleep(0.05)
-                continue
-
             try:
+                # Read continuously to prevent hardware buffer accumulation / delay drift!
                 data = await asyncio.to_thread(self.audio_stream.read, CHUNK_SIZE, **kwargs)
+
+                # While Friday speaks, discard mic input to prevent echo and backlog buildup
+                if self.is_playing.is_set():
+                    continue
+
                 blob = types.Blob(data=data, mime_type="audio/pcm;rate=16000")
-                await self.out_queue.put(blob)
+                async with self.send_lock:
+                    await self.session.send_realtime_input(media=blob)
+
             except Exception:
                 if self.stop_event.is_set():
                     break
-                await asyncio.sleep(0.05)
+                await asyncio.sleep(0.01)
 
     async def receive_audio(self):
         new_turn = True
@@ -472,7 +501,8 @@ class AudioLoop:
 
                         if function_responses:
                             try:
-                                await self.session.send_tool_response(function_responses=function_responses)
+                                async with self.send_lock:
+                                    await self.session.send_tool_response(function_responses=function_responses)
                             except Exception as e:
                                 console.print(f"[dim red]⚠️ Failed to send tool response: {e}[/dim red]")
 
@@ -509,7 +539,8 @@ class AudioLoop:
                 bytestream = await asyncio.wait_for(self.audio_in_queue.get(), timeout=0.2)
                 self.is_playing.set()
                 await asyncio.to_thread(self.output_stream.write, bytestream)
-                self.is_playing.clear()
+                if self.audio_in_queue.empty():
+                    self.is_playing.clear()
             except asyncio.TimeoutError:
                 continue
             except Exception:
@@ -551,10 +582,8 @@ class AudioLoop:
             ):
                 self.session = session
                 self.audio_in_queue = asyncio.Queue()
-                self.out_queue = asyncio.Queue(maxsize=10)
 
                 send_text_task = tg.create_task(self.send_text())
-                tg.create_task(self.send_realtime())
                 tg.create_task(self.listen_audio())
 
                 if self.video_mode == "camera":
