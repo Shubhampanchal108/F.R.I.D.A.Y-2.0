@@ -98,7 +98,7 @@ class FridayCLI:
             box=box.DOUBLE,
             border_style="cyan",
             title="[bold bright_blue]⚡ F.R.I.D.A.Y 4.0 — NEXT-GEN SUPER-AGENT HUD ⚡[/bold bright_blue]",
-            subtitle="[dim]Type [bold yellow]/help[/bold yellow] for shortcuts │ [bold bright_cyan]/live[/bold bright_cyan] for Vision Mode │ [bold cyan]Version 4.0[/bold cyan][/dim]"
+            subtitle="[dim]Type [bold yellow]/help[/bold yellow] for shortcuts │ [bold bright_cyan]/live[/bold bright_cyan] for Vision Mode │ [bold yellow]Ctrl+D[/bold yellow] to Interrupt Speech[/dim]"
         )
         console.print(main_panel)
 
@@ -118,6 +118,7 @@ class FridayCLI:
         help_table.add_row("/reminders", "Show Pending & Active Reminders")
         help_table.add_row("/config", "Open Dynamic Configuration Editor Wizard")
         help_table.add_row("/clear", "Clear Terminal Screen")
+        help_table.add_row("Ctrl + D / Esc", "Interrupt and stop speech playback immediately")
         help_table.add_row("/exit", "Shutdown F.R.I.D.A.Y CLI Agent")
         
         console.print(help_table)

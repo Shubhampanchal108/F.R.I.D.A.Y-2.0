@@ -14,6 +14,13 @@ import pyaudio
 import PIL.Image
 import mss
 
+# UTF-8 stdout reconfigure for Windows console
+if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from google import genai
 from google.genai import types
 from dotenv import dotenv_values
@@ -24,20 +31,204 @@ from rich import box
 # Parent directory for relative imports
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-try:
-    from configs import Friday_Instruction as Friday_Details
-except Exception:
-    Friday_Details = (
-        "You are F.R.I.D.A.Y (Friendly Reliable Intelligent Digital Assistant for Youth), created by Shubham sir. "
-        "You are currently operating in LIVE MULTIMODAL STREAMING MODE. "
-        "You can continuously see real-time visual frames (from the desktop screen or camera) and hear real-time audio from the user. "
-        "Rules: "
-        "1. Always address the user politely as 'Sir' or 'Shubham sir'. "
-        "2. If asked about what is on screen or in front of the camera, describe it accurately, pointing out code, UI elements, errors, or objects. "
-        "3. Keep spoken replies concise, natural, and conversational (around 1-3 sentences unless explaining a complex problem). "
-        "4. Support both English and natural Hindi (Hinglish) based on user query. "
-        "5. Do NOT output raw JSON or code tags in spoken audio."
-    )
+from Tool_guard import load_tools, execute_tool, TOOLS
+registry = load_tools()
+
+Friday_Details = (
+    "You are F.R.I.D.A.Y (Friendly Reliable Intelligent Digital Assistant for Youth), created by Shubham sir. "
+    "You are currently operating in LIVE MULTIMODAL STREAMING MODE. "
+    "You can continuously see real-time visual frames (from the desktop screen or camera) and hear real-time audio from the user. "
+    "Rules: "
+    "1. Always address the user politely as 'Sir' or 'Shubham sir'. "
+    "2. If asked about what is on screen or in front of the camera, describe it accurately, pointing out code, UI elements, errors, or objects. "
+    "3. Keep spoken replies concise, natural, and conversational (around 1-3 sentences unless explaining a complex problem). "
+    "4. Support both English and natural Hindi (Hinglish) based on user query. "
+    "5. Do NOT output raw JSON or code tags in spoken audio. "
+    "6. You have DIRECT access to live system tools (adjusting volume, brightness, battery check, launching apps, closing apps, taking screenshots, searching web, weather, tasks, reminders). When the user asks you to perform an action or check system information, CALL the corresponding tool immediately, and after receiving the result, inform the user concisely in natural voice."
+)
+
+# Function declarations for Gemini Live Multimodal Function Calling
+LIVE_TOOLS = [
+    {
+        "function_declarations": [
+            {
+                "name": "volume_up",
+                "description": "Increase system audio volume by specified step percentage (default 10%).",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "step": {"type": "INTEGER", "description": "Step percentage to increase (default 10)."}
+                    }
+                }
+            },
+            {
+                "name": "volume_down",
+                "description": "Decrease system audio volume by specified step percentage (default 10%).",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "step": {"type": "INTEGER", "description": "Step percentage to decrease (default 10)."}
+                    }
+                }
+            },
+            {
+                "name": "mute_volume",
+                "description": "Mute system audio volume."
+            },
+            {
+                "name": "unmute_volume",
+                "description": "Unmute system audio volume."
+            },
+            {
+                "name": "brightness_up",
+                "description": "Increase screen brightness."
+            },
+            {
+                "name": "brightness_down",
+                "description": "Decrease screen brightness."
+            },
+            {
+                "name": "check_battery",
+                "description": "Check device battery percentage and charging status."
+            },
+            {
+                "name": "check_cpu",
+                "description": "Check device CPU usage percentage and core counts."
+            },
+            {
+                "name": "open_app",
+                "description": "Open a desktop application on Windows (e.g. chrome, notepad, calculator, spotify, vscode).",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "app": {"type": "STRING", "description": "Name of the application to open."}
+                    },
+                    "required": ["app"]
+                }
+            },
+            {
+                "name": "close_app",
+                "description": "Close an application or active window on Windows.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "app": {"type": "STRING", "description": "Name of application to close (optional)."}
+                    }
+                }
+            },
+            {
+                "name": "capture_screenshot",
+                "description": "Take a screenshot of the current screen and save it."
+            },
+            {
+                "name": "open_website",
+                "description": "Open a website URL or domain in the default web browser.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "url": {"type": "STRING", "description": "Website URL or domain (e.g. youtube.com, github.com)."}
+                    },
+                    "required": ["url"]
+                }
+            },
+            {
+                "name": "minimize_active_window",
+                "description": "Minimize the current active window."
+            },
+            {
+                "name": "maximize_active_window",
+                "description": "Maximize the current active window."
+            },
+            {
+                "name": "clear_recycle_bin",
+                "description": "Empty the Windows recycle bin."
+            },
+            {
+                "name": "get_weather",
+                "description": "Get current weather conditions for a city.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "city": {"type": "STRING", "description": "City or location name."}
+                    },
+                    "required": ["city"]
+                }
+            },
+            {
+                "name": "get_current_time",
+                "description": "Get current local time."
+            },
+            {
+                "name": "get_date_with_day",
+                "description": "Get today's date and day of week."
+            },
+            {
+                "name": "google_search",
+                "description": "Search Google for current real-time information or questions.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "query": {"type": "STRING", "description": "Search query text."}
+                    },
+                    "required": ["query"]
+                }
+            },
+            {
+                "name": "search_wikipedia",
+                "description": "Search Wikipedia for a topic summary.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "query": {"type": "STRING", "description": "Topic or query to look up on Wikipedia."}
+                    },
+                    "required": ["query"]
+                }
+            },
+            {
+                "name": "add_reminder",
+                "description": "Schedule a reminder.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "reminder_text": {"type": "STRING", "description": "What to remind the user about."},
+                        "remind_at": {"type": "STRING", "description": "Time to remind, e.g. '18:30' or '2 hours'."}
+                    },
+                    "required": ["reminder_text", "remind_at"]
+                }
+            },
+            {
+                "name": "list_reminders",
+                "description": "List all active and pending reminders."
+            },
+            {
+                "name": "add_task",
+                "description": "Add a new task to the user to-do list.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "task_text": {"type": "STRING", "description": "Description of task to add."}
+                    },
+                    "required": ["task_text"]
+                }
+            },
+            {
+                "name": "list_tasks",
+                "description": "List all active tasks in to-do list."
+            },
+            {
+                "name": "youtube_automation",
+                "description": "Search and play a video or music track on YouTube.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "query": {"type": "STRING", "description": "Name of song, artist, or video to play."}
+                    },
+                    "required": ["query"]
+                }
+            }
+        ]
+    }
+]
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
@@ -250,6 +441,44 @@ class AudioLoop:
                             new_turn = False
                         print(text, end="", flush=True)
 
+                    # Handle Real-Time Tool Calls from Gemini Live
+                    if tool_call := response.tool_call:
+                        function_responses = []
+                        for call in tool_call.function_calls:
+                            tool_name = call.name
+                            tool_args = call.args or {}
+                            call_id = call.id
+
+                            console.print(f"\n[bold cyan]⚡ Live Tool Executing:[/bold cyan] [bold yellow]{tool_name}[/bold yellow] [dim]({tool_args if tool_args else ''})[/dim]")
+                            try:
+                                res = await asyncio.to_thread(execute_tool, tool_name, "server", **tool_args)
+                            except Exception as e:
+                                res = {"error": str(e)}
+
+                            console.print(f"[bold green]✔ Tool Completed:[/bold green] [dim]{str(res)[:100]}[/dim]")
+
+                            if isinstance(res, dict):
+                                res_payload = res
+                            else:
+                                res_payload = {"result": str(res)}
+
+                            function_responses.append(
+                                types.FunctionResponse(
+                                    name=tool_name,
+                                    id=call_id,
+                                    response=res_payload
+                                )
+                            )
+
+                        if function_responses:
+                            try:
+                                await self.session.send_tool_response(function_responses=function_responses)
+                            except Exception as e:
+                                console.print(f"[dim red]⚠️ Failed to send tool response: {e}[/dim red]")
+
+                    if response.tool_call_cancellation:
+                        console.print("[dim yellow]⚠️ Tool call was cancelled by model.[/dim yellow]")
+
                 new_turn = True
                 while not self.audio_in_queue.empty():
                     try:
@@ -303,6 +532,7 @@ class AudioLoop:
             system_instruction=types.Content(parts=[types.Part(text=Friday_Details)]),
             response_modalities=["AUDIO"],
             media_resolution="MEDIA_RESOLUTION_MEDIUM",
+            tools=LIVE_TOOLS,
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Zephyr")
@@ -374,10 +604,12 @@ def run_live_mode(video_mode="screen"):
         f"[bold bright_cyan]⚡ F.R.I.D.A.Y LIVE MULTIMODAL VISION SYSTEM ACTIVATED ⚡[/bold bright_cyan]\n\n"
         f"[bold white]Visual Mode:[/bold white] [bold bright_green]{mode_name}[/bold bright_green]\n"
         f"[bold white]Audio Stream:[/bold white] [bold bright_green]Bidirectional Real-Time Audio (Zephyr Neural Voice)[/bold bright_green]\n"
+        f"[bold white]Live Tools:[/bold white] [bold bright_green]Active ⚡ (Volume, Apps, Screenshots, Battery, Web, Reminders)[/bold bright_green]\n"
         f"[bold white]Gemini Model:[/bold white] [dim]{MODEL}[/dim]\n\n"
         f"[bold yellow]Instructions:[/bold yellow]\n"
         f" • Speak directly into your microphone to talk to FRIDAY.\n"
         f" • Friday can see your {'screen in real time' if video_mode == 'screen' else 'webcam in real time'}.\n"
+        f" • Friday can execute system actions (open apps, screenshots, volume, battery, etc.) in real time.\n"
         f" • Type [bold red]'stop'[/bold red] or [bold red]'exit'[/bold red] or press [bold red]Ctrl+C[/bold red] to return to FRIDAY HUD.",
         title="[bold magenta]👁️ F.R.I.D.A.Y VISION HUB 👁️[/bold magenta]",
         box=box.DOUBLE,
