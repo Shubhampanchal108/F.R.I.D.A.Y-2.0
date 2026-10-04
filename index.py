@@ -1,6 +1,27 @@
-import sys
 import os
+import sys
 import time
+import warnings
+import logging
+
+# ================================================================
+# SILENCE TELEMETRY & NOISY THIRD-PARTY LOGGERS
+# ================================================================
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+os.environ["CHROMA_LOG_LEVEL"] = "ERROR"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+
+warnings.filterwarnings("ignore")
+
+logging.basicConfig(level=logging.ERROR)
+for logger_name in [
+    "chromadb", "urllib3", "httpx", "httpcore", "openai",
+    "sentence_transformers", "transformers", "speech_recognition"
+]:
+    logging.getLogger(logger_name).setLevel(logging.ERROR)
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     try:
@@ -8,9 +29,20 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
+try:
+    import msvcrt
+except ImportError:
+    msvcrt = None
+
+try:
+    import winsound
+except ImportError:
+    winsound = None
+
 from Brain import Brain
 from voice_input import SpeechRecognition
 from speak import speak
+from wake_word import WakeWordListener
 from Tools.systems_tools import greet
 from config_driver import Check_Keys, is_agent_configured, run_first_time_setup, interactive_config_editor
 
@@ -21,7 +53,41 @@ from utiles import load_memory
 
 VOICE_COMMANDS = ["switch to voice", "voice mode", "/voice"]
 TYPE_COMMANDS = ["switch to typing", "type mode", "/type"]
-STREAM_COMMANDS = ["switch to live stream", "stream mode", "/stream"]
+WAKE_COMMANDS = ["/wakeword", "wakeword", "wake word mode", "switch to wake word", "hands free"]
+LIVE_COMMANDS = [
+    "/live", "/vision", "live mode", "vision mode",
+    "switch to live mode", "activate live mode", "start live mode",
+    "switch to vision mode", "activate vision mode", "start vision mode",
+    "/live screen", "/live camera", "/vision screen", "/vision camera"
+]
+
+
+
+def clean_query_text(query: str) -> str:
+    """Strip leading, trailing, or embedded wake-word tokens from query."""
+    q = query.strip()
+    prefixes = [
+        "hey friday", "ok friday", "okay friday", "hello friday", "hi friday",
+        "listen friday", "friday", "fry day"
+    ]
+    q_lower = q.lower()
+    for p in prefixes:
+        if q_lower.startswith(p):
+            cleaned = q[len(p):].lstrip(" ,:-").strip()
+            if cleaned:
+                return cleaned
+        if q_lower.endswith(p):
+            cleaned = q[:-len(p)].rstrip(" ,:-").strip()
+            if cleaned:
+                return cleaned
+
+    # Check word-by-word if 'friday' or phonetic variant is inside the sentence
+    words = q.split()
+    target_words = {"friday", "fryday", "freeday", "fraiday", "frida", "fridey"}
+    filtered = [w for w in words if w.lower().strip(".,!?\"'") not in target_words]
+    if filtered:
+        return " ".join(filtered)
+    return q
 
 
 def main():
@@ -31,7 +97,8 @@ def main():
 
     AUTH_PASSWORD = Check_Keys("KEYS", "AGENT_PASSWORD")
     cli = FridayCLI(daemon=daemon_instance)
-    
+    wake_listener = WakeWordListener()
+
     # ===== AUTHENTICATION PANEL =====
     cli.print_banner()
     console.print("\n[bold yellow]🔒 Security Authentication Required[/bold yellow]")
@@ -52,12 +119,12 @@ def main():
 
     # ===== START BACKGROUND DAEMON =====
     daemon_instance.start()
-    
+
     # ===== INITIAL GREETING =====
     greeting = greet()
     cli.print_banner()
     cli.render_agent_response(f"**{greeting}** How may I assist you today, Sir?")
-    
+
     if cli.audio_drive:
         speak(f"{greeting} How may I assist you, Sir?")
 
@@ -76,12 +143,65 @@ def main():
     try:
         while True:
             query = ""
-            
+
             # --- INPUT METHOD ---
-            if cli.vocal_protocol:
+            if cli.wake_protocol:
+                console.print("[dim cyan]⚡ Hands-Free Standby: Say 'Friday' or press any key to type...[/dim cyan]")
+                
+                # Wait for either wake word detection OR keyboard input
+                while not wake_listener.is_triggered():
+                    if msvcrt and msvcrt.kbhit():
+                        ch = msvcrt.getwch()
+                        if ch in ['\r', '\n']:
+                            query = console.input("\n[bold green]👤 You:[/bold green] ")
+                        elif ord(ch) == 3:  # Ctrl+C
+                            raise KeyboardInterrupt
+                        else:
+                            query = console.input(f"\n[bold green]👤 You:[/bold green] {ch}")
+                            query = ch + query
+                        break
+                    time.sleep(0.08)
+
+                if wake_listener.is_triggered():
+                    detected_phrase = wake_listener.last_detected_text
+                    wake_listener.clear_trigger()
+                    has_wake, direct_cmd = wake_listener.extract_command(detected_phrase)
+
+                    if direct_cmd and len(direct_cmd.strip()) > 1:
+                        # ⚡ One-shot direct execution: user said "Friday <query>" in one sentence!
+                        if winsound:
+                            try:
+                                winsound.Beep(1200, 120)
+                            except Exception:
+                                pass
+                        console.print(f"\n[bold cyan]⚡ Direct Command Detected:[/bold cyan] [white]'{detected_phrase}'[/white]")
+                        query = direct_cmd
+                        cli.render_user_prompt(f"(Voice) {query}")
+                    else:
+                        # ⚡ Two-step wake-word: user only said "Friday" or "Hey Friday"
+                        if winsound:
+                            try:
+                                winsound.Beep(1200, 150)
+                            except Exception:
+                                pass
+                        console.print("\n[bold cyan]⚡ Wake-Word Detected! Listening for command...[/bold cyan]")
+                        if cli.audio_drive:
+                            speak("Yes Sir?")
+
+                        with cli.spinner_task("F.R.I.D.A.Y Listening to Voice Command..."):
+                            query = SpeechRecognition(timeout=6, phrase_time_limit=10)
+
+                        if query:
+                            cli.render_user_prompt(f"(Voice) {query}")
+                        else:
+                            console.print("[dim yellow]No command detected. Returning to wake-word standby...[/dim yellow]")
+                            continue
+
+            elif cli.vocal_protocol:
                 console.print("\n[bold cyan]🎙️ Listening...[/bold cyan]")
                 try:
-                    query = SpeechRecognition()
+                    with cli.spinner_task("F.R.I.D.A.Y Listening..."):
+                        query = SpeechRecognition(timeout=6, phrase_time_limit=10)
                     if query:
                         cli.render_user_prompt(f"(Voice) {query}")
                 except Exception as e:
@@ -133,8 +253,29 @@ def main():
                 cli.render_agent_response(briefing_res)
                 continue
 
-            if query_lower in ["/wakeword", "wakeword"]:
-                cli.render_agent_response("Hands-Free Wake-Word Detector active ('Friday' / 'Hey Friday') ⚡")
+            if any(cmd == query_lower for cmd in WAKE_COMMANDS):
+                cli.wake_protocol = not cli.wake_protocol
+                if cli.wake_protocol:
+                    cli.vocal_protocol = False
+                    cli.type_protocol = False
+                    started = wake_listener.start()
+                    cli.print_banner()
+                    if started:
+                        msg = "Hands-Free Wake-Word Detector Active ⚡ Say **'Friday'** or **'Hey Friday'**."
+                        cli.render_agent_response(msg)
+                        if cli.audio_drive:
+                            speak("Hands-free wake-word detector activated.")
+                    else:
+                        cli.wake_protocol = False
+                        cli.type_protocol = True
+                        cli.render_agent_response("⚠️ Microphone unavailable. Reverting to typing mode.")
+                else:
+                    cli.type_protocol = True
+                    wake_listener.stop()
+                    cli.print_banner()
+                    cli.render_agent_response("Hands-Free Wake-Word Deactivated 🔇 Reverted to Typing Mode ⌨️")
+                    if cli.audio_drive:
+                        speak("Wake word detector deactivated.")
                 continue
 
             if query_lower in ["/config", "config"]:
@@ -142,7 +283,53 @@ def main():
                 cli.print_banner()
                 continue
 
+            # --- LIVE MULTIMODAL VISION MODE PROTOCOL ---
+            if (
+                any(cmd == query_lower for cmd in LIVE_COMMANDS)
+                or query_lower.startswith("/live")
+                or query_lower.startswith("/vision")
+            ):
+                if "camera" in query_lower or "webcam" in query_lower:
+                    chosen_mode = "camera"
+                elif "screen" in query_lower or "desktop" in query_lower:
+                    chosen_mode = "screen"
+                else:
+                    console.print("\n[bold bright_cyan]👁️ Select Live Vision Visual Feed:[/bold bright_cyan]")
+                    console.print("  [bold green][1][/bold green] 🖥️ Screen Live Feed [dim](Real-time screen reading & UI analysis)[/dim] [bold cyan][Default][/bold cyan]")
+                    console.print("  [bold green][2][/bold green] 📷 Webcam Camera Feed [dim](Real-life camera vision)[/dim]")
+                    sel = console.input("[bold white]Select feed [1/2, Enter for Screen]: [/bold white]").strip()
+                    chosen_mode = "camera" if sel == "2" else "screen"
+
+                was_wake = cli.wake_protocol
+                if was_wake:
+                    wake_listener.stop()
+                    cli.wake_protocol = False
+
+                if cli.audio_drive:
+                    speak(f"Activating live {'camera' if chosen_mode == 'camera' else 'screen'} mode, Sir.")
+
+                try:
+                    import importlib
+                    import Live_mode
+                    importlib.reload(Live_mode)
+                    Live_mode.run_live_mode(video_mode=chosen_mode)
+                except Exception as live_err:
+                    console.print(f"[bold red]❌ Live Mode Error: {live_err}[/bold red]")
+                finally:
+                    if was_wake:
+                        wake_listener.start()
+                        cli.wake_protocol = True
+                    cli.print_banner()
+                    cli.render_agent_response("Live Vision Protocol Deactivated. Returned to standard mode, Sir.")
+                    if cli.audio_drive:
+                        speak("Live vision mode deactivated. How may I assist you now, Sir?")
+                continue
+
+
             if any(cmd in query_lower for cmd in VOICE_COMMANDS):
+                if cli.wake_protocol:
+                    wake_listener.stop()
+                    cli.wake_protocol = False
                 cli.vocal_protocol = True
                 cli.type_protocol = False
                 cli.print_banner()
@@ -152,6 +339,9 @@ def main():
                 continue
 
             if any(cmd in query_lower for cmd in TYPE_COMMANDS):
+                if cli.wake_protocol:
+                    wake_listener.stop()
+                    cli.wake_protocol = False
                 cli.vocal_protocol = False
                 cli.type_protocol = True
                 cli.print_banner()
@@ -160,7 +350,7 @@ def main():
                     speak("Type assist protocol activated")
                 continue
 
-            if "off" in query_lower and "audio drive" in query_lower or query_lower == "/audio":
+            if ("off" in query_lower and "audio drive" in query_lower) or query_lower == "/audio":
                 cli.audio_drive = not cli.audio_drive
                 status_msg = f"Audio Drive Protocol {'Activated 🔊' if cli.audio_drive else 'Deactivated 🔇'}"
                 cli.render_agent_response(status_msg)
@@ -169,10 +359,10 @@ def main():
                 continue
 
             # --- PROCESS QUERY VIA AGENT BRAIN ---
-            clean_query = query_lower.replace("friday", "").strip()
-            
+            clean_query = clean_query_text(query)
+
             def tool_status_callback(tool_name, args):
-                cli.print_agent_thought(f"Executing Tool: [bold yellow]{tool_name}[/bold yellow] {args if args else ''}")
+                cli.render_tool_call(tool_name, args)
 
             with cli.spinner_task("F.R.I.D.A.Y Processing & Executing Tools..."):
                 try:
@@ -188,6 +378,12 @@ def main():
                     speak(final_ans)
 
     finally:
+        # Stop background listeners
+        try:
+            wake_listener.stop()
+        except Exception:
+            pass
+
         # Save session summary on any exit (including Ctrl+C)
         try:
             memory = load_memory()

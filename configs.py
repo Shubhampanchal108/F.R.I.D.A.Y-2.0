@@ -105,6 +105,7 @@ Tools you have (with input parameters):
 - send_whatsapp_message(phone_number, message) -> send Whatsapp message with mobile.
 - save_longterm_memory(text, memory_type, tags, importance, source) -> to save long term memory
 - analyze_screen(prompt) -> Captures current desktop screen and analyzes UI, debugs errors, or explains content.
+- start_live_vision(mode='screen'|'camera') -> Activates real-time multimodal live vision streaming to continuously read desktop screen or see webcam.
 - run_python_code(code) -> Executes Python code snippet in sandbox for math, data analysis, or script execution.
 - extract_webpage_content(url) -> Scrapes and extracts full text content from any website.
 - deep_research_agent(topic) -> Autonomous sub-agent for multi-source web research and synthesis.

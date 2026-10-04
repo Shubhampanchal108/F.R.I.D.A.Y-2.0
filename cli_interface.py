@@ -50,13 +50,19 @@ class FridayCLI:
         self.daemon = daemon
         self.vocal_protocol = False
         self.type_protocol = True
+        self.wake_protocol = False
         self.audio_drive = True
         self.authenticated = False
 
     def print_banner(self):
         console.clear()
         
-        mode_str = "[bold green]🎙️ VOICE[/bold green]" if self.vocal_protocol else "[bold yellow]⌨️ TYPING[/bold yellow]"
+        if self.wake_protocol:
+            mode_str = "[bold magenta]⚡ WAKE-WORD[/bold magenta]"
+        elif self.vocal_protocol:
+            mode_str = "[bold green]🎙️ VOICE[/bold green]"
+        else:
+            mode_str = "[bold yellow]⌨️ TYPING[/bold yellow]"
         audio_str = "[bold green]🔊 ON[/bold green]" if self.audio_drive else "[bold red]🔇 OFF[/bold red]"
         daemon_str = "[bold green]🟢 ACTIVE[/bold green]" if (self.daemon and self.daemon.is_running()) else "[bold red]🔴 OFF[/bold red]"
 
@@ -92,7 +98,7 @@ class FridayCLI:
             box=box.DOUBLE,
             border_style="cyan",
             title="[bold bright_blue]⚡ F.R.I.D.A.Y 4.0 — NEXT-GEN SUPER-AGENT HUD ⚡[/bold bright_blue]",
-            subtitle="[dim]Type [bold yellow]/help[/bold yellow] for shortcuts │ [bold cyan]Version 4.0 Super-Agent[/bold cyan][/dim]"
+            subtitle="[dim]Type [bold yellow]/help[/bold yellow] for shortcuts │ [bold bright_cyan]/live[/bold bright_cyan] for Vision Mode │ [bold cyan]Version 4.0[/bold cyan][/dim]"
         )
         console.print(main_panel)
 
@@ -103,6 +109,8 @@ class FridayCLI:
 
         help_table.add_row("/voice", "Switch to Voice Recognition Mode")
         help_table.add_row("/type", "Switch to Typing Mode")
+        help_table.add_row("/live", "Activate Live Multimodal Screen & Audio Mode")
+        help_table.add_row("/vision", "Activate Live Camera / Screen Vision (/live camera or /live screen)")
         help_table.add_row("/audio", "Toggle Speech Audio Drive ON/OFF")
         help_table.add_row("/briefing", "Trigger Proactive Voice & Desktop Morning Briefing")
         help_table.add_row("/wakeword", "Toggle Hands-Free Background Wake-Word Detection")
@@ -175,16 +183,23 @@ class FridayCLI:
     def print_agent_thought(self, message: str):
         console.print(f"[dim cyan]🔧 {message}[/dim cyan]")
 
+    def render_tool_call(self, tool_name: str, args: dict = None):
+        args_str = ""
+        if args:
+            parts = []
+            for k, v in args.items():
+                val = str(v)
+                if len(val) > 40:
+                    val = val[:37] + "..."
+                parts.append(f"{k}={val!r}")
+            args_str = f" [dim white]({', '.join(parts)})[/dim white]"
+        console.print(f"[bold cyan]⚡ Tool Executed:[/bold cyan] [bold yellow]{tool_name}[/bold yellow]{args_str}")
+
     def render_agent_response(self, response_text: str):
-        md = Markdown(response_text)
-        panel = Panel(
-            md,
-            title="[bold cyan]🤖 F.R.I.D.A.Y[/bold cyan]",
-            border_style="bold cyan",
-            box=box.ROUNDED,
-            padding=(1, 2)
-        )
-        console.print(panel)
+        md = Markdown(response_text.strip())
+        console.print("\n[bold cyan]🤖 F.R.I.D.A.Y:[/bold cyan]")
+        console.print(md)
+        console.print()
 
     def render_user_prompt(self, prompt_text: str):
         console.print(f"\n[bold green]👤 You:[/bold green] {prompt_text}")

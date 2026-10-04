@@ -1,6 +1,22 @@
+import os
+import sys
+import logging
+import warnings
+
+# Disable telemetry and suppress noisy library logs
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
+os.environ["CHROMA_LOG_LEVEL"] = "ERROR"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+
+warnings.filterwarnings("ignore")
+
+for logger_name in ["chromadb", "urllib3", "httpx", "httpcore", "sentence_transformers", "transformers"]:
+    logging.getLogger(logger_name).setLevel(logging.ERROR)
+
 import chromadb
 from sentence_transformers import SentenceTransformer
-import os
 from datetime import datetime, timezone
 import uuid
 from path import RAG_PATH
@@ -37,18 +53,15 @@ model = None
 def get_model():
     global model
     if model is None:
-        print("🔄 Loading memory model...")
         try:
             model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
-            print("✅ Multilingual memory model loaded (Hindi/English support)")
         except Exception:
-            print("⚠️ Multilingual model unavailable, falling back to MiniLM-L6")
             model = SentenceTransformer("all-MiniLM-L6-v2")
     return model
 
 
 def embed(text: str):
-    return get_model().encode(text).tolist()
+    return get_model().encode(text, show_progress_bar=False).tolist()
 
 
 def normalize_tags(tags):
@@ -111,8 +124,7 @@ def save_longterm_memory(
         )
         return f"✅ Saved to {collection_type}: {text[:50]}..."
 
-    except Exception as e:
-        print("❌ Save error:", e)
+    except Exception:
         return False
 
 

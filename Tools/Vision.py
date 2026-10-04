@@ -99,7 +99,22 @@ def analyze_screen(prompt: str = "Analyze what is on the screen and describe vis
     return f"❌ Screen Analysis Error: Could not analyze screen image with model '{model}'. Details: {last_error}. You can update your vision model in /config."
 
 
+def start_live_vision(mode: str = "screen"):
+    """
+    Activates FRIDAY's real-time multimodal streaming mode.
+    mode: 'screen' (to see desktop screen in real-time) or 'camera' (to access webcam in real-life).
+    """
+    try:
+        from Live_mode import run_live_mode
+        chosen = "camera" if "cam" in str(mode).lower() else "screen"
+        run_live_mode(video_mode=chosen)
+        return f"Sir, live vision streaming mode ({chosen}) has concluded successfully."
+    except Exception as e:
+        return f"Sir, encountered an error launching live mode: {e}"
+
+
 if __name__ == "__main__":
     print("📸 Testing Screen Vision Analysis...")
     res = analyze_screen("What application is open on screen?")
     print(res)
+

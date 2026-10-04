@@ -95,9 +95,8 @@ Output:"""
 
         return saved
 
-    except Exception as e:
+    except Exception:
         # Silently fail — auto-extraction is best-effort, never blocks the user
-        print(f"⚠️ Auto-memory extraction error: {e}")
         return []
 
 

@@ -4,8 +4,6 @@ from datetime import datetime
 import requests
 import time
 import pyautogui
-from AppOpener import open as appopen
-import pyautogui
 from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
@@ -103,11 +101,11 @@ def empty_recycle_bin():
 
 def open_application(app: str):
     try:
-
+        from AppOpener import open as appopen
         appopen(
             app,
             match_closest=False,
-            output=True,
+            output=False,
             throw_error=True
         )
 
