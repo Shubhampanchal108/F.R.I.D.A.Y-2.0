@@ -41,7 +41,7 @@ ASCII_ART = """[bold cyan]
 ║   ██║     ██║  ██║██║██████╔╝██║  ██║   ██║              ║
 ║   ╚═╝     ╚═╝  ╚═╝╚═╝╚═════╝ ╚═╝  ╚═╝   ╚═╝              ║
 ║                                                          ║
-║   ⚡ Friendly Reliable Intelligent Digital Assistant ⚡   ║
+║   ⚡ Friendly Reliable Intelligent Digital Assistant ⚡ ║
 ╚══════════════════════════════════════════════════════════╝
 [/bold cyan]"""
 
@@ -97,13 +97,13 @@ class FridayCLI:
             content,
             box=box.DOUBLE,
             border_style="cyan",
-            title="[bold bright_blue]⚡ F.R.I.D.A.Y 4.0 — NEXT-GEN SUPER-AGENT HUD ⚡[/bold bright_blue]",
+            title="[bold bright_blue]⚡ F.R.I.D.A.Y 2.0 — NEXT-GEN SUPER-AGENT HUD ⚡[/bold bright_blue]",
             subtitle="[dim]Type [bold yellow]/help[/bold yellow] for shortcuts │ [bold bright_cyan]/live[/bold bright_cyan] for Vision Mode │ [bold yellow]Ctrl+D[/bold yellow] to Interrupt Speech[/dim]"
         )
         console.print(main_panel)
 
     def print_help(self):
-        help_table = Table(title="🤖 F.R.I.D.A.Y 4.0 CLI Command Palette", box=box.ROUNDED)
+        help_table = Table(title="🤖 F.R.I.D.A.Y 2.0 CLI Command Palette", box=box.ROUNDED)
         help_table.add_column("Command", style="bold yellow")
         help_table.add_column("Description", style="white")
 

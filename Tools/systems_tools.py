@@ -59,19 +59,52 @@ def get_battery_status():
 
 
 def get_cpu_status():
-    cpu_usage = psutil.cpu_percent(interval=1)
+    cpu_usage = psutil.cpu_percent(interval=0.5)
 
     physical_cpus = psutil.cpu_count(logical=False)
     logical_cpus = psutil.cpu_count(logical=True)
 
     cpu_freq = psutil.cpu_freq()
+    ram = psutil.virtual_memory()
 
     return {
         "cpu_usage_percent": cpu_usage,
         "physical_cores": physical_cpus,
         "logical_cores": logical_cpus,
-        "frequency_mhz": cpu_freq.current if cpu_freq else None
+        "frequency_mhz": cpu_freq.current if cpu_freq else None,
+        "ram_usage_percent": ram.percent,
+        "ram_used_gb": round(ram.used / (1024**3), 1),
+        "ram_total_gb": round(ram.total / (1024**3), 1)
     }
+
+
+def get_top_resource_consumers(n=2):
+    """Identify top processes consuming CPU for proactive system monitoring."""
+    try:
+        # Prime psutil counters
+        for p in psutil.process_iter(['name']):
+            try:
+                p.cpu_percent(None)
+            except Exception:
+                pass
+        time.sleep(0.15)
+
+        proc_list = []
+        for p in psutil.process_iter(['name']):
+            try:
+                name = p.info.get('name')
+                if not name or "idle" in name.lower() or "system idle" in name.lower():
+                    continue
+                cpu = p.cpu_percent(None)
+                if cpu and cpu > 1.0:
+                    proc_list.append((name, round(cpu, 1)))
+            except Exception:
+                pass
+        proc_list.sort(key=lambda x: x[1], reverse=True)
+        return proc_list[:n]
+    except Exception:
+        return []
+
 
 
 

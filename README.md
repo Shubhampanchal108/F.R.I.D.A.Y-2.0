@@ -1,4 +1,4 @@
-# ⚡ F.R.I.D.A.Y 4.2 — Autonomous Cyberpunk AI Super-Agent
+# ⚡ F.R.I.D.A.Y 2.0 — Autonomous Cyberpunk AI Super-Agent
 
 <p align="center">
   <img src="assets/friday_hud_banner.jpg" alt="F.R.I.D.A.Y 4.2 Futuristic Cyberpunk HUD Banner" width="100%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0, 242, 254, 0.3);" />

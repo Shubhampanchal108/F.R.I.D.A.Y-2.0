@@ -96,38 +96,70 @@ def read_latest_emails(n=5):
             pass
 
 #Check new Mails
-def check_new_mail():
+def check_new_mail(peek=True):
+    mail = None
+    try:
+        cur_email = Check_Keys("KEYS", "EMAIL") or EMAIL
+        cur_pass = Check_Keys("KEYS", "PASSWORD") or PASSWORD
 
-    mail = imaplib.IMAP4_SSL("imap.gmail.com")
-    mail.login(EMAIL, PASSWORD)
+        if not cur_email or not cur_pass:
+            return None
 
-    mail.select("inbox")
+        mail = imaplib.IMAP4_SSL("imap.gmail.com", timeout=10)
+        mail.login(cur_email, cur_pass)
+        mail.select("inbox")
 
-    status, messages = mail.search(None, "UNSEEN")
+        status, messages = mail.search(None, "UNSEEN")
+        if status != "OK" or not messages or not messages[0]:
+            return None
 
-    mail_ids = messages[0].split()
-
-    if mail_ids:
+        mail_ids = messages[0].split()
+        if not mail_ids:
+            return None
 
         latest_id = mail_ids[-1]
-
-        status, data = mail.fetch(latest_id, "(RFC822)")
+        fetch_mode = "(BODY.PEEK[HEADER.FIELDS (FROM SUBJECT DATE)])" if peek else "(RFC822)"
+        status, data = mail.fetch(latest_id, fetch_mode)
+        if status != "OK" or not data or not data[0]:
+            return None
 
         raw_email = data[0][1]
-
         msg = email.message_from_bytes(raw_email)
 
-        sender = msg["from"]
-        subject = msg["subject"]
+        sender_raw = msg.get("from", "Unknown Sender")
+        subject_raw = msg.get("subject", "No Subject")
+
+        sender = decode_text(sender_raw)
+        subject = decode_text(subject_raw)
+
+        clean_sender = sender
+        if "<" in sender and ">" in sender:
+            name_part = sender.split("<")[0].strip().strip('"').strip("'")
+            if name_part:
+                clean_sender = name_part
+
+        uid_str = latest_id.decode("utf-8", errors="ignore") if isinstance(latest_id, bytes) else str(latest_id)
 
         return {
             "type": "email",
-            "sender": sender,
+            "id": uid_str,
+            "sender": clean_sender,
+            "full_sender": sender,
             "subject": subject,
-            "message": f"New mail recived. Sender: {sender}. Subject: {subject}"
+            "message": f"New email received from {clean_sender}. Subject: {subject}"
         }
-
-    return None
+    except Exception:
+        return None
+    finally:
+        if mail:
+            try:
+                mail.close()
+            except Exception:
+                pass
+            try:
+                mail.logout()
+            except Exception:
+                pass
 
 #send Mail
 def is_valid_email(email):

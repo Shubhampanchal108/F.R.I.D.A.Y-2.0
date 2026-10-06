@@ -32,6 +32,7 @@ from rich import box
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from Tool_guard import load_tools, execute_tool, TOOLS
+from daemon import daemon_instance
 registry = load_tools()
 
 Friday_Details = (
@@ -237,7 +238,8 @@ SEND_SAMPLE_RATE = 16000
 RECEIVE_SAMPLE_RATE = 24000
 CHUNK_SIZE = 800
 
-MODEL = "models/gemini-2.5-flash-native-audio-preview-09-2025"
+# MODEL = "models/gemini-2.5-flash-native-audio-preview-09-2025"
+MODEL = "gemini-3.8-live"
 DEFAULT_MODE = "screen"
 
 pya = pyaudio.PyAudio()
@@ -646,6 +648,11 @@ def run_live_mode(video_mode="screen"):
     )
     console.print(live_panel)
 
+    daemon_started_here = False
+    if not daemon_instance.is_running():
+        daemon_instance.start()
+        daemon_started_here = True
+
     loop = AudioLoop(video_mode=video_mode)
     try:
         asyncio.run(loop.run())
@@ -653,6 +660,9 @@ def run_live_mode(video_mode="screen"):
         console.print("\n[yellow]Live session stopped by user (Ctrl+C).[/yellow]")
     except Exception as e:
         console.print(f"\n[red]Live Mode session error: {e}[/red]")
+    finally:
+        if daemon_started_here:
+            daemon_instance.stop()
 
 
 if __name__ == "__main__":

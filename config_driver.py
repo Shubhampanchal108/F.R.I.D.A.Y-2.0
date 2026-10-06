@@ -78,11 +78,17 @@ def Check_Keys(parKey, childKey):
     val = category.get(childKey, "")
 
     if not val:
-        console.print(f"\n[bold yellow]⚠️ Missing Configuration Key: [{parKey}][{childKey}][/bold yellow]")
-        val = Prompt.ask(f"[bold cyan]Please provide value for {childKey}[/bold cyan]")
-        if val:
-            update_config(parKey, childKey, val.strip())
-            return val.strip()
+        # Avoid hanging in non-interactive background tasks or subshells
+        if not sys.stdin or not hasattr(sys.stdin, "isatty") or not sys.stdin.isatty():
+            return ""
+        try:
+            console.print(f"\n[bold yellow]⚠️ Missing Configuration Key: [{parKey}][{childKey}][/bold yellow]")
+            val = Prompt.ask(f"[bold cyan]Please provide value for {childKey}[/bold cyan]")
+            if val:
+                update_config(parKey, childKey, val.strip())
+                return val.strip()
+        except Exception:
+            return ""
 
     return val
 

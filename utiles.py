@@ -1,44 +1,59 @@
 import json 
 import os
 import re
+import threading
 from path import CHATS_PATH, DOCS_PATH
 
 
 MEMORY_FILE = os.path.join(CHATS_PATH, "memory.json")
 CONFIG_FILE = os.path.join(DOCS_PATH, "config.json")
 MAX_HISTORY = 30
+_memory_lock = threading.Lock()
 
 # ---------------- MEMORY ---------------- #
 def load_memory():
-    if not os.path.exists(MEMORY_FILE):
-        os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
+    with _memory_lock:
+        if not os.path.exists(MEMORY_FILE):
+            os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
 
-        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
-            json.dump({"conversation_history": []}, f)
+            with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+                json.dump({"conversation_history": []}, f)
 
-    with open(MEMORY_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
 
 
 def save_memory(memory):
-    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(memory, f, indent=2, ensure_ascii=False)
+    with _memory_lock:
+        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(memory, f, indent=2, ensure_ascii=False)
 
 
 def add_to_history(role, content):
-    memory = load_memory()
-    memory.setdefault("conversation_history", [])
+    with _memory_lock:
+        if not os.path.exists(MEMORY_FILE):
+            os.makedirs(os.path.dirname(MEMORY_FILE), exist_ok=True)
+            memory = {"conversation_history": []}
+        else:
+            try:
+                with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+                    memory = json.load(f)
+            except Exception:
+                memory = {"conversation_history": []}
 
-    memory["conversation_history"].append({
-        "role": role,
-        "content": content
-    })
+        memory.setdefault("conversation_history", [])
 
-    # Compact history when it exceeds the limit (summarize old messages)
-    if len(memory["conversation_history"]) > MAX_HISTORY:
-        memory["conversation_history"] = _compact_history(memory["conversation_history"])
+        memory["conversation_history"].append({
+            "role": role,
+            "content": content
+        })
 
-    save_memory(memory)
+        # Compact history when it exceeds the limit (summarize old messages)
+        if len(memory["conversation_history"]) > MAX_HISTORY:
+            memory["conversation_history"] = _compact_history(memory["conversation_history"])
+
+        with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(memory, f, indent=2, ensure_ascii=False)
 
 
 def _compact_history(history):
@@ -138,7 +153,8 @@ Default_Data = {
       "AGENT_PASSWORD": "",
       "TAVILY_API_KEY":"",
       "NEWS_API_KEY": "",
-      "MONGODB_URL": "mongodb://localhost:27017/"
+      "MONGODB_URL": "mongodb://localhost:27017/",
+      "GEMINI_KEY": ""
     },
 
   "LLM" :

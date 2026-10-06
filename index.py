@@ -50,6 +50,7 @@ from cli_interface import FridayCLI, console
 from daemon import daemon_instance
 from memory_controller import save_session_summary, get_last_session_context
 from utiles import load_memory
+from instant_filler import trigger_instant_filler
 
 VOICE_COMMANDS = ["switch to voice", "voice mode", "/voice"]
 TYPE_COMMANDS = ["switch to typing", "type mode", "/type"]
@@ -120,13 +121,25 @@ def main():
     # ===== START BACKGROUND DAEMON =====
     daemon_instance.start()
 
-    # ===== INITIAL GREETING =====
+    # ===== INITIAL PROACTIVE EXECUTIVE BRIEFING =====
     greeting = greet()
     cli.print_banner()
-    cli.render_agent_response(f"**{greeting}** How may I assist you today, Sir?")
+    
+    startup_batt = "optimal"
+    try:
+        from Tools.systems_tools import get_battery_status
+        from Tools.Date_Time import get_current_time
+        batt = get_battery_status()
+        if isinstance(batt, dict) and "battery_percentage" in batt:
+            startup_batt = f"{batt['battery_percentage']}%"
+    except Exception:
+        pass
+
+    startup_msg = f"**{greeting}** Systems nominal. Battery is at {startup_batt}. Proactive Sentinel and Zero-Silence active. How may I assist you today, Sir?"
+    cli.render_agent_response(startup_msg)
 
     if cli.audio_drive:
-        speak(f"{greeting} How may I assist you, Sir?")
+        speak(f"{greeting} Systems nominal, battery is at {startup_batt}. How may I assist you today, Sir?")
 
     # Cross-session continuity — show what happened last time
     try:
@@ -215,6 +228,8 @@ def main():
 
             if not query or not query.strip():
                 continue
+
+            daemon_instance.record_user_activity()
 
             query_lower = query.lower().strip()
 
@@ -352,6 +367,7 @@ def main():
 
             if ("off" in query_lower and "audio drive" in query_lower) or query_lower == "/audio":
                 cli.audio_drive = not cli.audio_drive
+                daemon_instance.notify_voice = cli.audio_drive
                 status_msg = f"Audio Drive Protocol {'Activated 🔊' if cli.audio_drive else 'Deactivated 🔇'}"
                 cli.render_agent_response(status_msg)
                 if cli.audio_drive:
@@ -360,6 +376,10 @@ def main():
 
             # --- PROCESS QUERY VIA AGENT BRAIN ---
             clean_query = clean_query_text(query)
+
+            # ⚡ ZERO-SILENCE INSTANT AUDIO ACKNOWLEDGMENT (<10ms)
+            if cli.audio_drive:
+                trigger_instant_filler(clean_query, audio_enabled=True)
 
             def tool_status_callback(tool_name, args):
                 cli.render_tool_call(tool_name, args)

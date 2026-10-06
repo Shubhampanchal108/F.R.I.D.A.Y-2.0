@@ -188,6 +188,27 @@ def Brain(prompt: str, origin='server', source=None, tool_callback=None):
     except Exception:
         pass
 
+    # ⚡ Real-Time Autonomous Sentinel Awareness (Proactive Secretary State)
+    try:
+        from daemon import daemon_instance
+        recent_alerts = daemon_instance.get_recent_alerts(limit=6)
+        if recent_alerts:
+            alerts_summary = "\n".join([
+                f"- [{a.get('timestamp', '')}] ({a.get('title', 'Notification')}): {a.get('message', '')}"
+                for a in recent_alerts
+            ])
+            messages.append({
+                "role": "system",
+                "content": (
+                    f"[RECENT PROACTIVE ACTIONS & SPOKEN ALERTS GIVEN TO SHUBHAM SIR]\n"
+                    f"You (Friday) recently proactively spoke and notified Shubham sir about these events:\n"
+                    f"{alerts_summary}\n"
+                    f"You have full centralized awareness of all these proactive actions. If Shubham sir asks 'tune abhi kya bola?', 'konsi email aayi hai?', 'battery kitni bachi hai?', 'CPU kisne use kiya?', or references any announcement, answer him directly and accurately."
+                )
+            })
+    except Exception:
+        pass
+
     # User prompt
     messages.append({"role": "user", "content": prompt})
 

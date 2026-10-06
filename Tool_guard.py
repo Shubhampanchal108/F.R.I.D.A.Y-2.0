@@ -19,7 +19,7 @@ from Tools.Mobile_Automation import (
 )
 from Tools.browser import google_search, summrize_url 
 from RAG import save_longterm_memory
-from Tools.Vision import analyze_screen, start_live_vision
+from Tools.Vision import analyze_screen, start_live_vision, analyze_camera, analyze_clipboard
 from Tools.code_interpreter import run_python_code
 from Tools.browser_autopilot import extract_webpage_content
 from sub_agents import deep_research_agent, code_reviewer_agent
@@ -137,6 +137,8 @@ TOOLS = {
 
         # ---- V4.0 Advanced Agent Tools ----
         "analyze_screen": analyze_screen,
+        "analyze_camera": analyze_camera,
+        "analyze_clipboard": analyze_clipboard,
         "start_live_vision": start_live_vision,
         "run_python_code": run_python_code,
         "extract_webpage_content": extract_webpage_content,
