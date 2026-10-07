@@ -54,7 +54,7 @@ Jinja2==3.1.6
 jiter==0.12.0
 joblib==1.5.3
 jsonschema==4.26.0
-jsonschema-specifications==2025.9.1
+keyboard==0.13.5
 kubernetes==35.0.0
 limits==5.6.0
 markdown-it-py==4.0.0
@@ -115,6 +115,7 @@ pytweening==1.2.0
 pywhatkit==5.4
 pywin32==311
 PyYAML==6.0.3
+pywebview==6.2.1
 referencing==0.37.0
 regex==2025.11.3
 requests==2.32.5

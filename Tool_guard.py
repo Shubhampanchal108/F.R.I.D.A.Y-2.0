@@ -97,8 +97,8 @@ class ToolRegistry:
 
     def is_allowed(self, tool_name, origin):
 
-        # Server gets full access
-        if origin.lower() == "server":
+        # Server, Widget, Desktop, and UI get full access
+        if origin.lower() in ["server", "widget", "desktop", "ui", "cli"]:
             return True
 
         if origin.lower() == "mobile":
@@ -207,14 +207,20 @@ def load_tools():
 
     return registry
 
+# Auto-initialize registry on module import
+load_tools()
+
 
 # ================================
 # Execution Layer
 # ================================
 
 def execute_tool(tool_name, origin, **kwargs):
-
     tool = registry.get(tool_name)
+
+    if not tool:
+        load_tools()
+        tool = registry.get(tool_name)
 
     if not tool:
         return "❌ Tool not found."

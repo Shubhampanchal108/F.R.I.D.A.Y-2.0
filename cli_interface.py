@@ -117,6 +117,7 @@ class FridayCLI:
         help_table.add_row("/status", "Display Full System Specs & Health Status HUD")
         help_table.add_row("/reminders", "Show Pending & Active Reminders")
         help_table.add_row("/config", "Open Dynamic Configuration Editor Wizard")
+        help_table.add_row("/ui /widget", "Launch Floating Screen-Corner AI Widget (Ctrl + Space)")
         help_table.add_row("/clear", "Clear Terminal Screen")
         help_table.add_row("Ctrl + D / Esc", "Interrupt and stop speech playback immediately")
         help_table.add_row("/exit", "Shutdown F.R.I.D.A.Y CLI Agent")

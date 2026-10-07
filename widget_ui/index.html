@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>F.R.I.D.A.Y // AI Companion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="mode-full theme-cyan">
+  <!-- MINI FLOATING ORB (Visible when collapsed to corner) -->
+  <div id="mini-orb-container" class="mini-orb-container" title="Click to open F.R.I.D.A.Y (Ctrl + Space)">
+    <div class="mini-orb-halo"></div>
+    <div class="mini-orb-core">
+      <div class="mini-orb-ring ring-1"></div>
+      <div class="mini-orb-ring ring-2"></div>
+      <div class="mini-orb-nucleus"></div>
+    </div>
+    <div class="mini-orb-badge" id="mini-status-badge">AI</div>
+  </div>
+
+  <!-- FULL INTERACTIVE HUD PANEL -->
+  <div id="widget-container" class="widget-container">
+    <!-- DRAGGABLE HUD HEADER -->
+    <header class="hud-header pywebview-drag-region">
+      <div class="hud-branding">
+        <div class="hud-logo-icon">
+          <span class="arc-core-dot"></span>
+        </div>
+        <div class="hud-title-wrap">
+          <div class="hud-title">F.R.I.D.A.Y<span class="hud-version">2.0</span></div>
+          <div class="hud-subtitle">NEURAL INTERFACE ONLINE</div>
+        </div>
+      </div>
+
+      <div class="hud-controls">
+        <span class="hotkey-pill" title="Summon or dismiss anywhere">Ctrl + Space</span>
+        
+        <!-- EXPAND / SHRINK TOGGLE BUTTON -->
+        <button id="btn-expand" class="ctrl-btn" title="Expand UI (Enlarge Workspace) / Shrink to Corner">
+          <svg class="icon-expand" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+          </svg>
+          <svg class="icon-shrink hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M4 14h6v6M20 10h-6V4M10 14L3 21M14 10l7-7"/>
+          </svg>
+        </button>
+
+        <!-- MINI ORB COLLAPSE BUTTON -->
+        <button id="btn-collapse" class="ctrl-btn" title="Collapse to Corner Orb">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="12" cy="12" r="8"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+
+        <!-- MINIMIZE BUTTON -->
+        <button id="btn-minimize" class="ctrl-btn" title="Hide (Press Ctrl+Space to reopen)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+
+        <!-- CLOSE BUTTON -->
+        <button id="btn-close" class="ctrl-btn close-btn" title="Dismiss Widget">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- HOLOGRAPHIC NAVIGATION BAR (PAGE TABS) -->
+    <nav class="hud-nav-bar" id="hud-nav-bar">
+      <button class="nav-tab active" data-view="core" id="tab-core" title="Holographic Arc Core">
+        <span class="tab-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="4"/>
+            <line x1="12" y1="2" x2="12" y2="6"/>
+            <line x1="12" y1="18" x2="12" y2="22"/>
+            <line x1="2" y1="12" x2="6" y2="12"/>
+            <line x1="18" y1="12" x2="22" y2="12"/>
+          </svg>
+        </span>
+        <span class="tab-label">Home</span>
+        <span class="tab-glow"></span>
+      </button>
+
+      <button class="nav-tab" data-view="chat" id="tab-chat" title="AI Chatbot Interface">
+        <span class="tab-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </span>
+        <span class="tab-label">Chatbot</span>
+        <span class="tab-glow"></span>
+      </button>
+
+      <button class="nav-tab" data-view="settings" id="tab-settings" title="Assistant Settings">
+        <span class="tab-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </span>
+        <span class="tab-label">Settings</span>
+        <span class="tab-glow"></span>
+      </button>
+
+      <button class="nav-tab" data-view="profile" id="tab-profile" title="Operator Profile">
+        <span class="tab-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </span>
+        <span class="tab-label">Profile</span>
+        <span class="tab-glow"></span>
+      </button>
+      <div class="nav-indicator" id="nav-indicator"></div>
+    </nav>
+
+    <!-- STATUS TELEMETRY STRIP -->
+    <div class="telemetry-bar">
+      <div class="telemetry-item">
+        <span class="pulse-dot green" id="status-pulse-dot"></span>
+        <span id="tel-status">SYSTEM NOMINAL</span>
+      </div>
+      <div class="telemetry-item">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="11" x2="23" y2="13"/></svg>
+        <span id="tel-battery">BATTERY: --%</span>
+      </div>
+      <div class="telemetry-item" id="tel-mode-indicator">
+        <span class="mode-badge" id="tel-mode-badge">NEURAL ONLINE</span>
+      </div>
+    </div>
+
+    <!-- MAIN VIEWS CONTAINER -->
+    <main class="views-wrapper" id="views-wrapper">
+      
+      <!-- ============================================================== -->
+      <!-- VIEW 1: ANIMATED GLOWING UI (HOME / CORE HUD) -->
+      <!-- ============================================================== -->
+      <section class="view-pane active" id="view-core">
+        <div class="core-view-container">
+          
+          <!-- HOLOGRAPHIC ARC REACTOR HERO STAGE -->
+          <div class="arc-reactor-stage" id="arc-reactor-stage">
+            <div class="hud-holo-ring ring-outer"></div>
+            <div class="hud-holo-ring ring-ticks"></div>
+            <div class="hud-holo-ring ring-mid"></div>
+            <div class="hud-holo-ring ring-counter"></div>
+
+            <!-- Glowing Canvas for Plasma Vortex & Particles -->
+            <div class="arc-canvas-box">
+              <canvas id="orb-canvas" width="340" height="190"></canvas>
+            </div>
+
+            <!-- Central Interactive Core Orb Button -->
+            <div class="arc-core-nucleus-btn" id="btn-core-voice" title="Click to Speak or Summon F.R.I.D.A.Y">
+              <div class="nucleus-wave-ring wave-1"></div>
+              <div class="nucleus-wave-ring wave-2"></div>
+              <div class="nucleus-inner-orb">
+                <span class="nucleus-symbol"></span>
+              </div>
+            </div>
+
+            <!-- State HUD Badge -->
+            <div class="arc-state-badge" id="orb-state-badge">
+              <span class="state-beacon"></span>
+              <span id="orb-state-text">F.R.I.D.A.Y STANDBY</span>
+            </div>
+          </div>
+
+          <!-- AUDIO FREQUENCY VISUALIZER STRIP -->
+          <div class="frequency-visualizer-container">
+            <canvas id="freq-canvas" width="340" height="32"></canvas>
+          </div>
+
+          <!-- OPERATING PROTOCOL / MODE SELECTOR (1-Click Mode Shifting) -->
+          <div class="mode-selector-wrapper">
+            <div class="mode-selector-label">
+              <div class="mode-label-left">
+                <span class="mode-active-dot"></span>
+                <span class="mode-title-text">ACTIVE MODE:</span>
+                <span class="active-mode-badge" id="hud-active-mode-badge">TEXT</span>
+              </div>
+              <div class="mode-status-info" id="mode-status-info">Ready for directives</div>
+            </div>
+            <div class="mode-pills-grid">
+              <button class="mode-pill-btn active" data-mode="text" id="pill-mode-text" title="Keyboard Text Command Mode">
+                <span class="pill-icon">⌨️</span>
+                <span class="pill-text">Text</span>
+              </button>
+              <button class="mode-pill-btn" data-mode="voice" id="pill-mode-voice" title="Direct Speech Recognition Mode">
+                <span class="pill-icon">🎙️</span>
+                <span class="pill-text">Voice</span>
+              </button>
+              <button class="mode-pill-btn" data-mode="wakeword" id="pill-mode-wakeword" title="Hands-Free Background 'Hey Friday' Listener">
+                <span class="pill-icon">⚡</span>
+                <span class="pill-text">Wake-Word</span>
+              </button>
+              <button class="mode-pill-btn" data-mode="live_screen" id="pill-mode-screen" title="Gemini Live Multimodal Screen Vision Stream">
+                <span class="pill-icon">🖥️</span>
+                <span class="pill-text">Live Screen</span>
+              </button>
+              <button class="mode-pill-btn" data-mode="live_camera" id="pill-mode-camera" title="Gemini Live Multimodal Camera Vision Stream">
+                <span class="pill-icon">📷</span>
+                <span class="pill-text">Live Camera</span>
+              </button>
+            </div>
+
+            <!-- Active Live Vision Ticker / Stop Pill (Visible only when live mode is active) -->
+            <div class="live-active-banner hidden" id="live-active-banner">
+              <div class="live-pulse-anim"></div>
+              <span class="live-feed-text" id="live-feed-status-text">LIVE MULTIMODAL STREAM ACTIVE</span>
+              <button class="live-stop-btn" id="btn-stop-live" title="Stop Live Vision Stream">Stop Feed ✕</button>
+            </div>
+          </div>
+
+          <!-- SYSTEM TELEMETRY HUD TILES -->
+          <div class="telemetry-grid">
+            <div class="tel-card">
+              <span class="tel-label">CPU LOAD</span>
+              <span class="tel-val" id="tel-cpu">OPTIMAL</span>
+            </div>
+            <div class="tel-card">
+              <span class="tel-label">SENTINEL</span>
+              <span class="tel-val highlight">ONLINE</span>
+            </div>
+            <div class="tel-card">
+              <span class="tel-label">LATENCY</span>
+              <span class="tel-val">12ms</span>
+            </div>
+            <div class="tel-card">
+              <span class="tel-label">SECURITY</span>
+              <span class="tel-val level">LVL 5</span>
+            </div>
+          </div>
+
+          <!-- QUICK VOICE ACTION TILES -->
+          <div class="action-grid-title">RAPID DIRECTIVES</div>
+          <div class="quick-action-grid">
+            <button class="action-tile" data-action="briefing">
+              <span class="tile-icon">🌅</span>
+              <div class="tile-text">
+                <span class="tile-name">Executive Briefing</span>
+                <span class="tile-sub">Daily Schedule & News</span>
+              </div>
+            </button>
+            <button class="action-tile" data-prompt="What is your current system status, CPU load, and battery?">
+              <span class="tile-icon">⚡</span>
+              <div class="tile-text">
+                <span class="tile-name">System Diagnostics</span>
+                <span class="tile-sub">Battery, CPU, Memory</span>
+              </div>
+            </button>
+            <button class="action-tile" data-prompt="Take a screenshot of my screen right now.">
+              <span class="tile-icon">📸</span>
+              <div class="tile-text">
+                <span class="tile-name">Screen Capture</span>
+                <span class="tile-sub">Instant Screenshot</span>
+              </div>
+            </button>
+            <button class="action-tile" data-prompt="What is the latest headline news today?">
+              <span class="tile-icon">🌐</span>
+              <div class="tile-text">
+                <span class="tile-name">Live Intel / News</span>
+                <span class="tile-sub">Search Web & Feeds</span>
+              </div>
+            </button>
+            <button class="action-tile" data-prompt="What is the weather forecast right now?">
+              <span class="tile-icon">🌤️</span>
+              <div class="tile-text">
+                <span class="tile-name">Weather Report</span>
+                <span class="tile-sub">Forecast & Climate</span>
+              </div>
+            </button>
+            <button class="action-tile" data-action="open-chat">
+              <span class="tile-icon">💬</span>
+              <div class="tile-text">
+                <span class="tile-name">Launch Chatbot</span>
+                <span class="tile-sub">Interactive Conversation</span>
+              </div>
+            </button>
+          </div>
+
+          <!-- QUICK QUERY PROMPT DOCK (Direct from Core view) -->
+          <div class="core-input-pill">
+            <input type="text" id="core-quick-input" placeholder="Type a directive or click Arc Core to speak..." autocomplete="off">
+            <button id="btn-core-send" class="core-send-btn" title="Send Directive">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 2: DEDICATED CHATBOT PAGE -->
+      <!-- ============================================================== -->
+      <section class="view-pane" id="view-chat">
+        <div class="chat-view-container">
+          
+          <!-- LIVE TOOL EXECUTION TICKER -->
+          <div id="tool-activity-banner" class="tool-activity-banner hidden">
+            <div class="tool-spinner"></div>
+            <div class="tool-info">
+              <span class="tool-label">EXECUTING DIRECTIVE</span>
+              <span id="tool-name-text" class="tool-name">Search Web...</span>
+            </div>
+          </div>
+
+          <!-- REALTIME SPEECH INTERRUPTER BANNER -->
+          <div id="chat-interrupter-banner" class="chat-interrupter-banner hidden" title="Click or Press Esc to Interrupt Speech">
+            <div class="interrupter-left">
+              <span class="pulse-dot red" style="background:#ff0055; box-shadow:0 0 8px #ff0055;"></span>
+              <span id="speaking-preview-text">🔊 F.R.I.D.A.Y IS SPEAKING...</span>
+            </div>
+            <div class="interrupter-action">
+              <span>⏹️ STOP SPEECH (Esc)</span>
+            </div>
+          </div>
+
+          <!-- CONVERSATION CHAT FEED -->
+          <div class="chat-viewport" id="chat-viewport">
+            <div class="chat-messages" id="chat-messages">
+              <div class="message-row assistant-row">
+                <div class="avatar-cell">
+                  <div class="assistant-avatar">
+                    <span class="avatar-glow"></span>
+                    <span class="avatar-letter">F</span>
+                  </div>
+                </div>
+                <div class="message-content">
+                  <div class="message-sender">F.R.I.D.A.Y <span class="msg-time">Online</span></div>
+                  <div class="message-bubble assistant-bubble">
+                    <p>Good day, Sir. All cognitive neural networks, tool guards, and background sentinels are operational.</p>
+                    <p class="sub-text">How may I assist you today? You can type your command below, speak with the mic, or shift operating modes anytime.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- QUICK ACTION CHIPS -->
+          <div class="quick-chips-scroll">
+            <button class="chip-btn" data-action="briefing">
+              <span>🌅</span> Morning Briefing
+            </button>
+            <button class="chip-btn" data-prompt="What is your current system and battery status?">
+              <span>⚡</span> System Status
+            </button>
+            <button class="chip-btn" data-prompt="What is the current weather forecast?">
+              <span>🌤️</span> Weather
+            </button>
+            <button class="chip-btn" data-prompt="Take a screenshot of my current screen.">
+              <span>📸</span> Screenshot
+            </button>
+            <button class="chip-btn" data-action="clear-chat">
+              <span>🧹</span> Clear Chat
+            </button>
+          </div>
+
+          <!-- CHAT INPUT DOCK -->
+          <div class="hud-footer">
+            <div class="input-glow-wrapper">
+              <textarea
+                id="query-input"
+                class="query-input"
+                placeholder="Ask F.R.I.D.A.Y anything, or speak... (Enter to send)"
+                rows="1"
+                autocomplete="off"
+              ></textarea>
+
+              <div class="footer-actions">
+                <!-- Voice Recognition Mic Toggle -->
+                <button id="btn-mic" class="action-btn mic-btn" title="Hold or Click to Speak">
+                  <div class="mic-ripple"></div>
+                  <svg class="mic-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3 3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="22"/>
+                    <line x1="8" y1="22" x2="16" y2="22"/>
+                  </svg>
+                </button>
+
+                <!-- Audio Voice Toggle (TTS Mute/Unmute) -->
+                <button id="btn-audio-toggle" class="action-btn audio-btn active" title="Toggle Voice Output (Speaking ON)">
+                  <svg class="sound-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                  </svg>
+                  <svg class="sound-off hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <line x1="23" y1="9" x2="17" y2="15"/>
+                    <line x1="17" y1="9" x2="23" y2="15"/>
+                  </svg>
+                </button>
+
+                <!-- Submit / Send Button -->
+                <button id="btn-send" class="action-btn send-btn" title="Send Directive (Enter)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 3: ASSISTANT SETTINGS & FULL API CONFIGURATION -->
+      <!-- ============================================================== -->
+      <section class="view-pane" id="view-settings">
+        <div class="settings-scroll-container">
+          
+          <!-- OPERATING PROTOCOLS SECTION -->
+          <div class="settings-section-card">
+            <div class="section-title">
+              <span class="sec-icon">⚡</span>
+              <span>Operating Mode & Protocols</span>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <span class="setting-name">Hands-Free Wake Word</span>
+                <span class="setting-desc">Listen in background for "Hey Friday" summon trigger</span>
+              </div>
+              <label class="hud-toggle">
+                <input type="checkbox" id="setting-wakeword-enabled">
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <span class="setting-name">Multimodal Live Vision Protocol</span>
+                <span class="setting-desc">Stream real-time screen or camera frames via Gemini</span>
+              </div>
+              <div class="settings-btn-group">
+                <button class="mini-hud-btn" id="btn-start-screen-vision">🖥️ Screen</button>
+                <button class="mini-hud-btn" id="btn-start-camera-vision">📷 Camera</button>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <span class="setting-name">Proactive Executive Briefing</span>
+                <span class="setting-desc">Generate morning schedule, reminders, weather, and battery summary</span>
+              </div>
+              <button class="mini-hud-btn primary" id="btn-trigger-briefing-now">🌅 Run Briefing</button>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <span class="setting-name">Global Desktop Hotkey</span>
+                <span class="setting-desc">Summon or dismiss anywhere on Windows</span>
+              </div>
+              <div class="hotkey-display-pill">Ctrl + Space</div>
+            </div>
+          </div>
+
+          <!-- VOICE & SPEECH SYNTHESIS SECTION -->
+          <div class="settings-section-card">
+            <div class="section-title">
+              <span class="sec-icon">🎙️</span>
+              <span>Voice & Speech Synthesis</span>
+            </div>
+            
+            <div class="setting-row">
+              <div class="setting-meta">
+                <span class="setting-name">Voice Audio Drive (TTS)</span>
+                <span class="setting-desc">Enable spoken responses from F.R.I.D.A.Y</span>
+              </div>
+              <label class="hud-toggle">
+                <input type="checkbox" id="setting-voice-enabled" checked>
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <span class="setting-name">Speech Rate</span>
+                <span class="setting-desc">Voice playback speed (<span id="val-speech-rate">185</span> WPM)</span>
+              </div>
+              <input type="range" class="hud-slider" id="setting-speech-rate" min="130" max="240" value="185">
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <span class="setting-name">Synthesizer Pitch</span>
+                <span class="setting-desc">Vocal tone frequency (<span id="val-speech-pitch">50</span>%)</span>
+              </div>
+              <input type="range" class="hud-slider" id="setting-speech-pitch" min="20" max="90" value="50">
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-meta">
+                <span class="setting-name">Holographic Sound Effects (SFX)</span>
+                <span class="setting-desc">Futuristic audio beeps on mode toggle & clicks</span>
+              </div>
+              <label class="hud-toggle">
+                <input type="checkbox" id="setting-sfx-enabled" checked>
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- FULL SYSTEM & API KEYS CONFIGURATION (CLI Replacement) -->
+          <div class="settings-section-card">
+            <div class="section-title">
+              <span class="sec-icon">🔑</span>
+              <span>API Keys & Neural Core Settings</span>
+            </div>
+            <p class="section-subtext">Directly configure all API integrations and credentials previously managed via command line.</p>
+
+            <div class="api-keys-grid">
+              <div class="config-field">
+                <label for="cfg-llm-url">LLM Provider Service URL</label>
+                <input type="text" id="cfg-llm-url" class="hud-text-input" placeholder="e.g. https://api.openai.com/v1 or Groq/OpenRouter">
+              </div>
+
+              <div class="config-field">
+                <label for="cfg-llm-model">Neural Model Name</label>
+                <input type="text" id="cfg-llm-model" class="hud-text-input" placeholder="e.g. gpt-4o, llama-3.3-70b-versatile">
+              </div>
+
+              <div class="config-field">
+                <label for="cfg-llm-key">Primary LLM API Key</label>
+                <div class="input-with-toggle">
+                  <input type="password" id="cfg-llm-key" class="hud-text-input" placeholder="Enter LLM API Key">
+                  <button type="button" class="eye-toggle-btn" data-target="cfg-llm-key">👁️</button>
+                </div>
+              </div>
+
+              <div class="config-field">
+                <label for="cfg-gemini-key">Gemini API Key (Live Vision)</label>
+                <div class="input-with-toggle">
+                  <input type="password" id="cfg-gemini-key" class="hud-text-input" placeholder="Enter Google Gemini API Key">
+                  <button type="button" class="eye-toggle-btn" data-target="cfg-gemini-key">👁️</button>
+                </div>
+              </div>
+
+              <div class="config-field">
+                <label for="cfg-weather-key">Weather API Key</label>
+                <input type="text" id="cfg-weather-key" class="hud-text-input" placeholder="OpenWeatherMap API Key">
+              </div>
+
+              <div class="config-field">
+                <label for="cfg-tavily-key">Tavily Web Search Key</label>
+                <input type="text" id="cfg-tavily-key" class="hud-text-input" placeholder="Tavily API Key">
+              </div>
+
+              <div class="config-field">
+                <label for="cfg-news-key">News API Key</label>
+                <input type="text" id="cfg-news-key" class="hud-text-input" placeholder="NewsAPI Key">
+              </div>
+
+              <div class="config-field">
+                <label for="cfg-agent-pass">Agent Security Password</label>
+                <input type="password" id="cfg-agent-pass" class="hud-text-input" placeholder="Optional Auth Password">
+              </div>
+            </div>
+
+            <button class="settings-btn primary full-w" id="btn-save-api-config">Save & Synchronize API Credentials</button>
+            <div class="settings-toast hidden" id="api-config-toast">✓ Credentials Synchronized with config.json</div>
+          </div>
+
+          <!-- THEME SELECTION SECTION -->
+          <div class="settings-section-card">
+            <div class="section-title">
+              <span class="sec-icon">🎨</span>
+              <span>Holographic Glow Theme</span>
+            </div>
+            
+            <div class="theme-picker-grid">
+              <div class="theme-option active" data-theme="cyan">
+                <div class="theme-color-dot dot-cyan"></div>
+                <span class="theme-name">Arc Cyan</span>
+              </div>
+              <div class="theme-option" data-theme="gold">
+                <div class="theme-color-dot dot-gold"></div>
+                <span class="theme-name">Stark Gold</span>
+              </div>
+              <div class="theme-option" data-theme="purple">
+                <div class="theme-color-dot dot-purple"></div>
+                <span class="theme-name">Amethyst</span>
+              </div>
+              <div class="theme-option" data-theme="green">
+                <div class="theme-color-dot dot-green"></div>
+                <span class="theme-name">Matrix Green</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SAVE & STATUS ACTIONS -->
+          <div class="settings-actions-bar">
+            <button class="settings-btn secondary" id="btn-reset-settings">Restore Defaults</button>
+            <button class="settings-btn primary" id="btn-save-settings">Save Configurations</button>
+          </div>
+          <div class="settings-toast hidden" id="settings-toast">✓ Configurations Applied & Synchronized</div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 4: USER PROFILE & REMINDERS / TASKS -->
+      <!-- ============================================================== -->
+      <section class="view-pane" id="view-profile">
+        <div class="profile-scroll-container">
+          
+          <!-- HOLOGRAPHIC OPERATOR ID CARD -->
+          <div class="operator-badge-card">
+            <div class="badge-avatar-wrap">
+              <div class="avatar-ring-outer"></div>
+              <div class="avatar-ring-inner"></div>
+              <div class="avatar-core-icon">👤</div>
+            </div>
+            <div class="badge-info">
+              <div class="badge-role-pill">AUTHORIZED OPERATOR</div>
+              <div class="badge-name" id="profile-display-name">Sir</div>
+              <div class="badge-clearance">STARK SECURITY CLEARANCE // LEVEL 5</div>
+              <div class="badge-system-id" id="profile-system-host">DESKTOP-NEURAL</div>
+            </div>
+          </div>
+
+          <!-- ACTIVE REMINDERS & SCHEDULE SECTION -->
+          <div class="profile-section-card">
+            <div class="section-title memory-title">
+              <div class="sec-title-left">
+                <span class="sec-icon">⏰</span>
+                <span>Active Reminders & Tasks</span>
+              </div>
+              <button class="mini-hud-btn" id="btn-refresh-tasks">Refresh ⟳</button>
+            </div>
+
+            <div class="reminders-tasks-container" id="reminders-tasks-container">
+              <div class="memory-empty-state">No reminders or tasks due. You can add one below!</div>
+            </div>
+
+            <!-- Quick Add Reminder / Task -->
+            <div class="add-memory-box">
+              <div class="add-memory-inputs">
+                <input type="text" id="add-task-text" class="hud-text-input" placeholder="New task or reminder...">
+                <button class="mini-hud-btn primary" id="btn-submit-task">+ Add Task</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- USER INFORMATION FORM -->
+          <div class="profile-section-card">
+            <div class="section-title">
+              <span class="sec-icon">📝</span>
+              <span>Operator Credentials</span>
+            </div>
+
+            <div class="profile-input-group">
+              <label for="prof-input-name">Operator Call-Sign / Name</label>
+              <input type="text" id="prof-input-name" class="hud-text-input" placeholder="e.g. Shubham / Sir">
+            </div>
+
+            <div class="profile-input-group">
+              <label for="prof-input-email">Primary Email</label>
+              <input type="email" id="prof-input-email" class="hud-text-input" placeholder="panchalshubham2015@gmail.com">
+            </div>
+
+            <div class="profile-input-group">
+              <label for="prof-input-phone">Comms / Phone</label>
+              <input type="text" id="prof-input-phone" class="hud-text-input" placeholder="Operator Mobile / Phone">
+            </div>
+
+            <div class="profile-actions-bar">
+              <button class="settings-btn primary" id="btn-save-profile">Update Profile</button>
+            </div>
+            <div class="profile-toast hidden" id="profile-toast">✓ Profile Updated Successfully</div>
+          </div>
+
+          <!-- DYNAMIC MEMORY VAULT -->
+          <div class="profile-section-card">
+            <div class="section-title memory-title">
+              <div class="sec-title-left">
+                <span class="sec-icon">🧠</span>
+                <span>Learned Memory Vault</span>
+              </div>
+              <span class="memory-count-badge" id="memory-count-badge">0 Learned</span>
+            </div>
+            <p class="section-subtext">Facts and preferences automatically preserved across sessions via RAG episodic memory.</p>
+
+            <div class="memory-items-list" id="memory-items-list">
+              <div class="memory-empty-state">No custom facts recorded yet. Teach Friday below!</div>
+            </div>
+
+            <!-- Manual Add Memory Tool -->
+            <div class="add-memory-box">
+              <div class="add-memory-inputs">
+                <input type="text" id="add-mem-text" class="hud-text-input" placeholder="Add custom user preference or fact...">
+                <select id="add-mem-type" class="hud-select mini-select">
+                  <option value="preference">Preference</option>
+                  <option value="fact">Fact</option>
+                  <option value="habit">Habit</option>
+                  <option value="goal">Goal</option>
+                </select>
+              </div>
+              <button class="settings-btn secondary full-w" id="btn-add-memory">+ Record to Memory</button>
+            </div>
+          </div>
+
+          <!-- SESSION & SENTINEL TELEMETRY -->
+          <div class="profile-section-card">
+            <div class="section-title">
+              <span class="sec-icon">🛡️</span>
+              <span>System & Protocol Telemetry</span>
+            </div>
+            <div class="profile-stats-grid">
+              <div class="stat-box">
+                <span class="stat-num">42</span>
+                <span class="stat-label">System Tools</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-num">ACTIVE</span>
+                <span class="stat-label">Tool Guard</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-num">ONLINE</span>
+                <span class="stat-label">Daemon Sentinel</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-num">100%</span>
+                <span class="stat-label">Neural Health</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="orb.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

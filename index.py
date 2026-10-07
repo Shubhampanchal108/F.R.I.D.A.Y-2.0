@@ -298,6 +298,18 @@ def main():
                 cli.print_banner()
                 continue
 
+            if query_lower in ["/ui", "/widget", "ui", "widget", "start ui", "open widget"]:
+                cli.render_agent_response("🚀 Launching F.R.I.D.A.Y Floating Corner Widget... Press **Ctrl + Space** anytime to summon or dismiss, Sir!")
+                if cli.audio_drive:
+                    speak("Launching floating HUD widget. Press Control Space to summon or dismiss.")
+                try:
+                    import subprocess
+                    widget_script = os.path.join(os.path.dirname(__file__), "friday_widget.py")
+                    subprocess.Popen([sys.executable, widget_script])
+                except Exception as ui_err:
+                    cli.render_agent_response(f"⚠️ Error launching UI widget: {ui_err}")
+                continue
+
             # --- LIVE MULTIMODAL VISION MODE PROTOCOL ---
             if (
                 any(cmd == query_lower for cmd in LIVE_COMMANDS)
@@ -418,4 +430,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if "--cli" in sys.argv:
+        main()
+    else:
+        # Default: Launch F.R.I.D.A.Y Floating Holographic UI directly
+        from friday_widget import run_widget_app
+        run_widget_app()

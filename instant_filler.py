@@ -68,6 +68,25 @@ def select_filler_key(query: str) -> str:
     return random.choice(general_pool)
 
 
+def is_filler_busy() -> bool:
+    """Returns True if the instant filler channel is actively playing audio."""
+    global _channel
+    try:
+        return _channel is not None and _channel.get_busy()
+    except Exception:
+        return False
+
+
+def stop_instant_filler():
+    """Immediately halts any playing instant filler audio."""
+    global _channel
+    try:
+        if _channel and _channel.get_busy():
+            _channel.stop()
+    except Exception:
+        pass
+
+
 def trigger_instant_filler(query: str, audio_enabled: bool = True) -> bool:
     """
     Plays an instant (<10ms latency) acknowledgment voice filler in a non-blocking background thread.
@@ -77,6 +96,14 @@ def trigger_instant_filler(query: str, audio_enabled: bool = True) -> bool:
 
     if not audio_enabled or not os.path.exists(FILLERS_DIR):
         return False
+
+    # Prevent triggering filler if Friday is already speaking or generating speech
+    try:
+        from speak import is_speaking
+        if is_speaking():
+            return False
+    except Exception:
+        pass
 
     # Prevent rapid repeat triggers within 2 seconds
     now = time.time()

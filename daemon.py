@@ -147,21 +147,12 @@ class FridayDaemon:
         except Exception:
             pass
 
-        if self.notify_voice:
-            def _speak_worker():
-                # Wait briefly if another speech is actively playing
-                for _ in range(12):
-                    if not is_speaking():
-                        break
-                    time.sleep(0.4)
-                if not is_speaking() and not self._stop_event.is_set():
-                    try:
-                        speak(spoken_msg, allow_interrupt=False)
-                    except Exception as e:
-                        self._log_event("Speech Error", str(e), level="ERROR")
-
-            sp_th = threading.Thread(target=_speak_worker, daemon=True)
-            sp_th.start()
+        if self.notify_voice and not self._stop_event.is_set():
+            try:
+                # Enqueue into centralized sequential speech manager with priority=3 (Ambient alert)
+                speak(spoken_msg, allow_interrupt=True, priority=3, block=False)
+            except Exception as e:
+                self._log_event("Speech Error", str(e), level="ERROR")
 
     # ================================================================
     # 1. BATTERY SENTINEL
