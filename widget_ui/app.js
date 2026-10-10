@@ -1719,8 +1719,10 @@ function setupAuthenticationSystem() {
             overlay.classList.add('hidden');
             pwdInput.value = '';
             alertBox.classList.add('hidden');
+            switchView('core');
             if (orbInstance) {
               orbInstance.resume();
+              setTimeout(() => orbInstance.setupDPI(), 60);
             }
           }, 500);
         } else {
@@ -1736,6 +1738,11 @@ function setupAuthenticationSystem() {
       showAuthSuccess("Access Granted // Demo Mode Active");
       setTimeout(() => {
         overlay.classList.add('hidden');
+        switchView('core');
+        if (orbInstance) {
+          orbInstance.resume();
+          setTimeout(() => orbInstance.setupDPI(), 60);
+        }
       }, 500);
     }
   }
@@ -1805,6 +1812,11 @@ async function checkInitialAuth() {
         }
         if (auth.authenticated || sessionStorage.getItem('friday_auth_unlocked') === 'true') {
           overlay.classList.add('hidden');
+          switchView('core');
+          if (orbInstance) {
+            orbInstance.resume();
+            setTimeout(() => orbInstance.setupDPI(), 60);
+          }
           return;
         }
       }

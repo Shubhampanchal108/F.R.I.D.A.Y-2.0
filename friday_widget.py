@@ -1065,6 +1065,48 @@ def get_screen_dimensions():
 
 def run_widget_app():
     """Main launcher for F.R.I.D.A.Y Corner Widget."""
+    # 1. Set explicit Windows AppUserModelID so taskbar displays dedicated identity & logo
+    try:
+        app_id = "shubhamstudio.friday.ai.superagent"
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+    except Exception:
+        pass
+
+    # 2. Inject assets/logo.ico into Windows Window & Taskbar
+    def apply_taskbar_icon():
+        ico_path = os.path.join(BASE_DIR, "assets", "logo.ico")
+        if not os.path.exists(ico_path):
+            return
+        try:
+            user32 = ctypes.windll.user32
+            WM_SETICON = 0x0080
+            ICON_SMALL = 0
+            ICON_BIG = 1
+            IMAGE_ICON = 1
+            LR_LOADFROMFILE = 0x00000010
+            LR_DEFAULTSIZE = 0x00000040
+
+            hicon = user32.LoadImageW(None, ico_path, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE)
+            if not hicon:
+                return
+
+            for _ in range(40):
+                hwnd = user32.FindWindowW(None, "F.R.I.D.A.Y // Neural Assistant")
+                if hwnd:
+                    user32.SendMessageW(hwnd, WM_SETICON, ICON_BIG, hicon)
+                    user32.SendMessageW(hwnd, WM_SETICON, ICON_SMALL, hicon)
+                    GCLP_HICON = -14
+                    GCLP_HICONSM = -34
+                    if hasattr(user32, 'SetClassLongPtrW'):
+                        user32.SetClassLongPtrW(hwnd, GCLP_HICON, hicon)
+                        user32.SetClassLongPtrW(hwnd, GCLP_HICONSM, hicon)
+                    break
+                time.sleep(0.25)
+        except Exception:
+            pass
+
+    threading.Thread(target=apply_taskbar_icon, daemon=True).start()
+
     # Compute screen corner positioning using usable work area
     work_w, work_h, sw, sh = get_screen_work_area()
     init_x = work_w - FULL_WIDTH - MARGIN_X
