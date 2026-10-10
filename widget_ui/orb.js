@@ -72,6 +72,8 @@ class FridayOrb {
       this.themeColors = { primary: '#c084fc', secondary: '#3b82f6', glow: 'rgba(192, 132, 252, 0.35)' };
     } else if (themeName === 'green') {
       this.themeColors = { primary: '#00ff9d', secondary: '#00b4d8', glow: 'rgba(0, 255, 157, 0.35)' };
+    } else if (themeName === 'dark-sky-blue') {
+      this.themeColors = { primary: '#38bdf8', secondary: '#0284c7', glow: 'rgba(56, 189, 248, 0.35)' };
     } else {
       this.themeColors = { primary: '#00f0ff', secondary: '#8a2be2', glow: 'rgba(0, 240, 255, 0.35)' };
     }

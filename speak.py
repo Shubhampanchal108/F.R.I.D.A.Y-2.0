@@ -50,12 +50,12 @@ AUDIO_FOLDER = AUDIO_PATH
 os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
 # =========================================================================
-# CENTRAL THREAD-SAFE SPEECH QUEUE & INTERRUPTION MANAGER
+# CENTRAL THREAD-SAFE SPEECH MANAGER & ORCHESTRATOR
 # =========================================================================
 
 class SpeechItem:
-    """Encapsulates a speech request with priority, callbacks, and synchronization."""
-    def __init__(self, text, priority=1, allow_interrupt=True, on_start=None, on_end=None, done_event=None):
+    """Encapsulates a speech request with priority, privacy gating, callbacks, and synchronization."""
+    def __init__(self, text, priority=1, allow_interrupt=True, on_start=None, on_end=None, done_event=None, is_private=False):
         self.text = text
         self.priority = priority  # 1 = User Query, 2 = Critical Alert, 3 = Ambient Alert
         self.timestamp = time.time()
@@ -63,6 +63,7 @@ class SpeechItem:
         self.on_start = on_start
         self.on_end = on_end
         self.done_event = done_event
+        self.is_private = is_private
         self.interrupted = False
 
     def __lt__(self, other):
@@ -73,10 +74,46 @@ class SpeechItem:
 
 _speech_queue = queue.PriorityQueue()
 _speech_lock = threading.Lock()
+_playback_lock = threading.Lock()
 _current_stop_event = None
 _current_item = None
 _global_on_start_callbacks = []
 _global_on_end_callbacks = []
+
+# Master operational switches
+_is_voice_enabled = True
+_is_authenticated = False
+_recent_hashes = {}  # text_hash -> timestamp (deduplication)
+_DEDUP_WINDOW_SEC = 15.0
+
+
+def set_voice_enabled(enabled: bool):
+    """Global master toggle for voice synthesis and audio playback."""
+    global _is_voice_enabled
+    _is_voice_enabled = bool(enabled)
+    if not _is_voice_enabled:
+        interrupt_speech()
+
+
+def is_voice_enabled() -> bool:
+    """Returns True if voice audio output is currently enabled."""
+    global _is_voice_enabled
+    return _is_voice_enabled
+
+
+def set_authenticated(authenticated: bool):
+    """Updates authentication clearance in the Speech Manager."""
+    global _is_authenticated
+    _is_authenticated = bool(authenticated)
+    if not _is_authenticated:
+        # If locked or logged out, interrupt ongoing speech to prevent exposure
+        interrupt_speech()
+
+
+def is_authenticated() -> bool:
+    """Returns True if the assistant is currently authenticated."""
+    global _is_authenticated
+    return _is_authenticated
 
 
 def register_speech_callback(on_start=None, on_end=None):
@@ -107,19 +144,9 @@ def stop_speaking():
     interrupt_speech()
 
 
-def interrupt_speech():
-    """
-    Core Interruption Handler:
-    1. Signals the current active TTS playback/producer to immediately stop.
-    2. Stops and unloads pygame mixer music.
-    3. Stops all sound channels (silences instant fillers).
-    4. Flushes and clears all queued pending speech requests so backlogged audio is never spoken.
-    5. Cleans up audio files and notifies UI listeners.
-    """
-    global _current_stop_event, _current_item, _speech_queue
-
-    # 1. Drain pending queue items
-    drained_count = 0
+def clear_speech_queue():
+    """Drains all pending items from speech queue without stopping currently playing item."""
+    global _speech_queue
     while not _speech_queue.empty():
         try:
             item = _speech_queue.get_nowait()
@@ -132,10 +159,24 @@ def interrupt_speech():
                         item.on_end(interrupted=True)
                     except Exception:
                         pass
-                drained_count += 1
             _speech_queue.task_done()
         except Exception:
             break
+
+
+def interrupt_speech():
+    """
+    Core Interruption Handler:
+    1. Signals the current active TTS playback/producer to immediately stop.
+    2. Stops and unloads pygame mixer music.
+    3. Stops all sound channels (silences instant fillers).
+    4. Flushes and clears all queued pending speech requests so backlogged audio is never spoken.
+    5. Cleans up audio files and notifies UI listeners.
+    """
+    global _current_stop_event, _current_item, _speech_queue
+
+    # 1. Drain pending queue items
+    clear_speech_queue()
 
     # 2. Stop currently playing speech item
     if _current_item:
@@ -398,7 +439,7 @@ def _safe_print(markup_text, fallback_text):
 # =========================================================================
 
 def _play_speech_item(item: SpeechItem):
-    """Plays an individual SpeechItem from start to finish with interruption support."""
+    """Plays an individual SpeechItem from start to finish with single-playback enforcement and interruption support."""
     global _current_stop_event, _current_item
 
     if item.interrupted or not item.text:
@@ -406,119 +447,136 @@ def _play_speech_item(item: SpeechItem):
             item.done_event.set()
         return
 
-    # Wait up to 350ms if instant filler is wrapping up so voices don't clash
-    try:
-        from instant_filler import is_filler_busy, stop_instant_filler
-        if is_filler_busy():
-            for _ in range(7):
-                if not is_filler_busy():
-                    break
-                time.sleep(0.05)
-            stop_instant_filler()
-    except Exception:
-        pass
-
-    stop_event = threading.Event()
-    _current_stop_event = stop_event
-    _current_item = item
-
-    session_id = uuid.uuid4().hex[:8]
-    audio_q = queue.Queue()
-
-    # Notify listeners that speech has started
-    if item.on_start:
-        try:
-            item.on_start(item.text)
-        except Exception:
-            pass
-
-    for cb in _global_on_start_callbacks:
-        try:
-            cb(item.text)
-        except Exception:
-            pass
-
-    producer = threading.Thread(
-        target=audio_producer,
-        args=(item.text, session_id, audio_q, stop_event),
-        daemon=True
-    )
-    consumer = threading.Thread(
-        target=audio_consumer,
-        args=(audio_q, stop_event),
-        daemon=True
-    )
-
-    producer.start()
-    consumer.start()
-
-    interrupted = False
-
-    if item.allow_interrupt:
-        _safe_print(
-            "[dim cyan]🔊 Speaking... [dim white](Press [bold yellow]Ctrl+D[/bold yellow] or [bold yellow]Esc[/bold yellow] to interrupt)[/dim cyan]",
-            "[Speaking... Press Ctrl+D or Esc to interrupt]"
-        )
-
-    try:
-        while consumer.is_alive():
-            if stop_event.is_set():
-                interrupted = True
-                break
-
-            if item.allow_interrupt and check_interrupt_key():
-                interrupted = True
-                item.interrupted = True
-                stop_event.set()
-                try:
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.unload()
-                except Exception:
-                    pass
-                flush_terminal_input()
-                break
-
-            time.sleep(0.03)
-
-    except KeyboardInterrupt:
-        interrupted = True
-        item.interrupted = True
-        stop_event.set()
-        try:
-            pygame.mixer.music.stop()
-            pygame.mixer.music.unload()
-        except Exception:
-            pass
-        flush_terminal_input()
-
-    finally:
-        if interrupted or stop_event.is_set():
-            stop_event.set()
-            item.interrupted = True
-            _safe_print(
-                "\n[bold yellow]⏹️ Speech stopped (Interrupted by user). Ready for next prompt.[/bold yellow]",
-                "\n[Speech stopped. Ready for next prompt.]"
-            )
-
-        consumer.join(timeout=0.3)
-        cleanup_session_files(session_id)
-        _current_stop_event = None
-        _current_item = None
-
-        if item.on_end:
-            try:
-                item.on_end(interrupted=item.interrupted)
-            except Exception:
-                pass
-
-        for cb in _global_on_end_callbacks:
-            try:
-                cb(interrupted=item.interrupted)
-            except Exception:
-                pass
-
+    # 1. Master Voice Output Gate
+    if not _is_voice_enabled:
         if item.done_event:
             item.done_event.set()
+        return
+
+    # 2. Authentication Gate for private speech
+    if item.is_private and not _is_authenticated:
+        # Suppress spoken audio for private alerts while unauthenticated
+        if item.done_event:
+            item.done_event.set()
+        return
+
+    with _playback_lock:
+        # Wait up to 350ms if instant filler is wrapping up so voices don't clash
+        try:
+            from instant_filler import is_filler_busy, stop_instant_filler
+            if is_filler_busy():
+                for _ in range(7):
+                    if not is_filler_busy():
+                        break
+                    time.sleep(0.05)
+                stop_instant_filler()
+        except Exception:
+            pass
+
+        stop_event = threading.Event()
+        _current_stop_event = stop_event
+        _current_item = item
+
+        session_id = uuid.uuid4().hex[:8]
+        audio_q = queue.Queue()
+
+        # Notify listeners that speech has started
+        if item.on_start:
+            try:
+                item.on_start(item.text)
+            except Exception:
+                pass
+
+        for cb in _global_on_start_callbacks:
+            try:
+                cb(item.text)
+            except Exception:
+                pass
+
+        producer = threading.Thread(
+            target=audio_producer,
+            args=(item.text, session_id, audio_q, stop_event),
+            daemon=True
+        )
+        consumer = threading.Thread(
+            target=audio_consumer,
+            args=(audio_q, stop_event),
+            daemon=True
+        )
+
+        producer.start()
+        consumer.start()
+
+        interrupted = False
+
+        if item.allow_interrupt:
+            _safe_print(
+                "[dim cyan]🔊 Speaking... [dim white](Press [bold yellow]Ctrl+D[/bold yellow] or [bold yellow]Esc[/bold yellow] to interrupt)[/dim cyan]",
+                "[Speaking... Press Ctrl+D or Esc to interrupt]"
+            )
+
+        try:
+            while consumer.is_alive():
+                if stop_event.is_set():
+                    interrupted = True
+                    break
+
+                if item.allow_interrupt and check_interrupt_key():
+                    interrupted = True
+                    item.interrupted = True
+                    stop_event.set()
+                    try:
+                        pygame.mixer.music.stop()
+                        pygame.mixer.music.unload()
+                    except Exception:
+                        pass
+                    flush_terminal_input()
+                    break
+
+                time.sleep(0.03)
+
+        except KeyboardInterrupt:
+            interrupted = True
+            item.interrupted = True
+            stop_event.set()
+            try:
+                pygame.mixer.music.stop()
+                pygame.mixer.music.unload()
+            except Exception:
+                pass
+            flush_terminal_input()
+
+        finally:
+            if interrupted or stop_event.is_set():
+                stop_event.set()
+                item.interrupted = True
+                _safe_print(
+                    "\n[bold yellow]⏹️ Speech stopped (Interrupted by user). Ready for next prompt.[/bold yellow]",
+                    "\n[Speech stopped. Ready for next prompt.]"
+                )
+
+            consumer.join(timeout=1.0)
+            cleanup_session_files(session_id)
+            _current_stop_event = None
+            _current_item = None
+
+            if item.on_end:
+                try:
+                    item.on_end(interrupted=item.interrupted)
+                except Exception:
+                    pass
+
+            for cb in _global_on_end_callbacks:
+                try:
+                    cb(interrupted=item.interrupted)
+                except Exception:
+                    pass
+
+            if item.done_event:
+                item.done_event.set()
+
+            # Small 40ms breather between back-to-back audio tracks to prevent audio driver clicks
+            time.sleep(0.04)
 
 
 def _speech_queue_worker_loop():
@@ -530,7 +588,7 @@ def _speech_queue_worker_loop():
                 break
             _play_speech_item(item)
             _speech_queue.task_done()
-        except Exception as e:
+        except Exception:
             try:
                 _speech_queue.task_done()
             except Exception:
@@ -546,19 +604,44 @@ _worker_thread.start()
 # PUBLIC SPEAK API
 # =========================================================================
 
-def speak(text, allow_interrupt=True, priority=1, block=True, on_start=None, on_end=None):
+def speak(text, allow_interrupt=True, priority=1, block=True, on_start=None, on_end=None, is_private=None):
     """
     Main speak function backed by a central sequential speech queue.
-    - Multiple calls from different threads (e.g. user response, battery warning, email notification)
-      will NEVER overlap. They are spoken strictly one-by-one in sequential priority order.
-    - If allow_interrupt is True, users can press Ctrl+D, Esc, click mic, or submit a prompt to interrupt immediately.
-    - If block is True, the calling thread waits until this speech item completes (ideal for synchronous CLI flows).
-    - If block is False, the call returns immediately and plays in background sequence.
+    - Exactly ONE speech playback at a time across the entire application.
+    - If voice output is disabled, returns immediately without playing audio.
+    - If unauthenticated and is_private is True (or priority >= 3 ambient alerts), speech is gated.
+    - Normal queued requests play strictly FIFO within priority level.
     """
     if not text or not str(text).strip():
         return True
 
     clean_text = str(text).strip()
+
+    # Determine privacy: default to True for ambient priority 3 alerts (email, reminders, etc.)
+    if is_private is None:
+        is_private = (priority >= 3)
+
+    # 1. Master Voice Output Check
+    if not _is_voice_enabled:
+        return True
+
+    # 2. Authentication Check for private speech
+    if is_private and not _is_authenticated:
+        return False
+
+    # 3. Deduplication Check (Rolling 15s window for identical announcements)
+    now = time.time()
+    text_key = clean_text.lower()
+    # Clean up older cache entries
+    to_delete = [k for k, ts in _recent_hashes.items() if now - ts > _DEDUP_WINDOW_SEC]
+    for k in to_delete:
+        _recent_hashes.pop(k, None)
+
+    if priority >= 3 and text_key in _recent_hashes:
+        # Duplicate alert within cooldown period, ignore
+        return True
+    _recent_hashes[text_key] = now
+
     done_event = threading.Event() if block else None
 
     item = SpeechItem(
@@ -567,7 +650,8 @@ def speak(text, allow_interrupt=True, priority=1, block=True, on_start=None, on_
         allow_interrupt=allow_interrupt,
         on_start=on_start,
         on_end=on_end,
-        done_event=done_event
+        done_event=done_event,
+        is_private=is_private
     )
 
     _speech_queue.put(item)
@@ -576,3 +660,9 @@ def speak(text, allow_interrupt=True, priority=1, block=True, on_start=None, on_
         done_event.wait()
         return not item.interrupted
     return True
+
+
+def speak_alert(text, is_private=True, priority=3, block=False):
+    """Convenience helper for background sentinel alerts (email, reminders, battery)."""
+    return speak(text, allow_interrupt=True, priority=priority, block=block, is_private=is_private)
+

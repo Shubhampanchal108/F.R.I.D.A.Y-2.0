@@ -82,14 +82,18 @@ Tools you have (with input parameters):
 - yt_previous() -> play previous video
 - yt_fullscreen()-> fullscreen yt video
 - capture_screenshot -> take screen shot
-- add_task(task_text) -> add Task,
-- list_tasks() -> List Tasks
-- delete_task(task_name) -> delete task
-- complete_task(task_name) -> set task as complete
-- add_reminder(reminder_text: str, remind_at: str) -> add reminder
-- list_reminders() -> shows all reminder
-- delete_reminder_by_name(reminder_text: str) -> delete reminder
-- get_due_reminders() - check due reminder
+- add_task(task_text) -> add a new task to todo list
+- list_tasks() -> list all todo tasks
+- delete_task(task_name) -> delete a task from todo list
+- complete_task(task_name) -> mark a task as completed
+- reopen_task(task_name) -> reopen a previously completed task
+- update_task(task_name, new_name=None, done=None) -> update task title or completion status
+- add_reminder(reminder_text: str, remind_at: str) -> add reminder (remind_at can be 'tomorrow at 8 PM', 'today at 6 PM', 'in 30 minutes', or 'YYYY-MM-DD HH:MM')
+- list_reminders() -> show all reminders
+- update_reminder(old_text: str, new_text: str=None, new_remind_at: str=None) -> change reminder text or time
+- toggle_reminder(reminder_text: str, enabled: bool=None) -> enable or disable reminder
+- delete_reminder_by_name(reminder_text: str) -> delete a reminder
+- get_due_reminders() -> check due reminders
 - open_website(url: str) -> open websites
 - readmail_Full_body(index) -> read full body of a single mail
 - create_and_open_file(filename, content) -> creates and open file 

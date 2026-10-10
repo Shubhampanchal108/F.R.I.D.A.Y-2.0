@@ -95,6 +95,47 @@ def complete_task(task_name: str):
 
     return {"error": f"Task with name '{task_name}' not found"}
 
+def reopen_task(task_name: str):
+    data = _load_data()
+    if "__error__" in data:
+        return {"error": f"File read error: {data['__error__']}"}
+
+    for task in data["tasks"]:
+        if task["task"].lower() == task_name.lower():
+            task["done"] = False
+            if not _save_data(data):
+                return {"error": "Failed to update task"}
+            return {
+                "status": "success",
+                "message": f"Task '{task_name}' reopened",
+                "task": task
+            }
+
+    return {"error": f"Task with name '{task_name}' not found"}
+
+def update_task(task_name: str, new_name: str = None, done: bool = None):
+    data = _load_data()
+    if "__error__" in data:
+        return {"error": f"File read error: {data['__error__']}"}
+
+    for task in data["tasks"]:
+        if task["task"].lower() == task_name.lower():
+            if new_name and new_name.strip():
+                task["task"] = new_name.strip()
+            if done is not None:
+                task["done"] = bool(done)
+            task["updated_at"] = datetime.now().isoformat()
+
+            if not _save_data(data):
+                return {"error": "Failed to update task"}
+            return {
+                "status": "success",
+                "message": f"Task '{task_name}' updated successfully",
+                "task": task
+            }
+
+    return {"error": f"Task with name '{task_name}' not found"}
+
 def delete_task(task_name: str):
     data = _load_data()
     if "__error__" in data:
@@ -114,4 +155,5 @@ def delete_task(task_name: str):
         "status": "success",
         "message": f"Task '{task_name}' deleted successfully"
     }
+
 

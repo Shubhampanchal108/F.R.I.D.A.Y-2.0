@@ -76,6 +76,22 @@ function playSfx(type = 'click') {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
       osc.start(now);
       osc.stop(now + 0.1);
+    } else if (type === 'error') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(160, now);
+      osc.frequency.linearRampToValueAtTime(90, now + 0.22);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.start(now);
+      osc.stop(now + 0.22);
+    } else if (type === 'unlock') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(1320, now + 0.32);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+      osc.start(now);
+      osc.stop(now + 0.32);
     }
   } catch (e) {
     // Ignore audio autoplay restrictions
@@ -84,6 +100,9 @@ function playSfx(type = 'click') {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+  // 0. Setup Holographic Security & Authentication Gateway
+  setupAuthenticationSystem();
+
   // 1. Initialize Arc Reactor & Frequency Visualizer
   orbInstance = new FridayOrb('orb-canvas', 'freq-canvas');
 
@@ -108,7 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 8. Setup Profile & Reminders Handlers
   setupProfileHandlers();
 
-  // 9. Connect to Python pywebview API
+  // 9. Setup Dedicated Live Mode View Handlers
+  setupLiveModeHandlers();
+
+  // 10. Connect to Python pywebview API
   if (window.pywebview) {
     onPywebviewReady();
   } else {
@@ -118,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function onPywebviewReady() {
   console.log('[FRIDAY] pywebview API connected.');
+  checkInitialAuth();
   fetchInitialTelemetry();
   loadAssistantSettings();
   loadUserProfile();
@@ -397,7 +420,14 @@ async function shiftOperatingMode(mode) {
   // Sync with Python backend
   if (window.pywebview && window.pywebview.api) {
     try {
-      await window.pywebview.api.set_operating_mode(mode);
+      const res = await window.pywebview.api.set_operating_mode(mode);
+      if (res && res.live_status && res.live_status.status === 'error') {
+        const errMsg = res.live_status.message || 'Failed to start Live Vision';
+        appendAssistantMessage(`⚠️ [Live Multimodal Error]: ${errMsg}`);
+        if (liveBanner) liveBanner.classList.add('hidden');
+        setOrbState('idle', 'F.R.I.D.A.Y STANDBY');
+        return;
+      }
     } catch (e) {
       console.warn('set_operating_mode error:', e);
     }
@@ -417,17 +447,62 @@ async function syncOperatingMode() {
   }
 }
 
-// Global wake-word triggered from Python backend
-window.fridayOnWakeWord = function(phrase) {
+// Global wake-word triggered from Python backend (supports one-shot commands & two-step queries)
+window.fridayOnWakeWord = function(payload) {
   playSfx('ping');
-  setOrbState('listening', `WAKE WORD DETECTED: "${phrase || 'Hey Friday'}"`);
-  const activeTab = document.querySelector('.nav-tab.active');
-  if (!activeTab || activeTab.getAttribute('data-view') !== 'chat') {
-    switchView('chat');
+  let phrase = "Hey Friday";
+  let command = null;
+
+  if (typeof payload === 'object' && payload !== null) {
+    phrase = payload.raw || "Hey Friday";
+    command = payload.command || null;
+  } else if (typeof payload === 'string') {
+    try {
+      const parsed = JSON.parse(payload);
+      if (typeof parsed === 'object' && parsed !== null) {
+        phrase = parsed.raw || "Hey Friday";
+        command = parsed.command || null;
+      } else {
+        phrase = payload;
+      }
+    } catch (_) {
+      phrase = payload;
+    }
   }
-  setTimeout(() => {
-    handleToggleVoiceInput();
-  }, 400);
+
+  // 1. One-shot command present (e.g. "Friday, tell me about the weather")
+  if (command && String(command).trim()) {
+    const cleanCmd = String(command).trim();
+    setOrbState('thinking', `DIRECTIVE: "${cleanCmd}"`);
+    appendUserMessage(cleanCmd);
+    isProcessing = true;
+
+    (async () => {
+      try {
+        let response = "Directive executed, Sir.";
+        if (window.pywebview && window.pywebview.api) {
+          response = await window.pywebview.api.send_query(cleanCmd);
+        } else {
+          await new Promise(r => setTimeout(r, 1000));
+          response = `Local directive acknowledged: "${cleanCmd}".`;
+        }
+        appendAssistantMessage(response);
+      } catch (err) {
+        appendAssistantMessage(`⚠️ System Exception: ${err.message || err}`);
+      } finally {
+        isProcessing = false;
+        if (!isAgentSpeaking) {
+          setOrbState('idle', 'F.R.I.D.A.Y STANDBY');
+        }
+      }
+    })();
+  } else {
+    // 2. Two-step wake-word prompt (e.g. "Friday" alone -> prompt vocal input)
+    setOrbState('listening', `WAKE WORD DETECTED: "${phrase}"`);
+    setTimeout(() => {
+      handleToggleVoiceInput(false);
+    }, 300);
+  }
 };
 
 // ==========================================================================
@@ -598,7 +673,7 @@ async function handleSendPrompt() {
 }
 
 // Voice input
-async function handleToggleVoiceInput() {
+async function handleToggleVoiceInput(forceSwitchChat = false) {
   // If Friday is speaking, clicking mic immediately silences her
   if (isAgentSpeaking) {
     await interruptSpeech();
@@ -608,13 +683,13 @@ async function handleToggleVoiceInput() {
   const btnMic = document.getElementById('btn-mic');
   if (isRecording) {
     isRecording = false;
-    btnMic.classList.remove('recording');
+    if (btnMic) btnMic.classList.remove('recording');
     setOrbState('idle', 'F.R.I.D.A.Y STANDBY');
     return;
   }
 
   isRecording = true;
-  btnMic.classList.add('recording');
+  if (btnMic) btnMic.classList.add('recording');
   setOrbState('listening', 'LISTENING FOR VOCAL COMMAND...');
   playSfx('ping');
 
@@ -627,19 +702,22 @@ async function handleToggleVoiceInput() {
       recognizedText = "System diagnostic status";
     }
 
-    btnMic.classList.remove('recording');
+    if (btnMic) btnMic.classList.remove('recording');
     isRecording = false;
 
     if (recognizedText && recognizedText.trim()) {
-      switchView('chat');
-      document.getElementById('query-input').value = recognizedText;
+      if (forceSwitchChat) {
+        switchView('chat');
+      }
+      const queryInput = document.getElementById('query-input');
+      if (queryInput) queryInput.value = recognizedText;
       handleSendPrompt();
     } else {
       setOrbState('idle', 'NO SPEECH DETECTED');
       setTimeout(() => setOrbState('idle', 'F.R.I.D.A.Y STANDBY'), 1500);
     }
   } catch (err) {
-    btnMic.classList.remove('recording');
+    if (btnMic) btnMic.classList.remove('recording');
     isRecording = false;
     setOrbState('idle', 'MIC ERROR');
     setTimeout(() => setOrbState('idle', 'F.R.I.D.A.Y STANDBY'), 1500);
@@ -708,6 +786,36 @@ function setupSettingsHandlers() {
   if (wakeWordCheckbox) {
     wakeWordCheckbox.addEventListener('change', () => {
       shiftOperatingMode(wakeWordCheckbox.checked ? 'wakeword' : 'text');
+    });
+  }
+
+  const voiceEnabledSetting = document.getElementById('setting-voice-enabled');
+  if (voiceEnabledSetting) {
+    voiceEnabledSetting.addEventListener('change', async () => {
+      isAudioActive = voiceEnabledSetting.checked;
+      const btn = document.getElementById('btn-audio-toggle');
+      if (btn) {
+        const iconOn = btn.querySelector('.sound-on');
+        const iconOff = btn.querySelector('.sound-off');
+        if (isAudioActive) {
+          btn.classList.add('active');
+          btn.title = "Toggle Voice Output (Speaking ON)";
+          if (iconOn) iconOn.classList.remove('hidden');
+          if (iconOff) iconOff.classList.add('hidden');
+        } else {
+          btn.classList.remove('active');
+          btn.title = "Toggle Voice Output (Speaking MUTED)";
+          if (iconOn) iconOn.classList.add('hidden');
+          if (iconOff) iconOff.classList.remove('hidden');
+        }
+      }
+      if (window.pywebview && window.pywebview.api) {
+        try {
+          await window.pywebview.api.toggle_audio(isAudioActive);
+        } catch (e) {
+          console.warn('toggle_audio error:', e);
+        }
+      }
     });
   }
 
@@ -813,7 +921,7 @@ function setupSettingsHandlers() {
 }
 
 function applyTheme(themeName) {
-  document.body.classList.remove('theme-cyan', 'theme-gold', 'theme-purple', 'theme-green');
+  document.body.classList.remove('theme-cyan', 'theme-gold', 'theme-purple', 'theme-green', 'theme-dark-sky-blue');
   document.body.classList.add(`theme-${themeName}`);
 
   document.querySelectorAll('.theme-option').forEach(o => {
@@ -840,8 +948,25 @@ async function loadAssistantSettings() {
       const settings = await window.pywebview.api.get_assistant_settings();
       if (settings) {
         if ('voice_enabled' in settings) {
-          isAudioActive = settings.voice_enabled;
-          document.getElementById('setting-voice-enabled').checked = isAudioActive;
+          isAudioActive = Boolean(settings.voice_enabled);
+          const voiceSettingEl = document.getElementById('setting-voice-enabled');
+          if (voiceSettingEl) voiceSettingEl.checked = isAudioActive;
+          const btn = document.getElementById('btn-audio-toggle');
+          if (btn) {
+            const iconOn = btn.querySelector('.sound-on');
+            const iconOff = btn.querySelector('.sound-off');
+            if (isAudioActive) {
+              btn.classList.add('active');
+              btn.title = "Toggle Voice Output (Speaking ON)";
+              if (iconOn) iconOn.classList.remove('hidden');
+              if (iconOff) iconOff.classList.add('hidden');
+            } else {
+              btn.classList.remove('active');
+              btn.title = "Toggle Voice Output (Speaking MUTED)";
+              if (iconOn) iconOn.classList.add('hidden');
+              if (iconOff) iconOff.classList.remove('hidden');
+            }
+          }
         }
         if ('voice_speed' in settings) {
           document.getElementById('setting-speech-rate').value = settings.voice_speed;
@@ -897,7 +1022,9 @@ async function loadApiKeysConfig() {
 function setupProfileHandlers() {
   const btnSaveProfile = document.getElementById('btn-save-profile');
   const btnAddMemory = document.getElementById('btn-add-memory');
+  const btnRefreshReminders = document.getElementById('btn-refresh-reminders');
   const btnRefreshTasks = document.getElementById('btn-refresh-tasks');
+  const btnSubmitReminder = document.getElementById('btn-submit-reminder');
   const btnSubmitTask = document.getElementById('btn-submit-task');
 
   btnSaveProfile.addEventListener('click', async () => {
@@ -943,9 +1070,38 @@ function setupProfileHandlers() {
     loadUserProfile();
   });
 
+  if (btnRefreshReminders) {
+    btnRefreshReminders.addEventListener('click', () => {
+      playSfx('click');
+      loadRemindersAndTasks();
+    });
+  }
+
   if (btnRefreshTasks) {
     btnRefreshTasks.addEventListener('click', () => {
       playSfx('click');
+      loadRemindersAndTasks();
+    });
+  }
+
+  if (btnSubmitReminder) {
+    btnSubmitReminder.addEventListener('click', async () => {
+      const remInput = document.getElementById('add-reminder-text');
+      const timeInput = document.getElementById('add-reminder-time');
+      const text = remInput ? remInput.value.trim() : '';
+      const time = timeInput ? timeInput.value.trim() : '';
+      if (!text) return;
+      playSfx('click');
+
+      if (window.pywebview && window.pywebview.api) {
+        try {
+          await window.pywebview.api.add_reminder(text, time);
+        } catch (e) {
+          console.warn('add_reminder error:', e);
+        }
+      }
+      if (remInput) remInput.value = '';
+      if (timeInput) timeInput.value = '';
       loadRemindersAndTasks();
     });
   }
@@ -998,47 +1154,130 @@ async function loadUserProfile() {
 }
 
 async function loadRemindersAndTasks() {
-  const container = document.getElementById('reminders-tasks-container');
-  if (!container) return;
+  const remContainer = document.getElementById('reminders-list-container');
+  const tasksContainer = document.getElementById('tasks-list-container');
+  const legacyContainer = document.getElementById('reminders-tasks-container');
 
   if (window.pywebview && window.pywebview.api) {
     try {
       const res = await window.pywebview.api.get_reminders_and_tasks();
-      container.innerHTML = '';
       const reminders = (res && res.reminders) || [];
       const tasks = (res && res.tasks) || [];
 
-      if (reminders.length === 0 && tasks.length === 0) {
-        container.innerHTML = `<div class="memory-empty-state">No reminders or tasks due. You can add one below!</div>`;
-        return;
+      // Render Reminders
+      const targetRemContainer = remContainer || legacyContainer;
+      if (targetRemContainer) {
+        targetRemContainer.innerHTML = '';
+        if (reminders.length === 0) {
+          targetRemContainer.innerHTML = `<div class="memory-empty-state">No reminders scheduled. Add one below!</div>`;
+        } else {
+          reminders.forEach(r => {
+            const card = document.createElement('div');
+            card.className = 'task-item-card';
+            const remText = r.reminder || r.text || '';
+            const isEnabled = r.enabled !== false;
+            card.innerHTML = `
+              <div class="task-item-left">
+                <span style="${!isEnabled ? 'opacity:0.4;' : ''}">⏰</span>
+                <span class="task-desc" style="${!isEnabled ? 'opacity: 0.5; text-decoration: line-through;' : ''}">${escapeHTML(remText)}</span>
+              </div>
+              <div class="task-actions-wrap">
+                <span class="task-time-pill">${escapeHTML(r.remind_at || r.time || 'Scheduled')}</span>
+                <button class="task-action-btn ${isEnabled ? 'btn-toggle-on' : 'btn-toggle-off'}" title="Toggle Active / Mute">
+                  ${isEnabled ? 'Active' : 'Muted'}
+                </button>
+                <button class="task-action-btn btn-delete" title="Delete Reminder">✕</button>
+              </div>
+            `;
+            const toggleBtn = card.querySelector(isEnabled ? '.btn-toggle-on' : '.btn-toggle-off');
+            if (toggleBtn) {
+              toggleBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                playSfx('click');
+                if (window.pywebview && window.pywebview.api) {
+                  await window.pywebview.api.toggle_reminder(remText, !isEnabled);
+                  loadRemindersAndTasks();
+                }
+              });
+            }
+            const delBtn = card.querySelector('.btn-delete');
+            if (delBtn) {
+              delBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                playSfx('click');
+                if (window.pywebview && window.pywebview.api) {
+                  await window.pywebview.api.delete_reminder(remText);
+                  loadRemindersAndTasks();
+                }
+              });
+            }
+            targetRemContainer.appendChild(card);
+          });
+        }
       }
 
-      reminders.forEach(r => {
-        const card = document.createElement('div');
-        card.className = 'task-item-card';
-        card.innerHTML = `
-          <div class="task-item-left">
-            <span>⏰</span>
-            <span class="task-desc">${escapeHTML(r.reminder || r.text || '')}</span>
-          </div>
-          <span class="task-time-pill">${escapeHTML(r.remind_at || r.time || 'Scheduled')}</span>
-        `;
-        container.appendChild(card);
-      });
-
-      tasks.forEach(t => {
-        const card = document.createElement('div');
-        card.className = 'task-item-card';
-        const taskText = typeof t === 'string' ? t : (t.task || t.name || '');
-        card.innerHTML = `
-          <div class="task-item-left">
-            <span>✓</span>
-            <span class="task-desc">${escapeHTML(taskText)}</span>
-          </div>
-          <span class="task-time-pill">Todo</span>
-        `;
-        container.appendChild(card);
-      });
+      // Render Tasks
+      const targetTaskContainer = tasksContainer || legacyContainer;
+      if (targetTaskContainer) {
+        targetTaskContainer.innerHTML = '';
+        if (tasks.length === 0) {
+          targetTaskContainer.innerHTML = `<div class="memory-empty-state">No tasks in list. Add one below!</div>`;
+        } else {
+          tasks.forEach(t => {
+            const card = document.createElement('div');
+            card.className = 'task-item-card';
+            const taskText = typeof t === 'string' ? t : (t.task || t.name || '');
+            const isDone = typeof t === 'object' && Boolean(t.done);
+            card.innerHTML = `
+              <div class="task-item-left">
+                <span style="${isDone ? 'color: var(--green-online);' : ''}">✓</span>
+                <span class="task-desc" style="${isDone ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${escapeHTML(taskText)}</span>
+              </div>
+              <div class="task-actions-wrap">
+                ${isDone
+                  ? `<button class="task-action-btn btn-reopen" title="Reopen Completed Task">↺ Reopen</button>`
+                  : `<button class="task-action-btn btn-done" title="Complete Task">Done</button>`
+                }
+                <button class="task-action-btn btn-delete" title="Delete Task">✕</button>
+              </div>
+            `;
+            const doneBtn = card.querySelector('.btn-done');
+            if (doneBtn) {
+              doneBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                playSfx('click');
+                if (window.pywebview && window.pywebview.api) {
+                  await window.pywebview.api.complete_task(taskText);
+                  loadRemindersAndTasks();
+                }
+              });
+            }
+            const reopenBtn = card.querySelector('.btn-reopen');
+            if (reopenBtn) {
+              reopenBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                playSfx('click');
+                if (window.pywebview && window.pywebview.api) {
+                  await window.pywebview.api.reopen_task(taskText);
+                  loadRemindersAndTasks();
+                }
+              });
+            }
+            const delBtn = card.querySelector('.btn-delete');
+            if (delBtn) {
+              delBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                playSfx('click');
+                if (window.pywebview && window.pywebview.api) {
+                  await window.pywebview.api.delete_task(taskText);
+                  loadRemindersAndTasks();
+                }
+              });
+            }
+            targetTaskContainer.appendChild(card);
+          });
+        }
+      }
     } catch (e) {
       console.warn('loadRemindersAndTasks error:', e);
     }
@@ -1083,7 +1322,119 @@ function renderMemoriesList(memories) {
 }
 
 // ==========================================================================
-// 8. REALTIME SPEECH, TOOL CALLS & TELEMETRY
+// 8. DEDICATED LIVE MODE VIEW CONTROLLER
+// ==========================================================================
+let selectedLiveSource = 'screen';
+
+function setupLiveModeHandlers() {
+  const btnSrcScreen = document.getElementById('btn-src-screen');
+  const btnSrcCamera = document.getElementById('btn-src-camera');
+  const btnStart = document.getElementById('btn-live-stream-start');
+  const btnStop = document.getElementById('btn-live-stream-stop');
+
+  if (btnSrcScreen && btnSrcCamera) {
+    btnSrcScreen.addEventListener('click', () => {
+      playSfx('click');
+      selectedLiveSource = 'screen';
+      btnSrcScreen.classList.add('active');
+      btnSrcCamera.classList.remove('active');
+    });
+    btnSrcCamera.addEventListener('click', () => {
+      playSfx('click');
+      selectedLiveSource = 'camera';
+      btnSrcCamera.classList.add('active');
+      btnSrcScreen.classList.remove('active');
+    });
+  }
+
+  if (btnStart) {
+    btnStart.addEventListener('click', async () => {
+      playSfx('ping');
+      const statusBadge = document.getElementById('live-stream-status-badge');
+      if (statusBadge) statusBadge.textContent = 'CONNECTING TO GEMINI LIVE...';
+      if (window.pywebview && window.pywebview.api) {
+        try {
+          const res = await window.pywebview.api.start_live_mode(selectedLiveSource);
+          if (res && res.status === 'running') {
+            btnStart.classList.add('hidden');
+            if (btnStop) btnStop.classList.remove('hidden');
+            if (statusBadge) statusBadge.textContent = `LIVE ${selectedLiveSource.toUpperCase()} STREAM ONLINE`;
+          } else {
+            const err = (res && res.message) || 'Failed to initialize live stream';
+            if (statusBadge) statusBadge.textContent = `ERROR: ${err}`;
+            appendAssistantMessage(`⚠️ [Live Mode Error]: ${err}`);
+          }
+        } catch (e) {
+          if (statusBadge) statusBadge.textContent = `ERROR: ${e}`;
+        }
+      }
+    });
+  }
+
+  if (btnStop) {
+    btnStop.addEventListener('click', async () => {
+      playSfx('click');
+      const statusBadge = document.getElementById('live-stream-status-badge');
+      if (statusBadge) statusBadge.textContent = 'DISCONNECTING...';
+      if (window.pywebview && window.pywebview.api) {
+        try {
+          await window.pywebview.api.stop_live_mode();
+        } catch (e) {
+          console.warn('stop_live_mode error:', e);
+        }
+      }
+      btnStop.classList.add('hidden');
+      if (btnStart) btnStart.classList.remove('hidden');
+      if (statusBadge) statusBadge.textContent = 'STATUS: STANDBY // DISCONNECTED';
+    });
+  }
+}
+
+function appendLiveFeedMessage(text) {
+  const viewport = document.getElementById('live-feed-viewport');
+  const empty = document.getElementById('live-feed-empty');
+  if (empty) empty.classList.add('hidden');
+  if (!viewport) return;
+
+  const entry = document.createElement('div');
+  entry.className = 'live-feed-entry';
+  const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  entry.innerHTML = `
+    <div class="live-entry-time">${now}</div>
+    <div class="live-entry-text">${escapeHTML(text)}</div>
+  `;
+  viewport.appendChild(entry);
+  viewport.scrollTop = viewport.scrollHeight;
+}
+
+window.fridayOnLiveMessage = function(reply) {
+  if (reply) {
+    appendLiveFeedMessage(reply);
+    appendAssistantMessage(`📷 [Live Vision] ${reply}`);
+  }
+};
+
+window.fridayOnLiveStatus = function(statusStr) {
+  const statusBadge = document.getElementById('live-stream-status-badge');
+  const btnStart = document.getElementById('btn-live-stream-start');
+  const btnStop = document.getElementById('btn-live-stream-stop');
+  if (statusBadge) {
+    statusBadge.textContent = statusStr;
+  }
+  if (statusStr === 'DISCONNECTED') {
+    if (btnStop) btnStop.classList.add('hidden');
+    if (btnStart) btnStart.classList.remove('hidden');
+  }
+};
+
+window.fridayOnStartupBriefing = function(briefingText) {
+  if (briefingText) {
+    appendAssistantMessage(`🌅 **Executive Startup Briefing**\n\n${briefingText}`);
+  }
+};
+
+// ==========================================================================
+// 9. REALTIME SPEECH, TOOL CALLS & TELEMETRY
 // ==========================================================================
 window.fridayOnSpeechStart = function(previewText) {
   isAgentSpeaking = true;
@@ -1136,10 +1487,28 @@ async function fetchInitialTelemetry() {
       const data = await window.pywebview.api.get_system_info();
       if (data) {
         if (data.battery) {
-          document.getElementById('tel-battery').textContent = `BATTERY: ${data.battery}`;
+          const el = document.getElementById('tel-battery');
+          if (el) el.textContent = `BATTERY: ${data.battery}`;
+        }
+        if (data.cpu) {
+          const el = document.getElementById('tel-cpu');
+          if (el) el.textContent = data.cpu;
+        }
+        if (data.sentinel) {
+          const el = document.getElementById('tel-sentinel');
+          if (el) el.textContent = data.sentinel;
+          const statSentinel = document.getElementById('stat-daemon');
+          if (statSentinel) statSentinel.textContent = data.sentinel;
+        }
+        if (data.tools_count) {
+          const el = document.getElementById('tel-tools');
+          if (el) el.textContent = `${data.tools_count} ACTIVE`;
+          const statTools = document.getElementById('stat-tools-count');
+          if (statTools) statTools.textContent = data.tools_count;
         }
         if (data.status) {
-          document.getElementById('tel-status').textContent = data.status;
+          const el = document.getElementById('tel-status');
+          if (el) el.textContent = data.status;
         }
       }
     } catch (e) {
@@ -1303,3 +1672,149 @@ function formatMarkdown(text) {
   const paragraphs = str.split(/\n\s*\n/);
   return paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
 }
+
+// ==========================================================================
+// 10. AUTHENTICATION CONTROLLER (SECURITY GATEWAY)
+// ==========================================================================
+function setupAuthenticationSystem() {
+  const overlay = document.getElementById('auth-login-overlay');
+  const form = document.getElementById('auth-form');
+  const pwdInput = document.getElementById('auth-password-input');
+  const toggleBtn = document.getElementById('btn-auth-toggle-pwd');
+  const alertBox = document.getElementById('auth-alert-box');
+  const alertMsg = document.getElementById('auth-alert-msg');
+  const card = document.querySelector('.auth-card');
+  const opNameEl = document.getElementById('auth-operator-name');
+  const btnLock = document.getElementById('btn-lock');
+  const btnProfileLock = document.getElementById('btn-profile-lock');
+  const rememberCheck = document.getElementById('auth-remember-check');
+
+  if (toggleBtn && pwdInput) {
+    toggleBtn.addEventListener('click', () => {
+      pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+      toggleBtn.textContent = pwdInput.type === 'password' ? '👁️' : '🔒';
+    });
+  }
+
+  async function handleAuthSubmit() {
+    const entered = pwdInput.value.trim();
+    if (!entered) {
+      showAuthError("Please enter your security passkey");
+      return;
+    }
+
+    if (window.pywebview && window.pywebview.api) {
+      try {
+        const res = await window.pywebview.api.verify_auth_password(entered);
+        if (res && res.success) {
+          playSfx('unlock');
+          showAuthSuccess(res.message || "Access Granted // Welcome Sir");
+          if (res.operator_name && opNameEl) {
+            opNameEl.textContent = res.operator_name.toUpperCase();
+          }
+          if (rememberCheck && rememberCheck.checked) {
+            sessionStorage.setItem('friday_auth_unlocked', 'true');
+          }
+          setTimeout(() => {
+            overlay.classList.add('hidden');
+            pwdInput.value = '';
+            alertBox.classList.add('hidden');
+            if (orbInstance) {
+              orbInstance.resume();
+            }
+          }, 500);
+        } else {
+          playSfx('error');
+          showAuthError(res ? res.message : "Access Denied // Invalid Passkey");
+        }
+      } catch (e) {
+        showAuthError(`Auth error: ${e}`);
+      }
+    } else {
+      // Browser preview demo mode fallback
+      playSfx('unlock');
+      showAuthSuccess("Access Granted // Demo Mode Active");
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+      }, 500);
+    }
+  }
+
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleAuthSubmit();
+    });
+  }
+
+  function showAuthError(msg) {
+    alertBox.className = 'auth-alert-box';
+    alertMsg.textContent = msg;
+    alertBox.classList.remove('hidden');
+    if (card) {
+      card.classList.remove('auth-shake');
+      void card.offsetWidth;
+      card.classList.add('auth-shake');
+    }
+    pwdInput.focus();
+    pwdInput.select();
+  }
+
+  function showAuthSuccess(msg) {
+    alertBox.className = 'auth-alert-box success';
+    alertMsg.textContent = '✓ ' + msg;
+    alertBox.classList.remove('hidden');
+  }
+
+  async function lockTerminal() {
+    playSfx('click');
+    sessionStorage.removeItem('friday_auth_unlocked');
+    overlay.classList.remove('hidden');
+    pwdInput.value = '';
+    alertBox.classList.add('hidden');
+    setTimeout(() => pwdInput.focus(), 200);
+
+    if (window.pywebview && window.pywebview.api) {
+      try {
+        await window.pywebview.api.lock_session();
+      } catch (e) {
+        console.warn('lock_session error:', e);
+      }
+    }
+  }
+
+  if (btnLock) {
+    btnLock.addEventListener('click', lockTerminal);
+  }
+  if (btnProfileLock) {
+    btnProfileLock.addEventListener('click', lockTerminal);
+  }
+}
+
+async function checkInitialAuth() {
+  const overlay = document.getElementById('auth-login-overlay');
+  const opNameEl = document.getElementById('auth-operator-name');
+  const pwdInput = document.getElementById('auth-password-input');
+
+  if (window.pywebview && window.pywebview.api) {
+    try {
+      const auth = await window.pywebview.api.check_auth_status();
+      if (auth) {
+        if (auth.operator_name && opNameEl) {
+          opNameEl.textContent = auth.operator_name.toUpperCase();
+        }
+        if (auth.authenticated || sessionStorage.getItem('friday_auth_unlocked') === 'true') {
+          overlay.classList.add('hidden');
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('check_auth_status error:', e);
+    }
+  }
+  overlay.classList.remove('hidden');
+  setTimeout(() => {
+    if (pwdInput) pwdInput.focus();
+  }, 250);
+}
+

@@ -53,11 +53,19 @@ class WakeWordListener:
             # Fast Google Speech Recognition check
             text = recognizer.recognize_google(audio).lower().strip()
             if self._matches_keyword(text):
+                has_wake, command = self.extract_command(text)
                 self.last_detected_text = text
                 self._triggered.set()
                 if self.on_wake_word:
                     try:
-                        self.on_wake_word(text)
+                        # Try 2-arg callback (phrase, command) first
+                        self.on_wake_word(text, command)
+                    except TypeError:
+                        # Fallback to 1-arg callback for backward compatibility
+                        try:
+                            self.on_wake_word(text)
+                        except Exception:
+                            pass
                     except Exception:
                         pass
         except (sr.UnknownValueError, sr.RequestError):
@@ -152,6 +160,20 @@ class WakeWordListener:
     def clear_trigger(self):
         self._triggered.clear()
         self.last_detected_text = ""
+
+
+_default_listener = None
+
+
+def extract_command(text: str):
+    """
+    Module-level helper to extract command text from a wake-word phrase.
+    Returns (has_wake_word: bool, command_text: str).
+    """
+    global _default_listener
+    if _default_listener is None:
+        _default_listener = WakeWordListener()
+    return _default_listener.extract_command(text)
 
 
 if __name__ == "__main__":

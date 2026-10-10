@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>F.R.I.D.A.Y // AI Companion</title>
+  <title>F.R.I.D.A.Y</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,7 +18,6 @@
       <div class="mini-orb-ring ring-2"></div>
       <div class="mini-orb-nucleus"></div>
     </div>
-    <div class="mini-orb-badge" id="mini-status-badge">AI</div>
   </div>
 
   <!-- FULL INTERACTIVE HUD PANEL -->
@@ -48,6 +47,14 @@
           </svg>
         </button>
 
+        <!-- LOCK TERMINAL BUTTON -->
+        <button id="btn-lock" class="ctrl-btn" title="Lock Terminal (Security Gateway)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </button>
+
         <!-- MINI ORB COLLAPSE BUTTON -->
         <button id="btn-collapse" class="ctrl-btn" title="Collapse to Corner Orb">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -67,6 +74,99 @@
         </button>
       </div>
     </header>
+
+    <!-- HOLOGRAPHIC AUTHENTICATION GATEWAY (LOGIN OVERLAY) -->
+    <div id="auth-login-overlay" class="auth-login-overlay">
+      <div class="auth-scanline"></div>
+      <div class="auth-card">
+        <!-- HOLOGRAPHIC ARC REACTOR LOCK CORE -->
+        <div class="auth-arc-hero">
+          <div class="auth-holo-ring ring-outer"></div>
+          <div class="auth-holo-ring ring-mid"></div>
+          <div class="auth-holo-ring ring-inner"></div>
+          <div class="auth-holo-core">
+            <div class="auth-lock-symbol">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-branding-header">
+          <div class="auth-security-badge">
+            <span class="auth-pulse-dot"></span>
+            <span>STARK CLEARANCE // LEVEL 5</span>
+          </div>
+          <h1 class="auth-main-title">F.R.I.D.A.Y <span class="auth-version-pill">2.0</span></h1>
+          <p class="auth-sub-title">NEURAL SECURITY &amp; ACCESS GATEWAY</p>
+        </div>
+
+        <div class="auth-operator-card">
+          <div class="auth-op-avatar">👤</div>
+          <div class="auth-op-details">
+            <span class="auth-op-label">PRIMARY OPERATOR</span>
+            <span class="auth-op-name" id="auth-operator-name">SHUBHAM SIR</span>
+          </div>
+          <span class="auth-op-status">AUTHORIZATION REQUIRED</span>
+        </div>
+
+        <!-- AUTHENTICATION INPUT FORM -->
+        <form id="auth-form" class="auth-input-form" onsubmit="return false;">
+          <div class="auth-input-container">
+            <div class="auth-input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="7.5" cy="15.5" r="4.5"/>
+                <path d="M21 2l-9.6 9.6"/>
+                <path d="M15.5 7.5l3 3"/>
+              </svg>
+            </div>
+            <input 
+              type="password" 
+              id="auth-password-input" 
+              class="auth-password-input" 
+              placeholder="Enter Security Passkey..." 
+              autocomplete="current-password"
+              spellcheck="false"
+              autofocus
+            />
+            <button type="button" id="btn-auth-toggle-pwd" class="auth-eye-btn" title="Show / Hide Passkey">👁️</button>
+          </div>
+
+          <div id="auth-alert-box" class="auth-alert-box hidden">
+            <span class="auth-alert-icon">⚠️</span>
+            <span id="auth-alert-msg">ACCESS DENIED</span>
+          </div>
+
+          <button type="submit" id="btn-auth-submit" class="auth-submit-btn">
+            <span class="auth-btn-shine"></span>
+            <span class="auth-btn-content">
+              <span class="auth-btn-text">AUTHENTICATE PROTOCOL</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </span>
+          </button>
+
+          <div class="auth-options-row">
+            <label class="auth-remember-wrap" title="Keep session unlocked until locked manually">
+              <input type="checkbox" id="auth-remember-check" checked>
+              <span class="auth-custom-check"></span>
+              <span>Maintain Terminal Clearance</span>
+            </label>
+          </div>
+        </form>
+
+        <div class="auth-security-footer">
+          <span class="footer-telemetry-tag">CORE: AES-256</span>
+          <span class="footer-telemetry-sep">•</span>
+          <span class="footer-telemetry-tag">SENTINEL: ARMED</span>
+          <span class="footer-telemetry-sep">•</span>
+          <span class="footer-telemetry-tag">STATUS: ENCRYPTED</span>
+        </div>
+      </div>
+    </div>
 
     <!-- HOLOGRAPHIC NAVIGATION BAR (PAGE TABS) -->
     <nav class="hud-nav-bar" id="hud-nav-bar">
@@ -92,6 +192,17 @@
           </svg>
         </span>
         <span class="tab-label">Chatbot</span>
+        <span class="tab-glow"></span>
+      </button>
+
+      <button class="nav-tab" data-view="live" id="tab-live" title="Live Multimodal Vision Mode">
+        <span class="tab-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 7l-7 5 7 5V7z"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+        </span>
+        <span class="tab-label">Live</span>
         <span class="tab-glow"></span>
       </button>
 
@@ -167,7 +278,7 @@
             <!-- State HUD Badge -->
             <div class="arc-state-badge" id="orb-state-badge">
               <span class="state-beacon"></span>
-              <span id="orb-state-text">F.R.I.D.A.Y STANDBY</span>
+              <span id="orb-state-text">F.R.I.D.A.Y</span>
             </div>
           </div>
 
@@ -199,14 +310,6 @@
                 <span class="pill-icon">⚡</span>
                 <span class="pill-text">Wake-Word</span>
               </button>
-              <button class="mode-pill-btn" data-mode="live_screen" id="pill-mode-screen" title="Gemini Live Multimodal Screen Vision Stream">
-                <span class="pill-icon">🖥️</span>
-                <span class="pill-text">Live Screen</span>
-              </button>
-              <button class="mode-pill-btn" data-mode="live_camera" id="pill-mode-camera" title="Gemini Live Multimodal Camera Vision Stream">
-                <span class="pill-icon">📷</span>
-                <span class="pill-text">Live Camera</span>
-              </button>
             </div>
 
             <!-- Active Live Vision Ticker / Stop Pill (Visible only when live mode is active) -->
@@ -225,15 +328,15 @@
             </div>
             <div class="tel-card">
               <span class="tel-label">SENTINEL</span>
-              <span class="tel-val highlight">ONLINE</span>
+              <span class="tel-val highlight" id="tel-sentinel">ONLINE</span>
             </div>
             <div class="tel-card">
-              <span class="tel-label">LATENCY</span>
-              <span class="tel-val">12ms</span>
+              <span class="tel-label">SYSTEM TOOLS</span>
+              <span class="tel-val" id="tel-tools">42 ACTIVE</span>
             </div>
             <div class="tel-card">
               <span class="tel-label">SECURITY</span>
-              <span class="tel-val level">LVL 5</span>
+              <span class="tel-val level" id="tel-security">LVL 5 // SECURED</span>
             </div>
           </div>
 
@@ -412,7 +515,70 @@
       </section>
 
       <!-- ============================================================== -->
-      <!-- VIEW 3: ASSISTANT SETTINGS & FULL API CONFIGURATION -->
+      <!-- VIEW 3: DEDICATED LIVE MULTIMODAL VISION MODE -->
+      <!-- ============================================================== -->
+      <section class="view-pane" id="view-live">
+        <div class="live-view-container">
+          <!-- Holographic Radar & Video Feed HUD Stage -->
+          <div class="live-hud-stage">
+            <div class="live-radar-box">
+              <div class="live-radar-sweep"></div>
+              <div class="live-radar-grid"></div>
+              <div class="live-radar-crosshair"></div>
+              <div class="live-center-beacon">
+                <span class="live-beacon-pulse"></span>
+                <span class="live-beacon-icon">📡</span>
+              </div>
+            </div>
+            
+            <div class="live-telemetry-badge">
+              <span class="live-status-dot" id="live-indicator-dot"></span>
+              <span id="live-stream-status-badge">STATUS: STANDBY // IDLE</span>
+            </div>
+          </div>
+
+          <!-- Video Source Selector & Start / Stop Controls -->
+          <div class="live-source-card">
+            <div class="live-source-label">MULTIMODAL VISION SOURCE</div>
+            <div class="live-source-options">
+              <button class="live-source-btn active" id="btn-src-screen" data-src="screen">
+                <span class="src-icon">🖥️</span>
+                <span class="src-name">Screen Vision</span>
+              </button>
+              <button class="live-source-btn" id="btn-src-camera" data-src="camera">
+                <span class="src-icon">📷</span>
+                <span class="src-name">Camera Stream</span>
+              </button>
+            </div>
+
+            <div class="live-ctrl-actions">
+              <button class="live-action-btn start-stream" id="btn-live-stream-start">
+                <span>⚡</span> START LIVE STREAM
+              </button>
+              <button class="live-action-btn stop-stream hidden" id="btn-live-stream-stop">
+                <span>✕</span> TERMINATE STREAM
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Conversation & Cognitive Transcription Feed -->
+          <div class="live-feed-card">
+            <div class="live-feed-title-bar">
+              <span class="sec-icon">💬</span>
+              <span>Live Vision Intelligence Feed</span>
+            </div>
+            <div class="live-feed-viewport" id="live-feed-viewport">
+              <div class="live-feed-empty" id="live-feed-empty">
+                Live stream is standing by. Select Screen or Camera above and click Start Live Stream to begin real-time multimodal interaction with Friday.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- VIEW 4: ASSISTANT SETTINGS & FULL API CONFIGURATION -->
       <!-- ============================================================== -->
       <section class="view-pane" id="view-settings">
         <div class="settings-scroll-container">
@@ -577,10 +743,6 @@
             </div>
             
             <div class="theme-picker-grid">
-              <div class="theme-option active" data-theme="cyan">
-                <div class="theme-color-dot dot-cyan"></div>
-                <span class="theme-name">Arc Cyan</span>
-              </div>
               <div class="theme-option" data-theme="gold">
                 <div class="theme-color-dot dot-gold"></div>
                 <span class="theme-name">Stark Gold</span>
@@ -592,6 +754,10 @@
               <div class="theme-option" data-theme="green">
                 <div class="theme-color-dot dot-green"></div>
                 <span class="theme-name">Matrix Green</span>
+              </div>
+              <div class="theme-option" data-theme="dark-sky-blue">
+                <div class="theme-color-dot dot-dark-sky-blue"></div>
+                <span class="theme-name">Dark Sky Blue</span>
               </div>
             </div>
           </div>
@@ -622,29 +788,55 @@
             <div class="badge-info">
               <div class="badge-role-pill">AUTHORIZED OPERATOR</div>
               <div class="badge-name" id="profile-display-name">Sir</div>
-              <div class="badge-clearance">STARK SECURITY CLEARANCE // LEVEL 5</div>
+              <div class="badge-clearance">STARK SECURITY CLEARANCE LEVEL 5</div>
               <div class="badge-system-id" id="profile-system-host">DESKTOP-NEURAL</div>
             </div>
           </div>
 
-          <!-- ACTIVE REMINDERS & SCHEDULE SECTION -->
+          <!-- ACTIVE REMINDERS SECTION -->
           <div class="profile-section-card">
             <div class="section-title memory-title">
               <div class="sec-title-left">
                 <span class="sec-icon">⏰</span>
-                <span>Active Reminders & Tasks</span>
+                <span>Scheduled Reminders</span>
+              </div>
+              <button class="mini-hud-btn" id="btn-refresh-reminders">Refresh ⟳</button>
+            </div>
+
+            <div class="reminders-list-container" id="reminders-list-container">
+              <div class="memory-empty-state">No reminders scheduled. Add one below!</div>
+            </div>
+
+            <!-- New Reminder Form -->
+            <div class="add-memory-box">
+              <div class="add-reminder-inputs">
+                <input type="text" id="add-reminder-text" class="hud-text-input" placeholder="Reminder message (e.g. Call Stark Industries)">
+                <div class="reminder-time-row">
+                  <input type="text" id="add-reminder-time" class="hud-text-input" placeholder="Time: e.g. Tomorrow at 8 PM, or in 30 mins">
+                  <button class="mini-hud-btn primary" id="btn-submit-reminder">+ Add Reminder</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TODO TASKS SECTION -->
+          <div class="profile-section-card">
+            <div class="section-title memory-title">
+              <div class="sec-title-left">
+                <span class="sec-icon">📋</span>
+                <span>Todo Tasks</span>
               </div>
               <button class="mini-hud-btn" id="btn-refresh-tasks">Refresh ⟳</button>
             </div>
 
-            <div class="reminders-tasks-container" id="reminders-tasks-container">
-              <div class="memory-empty-state">No reminders or tasks due. You can add one below!</div>
+            <div class="tasks-list-container" id="tasks-list-container">
+              <div class="memory-empty-state">No tasks in list. Add one below!</div>
             </div>
 
-            <!-- Quick Add Reminder / Task -->
+            <!-- New Task Form -->
             <div class="add-memory-box">
               <div class="add-memory-inputs">
-                <input type="text" id="add-task-text" class="hud-text-input" placeholder="New task or reminder...">
+                <input type="text" id="add-task-text" class="hud-text-input" placeholder="New task description...">
                 <button class="mini-hud-btn primary" id="btn-submit-task">+ Add Task</button>
               </div>
             </div>
@@ -674,6 +866,7 @@
 
             <div class="profile-actions-bar">
               <button class="settings-btn primary" id="btn-save-profile">Update Profile</button>
+              <button class="settings-btn secondary" id="btn-profile-lock" title="Lock Terminal">🔒 Lock Terminal</button>
             </div>
             <div class="profile-toast hidden" id="profile-toast">✓ Profile Updated Successfully</div>
           </div>
@@ -716,19 +909,19 @@
             </div>
             <div class="profile-stats-grid">
               <div class="stat-box">
-                <span class="stat-num">42</span>
+                <span class="stat-num" id="stat-tools-count">42</span>
                 <span class="stat-label">System Tools</span>
               </div>
               <div class="stat-box">
-                <span class="stat-num">ACTIVE</span>
+                <span class="stat-num" id="stat-tool-guard">ACTIVE</span>
                 <span class="stat-label">Tool Guard</span>
               </div>
               <div class="stat-box">
-                <span class="stat-num">ONLINE</span>
+                <span class="stat-num" id="stat-daemon">ONLINE</span>
                 <span class="stat-label">Daemon Sentinel</span>
               </div>
               <div class="stat-box">
-                <span class="stat-num">100%</span>
+                <span class="stat-num" id="stat-health">100%</span>
                 <span class="stat-label">Neural Health</span>
               </div>
             </div>

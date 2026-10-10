@@ -6,8 +6,8 @@ from Tools.pywhatkit import play_youtube
 from Tools.Emails import check_new_mail, send_email, read_latest_emails, readmail_Full_body
 from Tools.Date_Time import get_date_with_day, get_current_time
 from Tools.Media_Tools import *
-from Tools.Todo import add_task, list_tasks, delete_task, complete_task
-from Tools.reminder import add_reminder, list_reminders, delete_reminder_by_name, get_due_reminders
+from Tools.Todo import add_task, list_tasks, delete_task, complete_task, reopen_task, update_task
+from Tools.reminder import add_reminder, list_reminders, delete_reminder_by_name, get_due_reminders, update_reminder, toggle_reminder
 from Tools.website_opner import open_website
 from Tools.File_manger import *
 from Tools.Mobile_Automation import (
@@ -171,11 +171,15 @@ TOOLS = {
         "list_tasks": list_tasks,
         "delete_task": delete_task,
         "complete_task": complete_task,
+        "reopen_task": reopen_task,
+        "update_task": update_task,
 
         # ---- Reminders ----
         "add_reminder": add_reminder,
         "list_reminders": list_reminders,
         "delete_reminder_by_name": delete_reminder_by_name,
+        "update_reminder": update_reminder,
+        "toggle_reminder": toggle_reminder,
         "get_due_reminders": get_due_reminders,
 
         # ---- Files ----

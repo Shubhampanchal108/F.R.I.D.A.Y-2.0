@@ -97,10 +97,10 @@ def trigger_instant_filler(query: str, audio_enabled: bool = True) -> bool:
     if not audio_enabled or not os.path.exists(FILLERS_DIR):
         return False
 
-    # Prevent triggering filler if Friday is already speaking or generating speech
+    # Prevent triggering filler if voice output is disabled globally or Friday is speaking
     try:
-        from speak import is_speaking
-        if is_speaking():
+        from speak import is_speaking, is_voice_enabled
+        if not is_voice_enabled() or is_speaking():
             return False
     except Exception:
         pass

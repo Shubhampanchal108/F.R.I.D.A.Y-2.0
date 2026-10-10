@@ -27,8 +27,8 @@ ACTION_TOOLS = {
     # Media
     "youtube_automation", "yt_play_pause", "yt_next", "yt_previous", "yt_fullscreen",
     # Tasks & Reminders
-    "add_task", "delete_task", "complete_task",
-    "add_reminder", "delete_reminder_by_name",
+    "add_task", "delete_task", "complete_task", "reopen_task", "update_task",
+    "add_reminder", "delete_reminder_by_name", "update_reminder", "toggle_reminder",
     # Mobile
     "connect_mobile_with_bat", "unlock_device", "send_whatsapp_message", "phone_call_with_mobile"
 }

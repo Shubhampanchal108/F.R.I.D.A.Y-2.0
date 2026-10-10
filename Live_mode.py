@@ -238,8 +238,13 @@ SEND_SAMPLE_RATE = 16000
 RECEIVE_SAMPLE_RATE = 24000
 CHUNK_SIZE = 800
 
-# MODEL = "models/gemini-2.5-flash-native-audio-preview-09-2025"
-MODEL = "gemini-3.8-live"
+LIVE_MODELS = [
+    "models/gemini-2.5-flash-native-audio-latest",
+    "models/gemini-2.5-flash-native-audio-preview-09-2025",
+    "models/gemini-3.1-flash-live-preview",
+    "gemini-2.0-flash-exp"
+]
+MODEL = LIVE_MODELS[0]
 DEFAULT_MODE = "screen"
 
 pya = pyaudio.PyAudio()
@@ -302,6 +307,11 @@ class AudioLoop:
         self.stop_event = asyncio.Event()
 
     async def send_text(self):
+        # In GUI widget mode or non-interactive subshell without tty:
+        if not sys.stdin or not hasattr(sys.stdin, "isatty") or not sys.stdin.isatty():
+            await self.stop_event.wait()
+            return
+
         while not self.stop_event.is_set():
             try:
                 text = await asyncio.to_thread(input, "\n💬 You [speak or type / 'stop' to exit]: ")
@@ -458,15 +468,18 @@ class AudioLoop:
 
     async def receive_audio(self):
         new_turn = True
+        turn_text_buffer = []
         try:
             while not self.stop_event.is_set():
                 turn = self.session.receive()
+                turn_text_buffer = []
                 async for response in turn:
                     if self.stop_event.is_set():
                         break
                     if data := response.data:
                         self.audio_in_queue.put_nowait(data)
                     if text := response.text:
+                        turn_text_buffer.append(text)
                         if new_turn:
                             console.print("\n[bold cyan]🤖 F.R.I.D.A.Y:[/bold cyan] ", end="", highlight=False)
                             new_turn = False
@@ -512,6 +525,18 @@ class AudioLoop:
                         console.print("[dim yellow]⚠️ Tool call was cancelled by model.[/dim yellow]")
 
                 new_turn = True
+                if turn_text_buffer:
+                    full_reply = "".join(turn_text_buffer).strip()
+                    if full_reply:
+                        try:
+                            from utiles import add_to_history
+                            add_to_history("assistant", full_reply)
+                        except Exception:
+                            pass
+                        # Emit structured token for IPC listener
+                        print(f"\n[LIVE_FEED_REPLY]: {full_reply}\n", flush=True)
+                    turn_text_buffer = []
+
                 while not self.audio_in_queue.empty():
                     try:
                         self.audio_in_queue.get_nowait()
@@ -577,51 +602,68 @@ class AudioLoop:
             ),
         )
 
-        try:
-            async with (
-                client.aio.live.connect(model=MODEL, config=config) as session,
-                asyncio.TaskGroup() as tg,
-            ):
-                self.session = session
-                self.audio_in_queue = asyncio.Queue()
+        connected = False
+        for current_model in LIVE_MODELS:
+            try:
+                console.print(f"[bold cyan]🔗 Connecting to Gemini Live ({current_model})...[/bold cyan]")
+                async with (
+                    client.aio.live.connect(model=current_model, config=config) as session,
+                    asyncio.TaskGroup() as tg,
+                ):
+                    connected = True
+                    self.session = session
+                    self.audio_in_queue = asyncio.Queue()
 
-                send_text_task = tg.create_task(self.send_text())
-                tg.create_task(self.listen_audio())
+                    send_text_task = tg.create_task(self.send_text())
+                    tg.create_task(self.listen_audio())
 
-                if self.video_mode == "camera":
-                    tg.create_task(self.get_frames())
-                elif self.video_mode == "screen":
-                    tg.create_task(self.get_screen())
+                    if self.video_mode == "camera":
+                        tg.create_task(self.get_frames())
+                    elif self.video_mode == "screen":
+                        tg.create_task(self.get_screen())
 
-                tg.create_task(self.receive_audio())
-                tg.create_task(self.play_audio())
+                    tg.create_task(self.receive_audio())
+                    tg.create_task(self.play_audio())
 
-                await send_text_task
-                self.stop_event.set()
-                raise asyncio.CancelledError("User requested exit")
+                    # Keep live session running continuously until stop_event is triggered
+                    await self.stop_event.wait()
+                    send_text_task.cancel()
+                    break
 
-        except (asyncio.CancelledError, KeyboardInterrupt):
-            pass
-        except ExceptionGroup as eg:
-            for exc in eg.exceptions:
-                if not isinstance(exc, (asyncio.CancelledError, KeyboardInterrupt)):
-                    console.print(f"\n[bold red]⚠️ Notice: {exc}[/bold red]")
-        except Exception as e:
-            console.print(f"\n[bold red]⚠️ Live Mode Notice: {e}[/bold red]")
-        finally:
-            self.stop_event.set()
-            if self.audio_stream:
-                try:
-                    self.audio_stream.stop_stream()
-                    self.audio_stream.close()
-                except Exception:
-                    pass
-            if self.output_stream:
-                try:
-                    self.output_stream.stop_stream()
-                    self.output_stream.close()
-                except Exception:
-                    pass
+            except (asyncio.CancelledError, KeyboardInterrupt):
+                break
+            except ExceptionGroup as eg:
+                if connected:
+                    for exc in eg.exceptions:
+                        if not isinstance(exc, (asyncio.CancelledError, KeyboardInterrupt)):
+                            console.print(f"\n[bold red]⚠️ Notice: {exc}[/bold red]")
+                    break
+                else:
+                    console.print(f"[dim yellow]Model {current_model} connection error. Trying fallback...[/dim yellow]")
+                    continue
+            except Exception as e:
+                if connected:
+                    console.print(f"\n[bold red]⚠️ Live Mode Notice: {e}[/bold red]")
+                    break
+                else:
+                    console.print(f"[dim yellow]Model {current_model} failed: {e}. Trying fallback...[/dim yellow]")
+                    continue
+        else:
+            if not connected:
+                console.print("[bold red]❌ Unable to connect to Gemini Live models. Please check your network and GEMINI_KEY.[/bold red]")
+        self.stop_event.set()
+        if self.audio_stream:
+            try:
+                self.audio_stream.stop_stream()
+                self.audio_stream.close()
+            except Exception:
+                pass
+        if self.output_stream:
+            try:
+                self.output_stream.stop_stream()
+                self.output_stream.close()
+            except Exception:
+                pass
 
 
 def run_live_mode(video_mode="screen"):
@@ -648,11 +690,6 @@ def run_live_mode(video_mode="screen"):
     )
     console.print(live_panel)
 
-    daemon_started_here = False
-    if not daemon_instance.is_running():
-        daemon_instance.start()
-        daemon_started_here = True
-
     loop = AudioLoop(video_mode=video_mode)
     try:
         asyncio.run(loop.run())
@@ -660,9 +697,6 @@ def run_live_mode(video_mode="screen"):
         console.print("\n[yellow]Live session stopped by user (Ctrl+C).[/yellow]")
     except Exception as e:
         console.print(f"\n[red]Live Mode session error: {e}[/red]")
-    finally:
-        if daemon_started_here:
-            daemon_instance.stop()
 
 
 if __name__ == "__main__":

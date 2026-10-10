@@ -53,6 +53,7 @@ class FridayDaemon:
         self.check_interval = check_interval
         self.notify_voice = notify_voice
         self.on_event_callback = on_event_callback
+        self.is_authenticated = False
         self._running = False
         self._thread = None
         self._stop_event = threading.Event()
@@ -87,6 +88,15 @@ class FridayDaemon:
         # --- Clipboard Sentinel State ---
         self._last_clipboard_text = ""
         self._last_clipboard_time = 0
+
+    def set_authenticated(self, authenticated: bool):
+        """Sets authentication clearance for the daemon and centralized speech manager."""
+        self.is_authenticated = bool(authenticated)
+        try:
+            from speak import set_authenticated as speak_set_auth
+            speak_set_auth(self.is_authenticated)
+        except Exception:
+            pass
 
     def record_user_activity(self):
         """Call this whenever the user interacts with Friday via voice or text."""
@@ -128,9 +138,16 @@ class FridayDaemon:
         """Returns the most recent proactive alerts and notifications for LLM awareness."""
         return self.notification_history[-limit:] if self.notification_history else []
 
-    def _proactive_announce(self, title: str, desktop_text: str, voice_text: str = None):
+    def _proactive_announce(self, title: str, desktop_text: str, voice_text: str = None, is_private: bool = True, priority: int = 3):
         """Sends desktop notification, announces through voice reliably, and logs into conversation memory."""
         spoken_msg = voice_text or desktop_text
+
+        # Gate private notifications if user is not authenticated yet
+        if is_private and not self.is_authenticated:
+            # Mask or hold private info until authentication
+            self._log_event(f"🔒 {title} (Pending Auth)", "Protected notification held until user authenticates.")
+            return
+
         self.send_desktop_notification(title, spoken_msg)
 
         try:
@@ -140,7 +157,6 @@ class FridayDaemon:
             pass
 
         # Centralize with LLM Conversation Memory:
-        # Every proactive spoken action is logged into conversation history so the LLM is 100% aware!
         try:
             from utiles import add_to_history
             add_to_history("assistant", spoken_msg)
@@ -149,8 +165,8 @@ class FridayDaemon:
 
         if self.notify_voice and not self._stop_event.is_set():
             try:
-                # Enqueue into centralized sequential speech manager with priority=3 (Ambient alert)
-                speak(spoken_msg, allow_interrupt=True, priority=3, block=False)
+                # Enqueue into centralized sequential speech manager with privacy tag
+                speak(spoken_msg, allow_interrupt=True, priority=priority, block=False, is_private=is_private)
             except Exception as e:
                 self._log_event("Speech Error", str(e), level="ERROR")
 
