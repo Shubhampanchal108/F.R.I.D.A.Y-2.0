@@ -221,12 +221,14 @@ function setupWindowControls() {
   const btnClose = document.getElementById('btn-close');
   const miniOrbContainer = document.getElementById('mini-orb-container');
 
-  btnExpand.addEventListener('click', handleToggleExpand);
+  if (btnExpand) btnExpand.addEventListener('click', handleToggleExpand);
 
-  btnCollapse.addEventListener('click', (e) => {
-    e.stopPropagation();
-    switchWindowMode('orb');
-  });
+  if (btnCollapse) {
+    btnCollapse.addEventListener('click', (e) => {
+      e.stopPropagation();
+      switchWindowMode('orb');
+    });
+  }
 
   if (miniOrbContainer) {
     miniOrbContainer.addEventListener('click', (e) => {
@@ -242,8 +244,8 @@ function setupWindowControls() {
     }
   });
 
-  btnMinimize.addEventListener('click', handleHideWindow);
-  btnClose.addEventListener('click', handleCloseApplication);
+  if (btnMinimize) btnMinimize.addEventListener('click', handleHideWindow);
+  if (btnClose) btnClose.addEventListener('click', handleCloseApplication);
 }
 
 async function handleCloseApplication() {
@@ -513,31 +515,40 @@ function setupCoreHudHandlers() {
   const coreQuickInput = document.getElementById('core-quick-input');
   const btnCoreSend = document.getElementById('btn-core-send');
 
-  btnCoreVoice.addEventListener('click', () => {
-    handleToggleVoiceInput();
-  });
+  if (btnCoreVoice) {
+    btnCoreVoice.addEventListener('click', () => {
+      handleToggleVoiceInput();
+    });
+  }
 
-  btnCoreSend.addEventListener('click', () => {
-    const prompt = coreQuickInput.value.trim();
-    if (prompt) {
-      coreQuickInput.value = '';
-      switchView('chat');
-      document.getElementById('query-input').value = prompt;
-      handleSendPrompt();
-    }
-  });
-
-  coreQuickInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+  if (btnCoreSend) {
+    btnCoreSend.addEventListener('click', () => {
+      if (!coreQuickInput) return;
       const prompt = coreQuickInput.value.trim();
       if (prompt) {
         coreQuickInput.value = '';
         switchView('chat');
-        document.getElementById('query-input').value = prompt;
+        const qInput = document.getElementById('query-input');
+        if (qInput) qInput.value = prompt;
         handleSendPrompt();
       }
-    }
-  });
+    });
+  }
+
+  if (coreQuickInput) {
+    coreQuickInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const prompt = coreQuickInput.value.trim();
+        if (prompt) {
+          coreQuickInput.value = '';
+          switchView('chat');
+          const qInput = document.getElementById('query-input');
+          if (qInput) qInput.value = prompt;
+          handleSendPrompt();
+        }
+      }
+    });
+  }
 
   document.querySelectorAll('.action-tile').forEach(tile => {
     tile.addEventListener('click', () => {
@@ -594,21 +605,23 @@ function setupChatHandlers() {
     interrupter.addEventListener('click', () => interruptSpeech());
   }
 
-  queryInput.addEventListener('input', () => {
-    queryInput.style.height = 'auto';
-    queryInput.style.height = Math.min(queryInput.scrollHeight, 80) + 'px';
-  });
+  if (queryInput) {
+    queryInput.addEventListener('input', () => {
+      queryInput.style.height = 'auto';
+      queryInput.style.height = Math.min(queryInput.scrollHeight, 80) + 'px';
+    });
 
-  queryInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendPrompt();
-    }
-  });
+    queryInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendPrompt();
+      }
+    });
+  }
 
-  btnSend.addEventListener('click', handleSendPrompt);
-  btnMic.addEventListener('click', handleToggleVoiceInput);
-  btnAudio.addEventListener('click', handleToggleAudioOutput);
+  if (btnSend) btnSend.addEventListener('click', handleSendPrompt);
+  if (btnMic) btnMic.addEventListener('click', handleToggleVoiceInput);
+  if (btnAudio) btnAudio.addEventListener('click', handleToggleAudioOutput);
 
   document.querySelectorAll('.chip-btn').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -618,7 +631,7 @@ function setupChatHandlers() {
       if (action === 'briefing') {
         handleTriggerBriefing();
       } else if (prompt) {
-        queryInput.value = prompt;
+        if (queryInput) queryInput.value = prompt;
         handleSendPrompt();
       } else if (action === 'clear-chat') {
         clearChatMessages();
@@ -771,17 +784,23 @@ function setupSettingsHandlers() {
   const btnBriefingNow = document.getElementById('btn-trigger-briefing-now');
   const wakeWordCheckbox = document.getElementById('setting-wakeword-enabled');
 
-  sliderRate.addEventListener('input', () => {
-    valRate.textContent = sliderRate.value;
-  });
+  if (sliderRate && valRate) {
+    sliderRate.addEventListener('input', () => {
+      valRate.textContent = sliderRate.value;
+    });
+  }
 
-  sliderPitch.addEventListener('input', () => {
-    valPitch.textContent = sliderPitch.value;
-  });
+  if (sliderPitch && valPitch) {
+    sliderPitch.addEventListener('input', () => {
+      valPitch.textContent = sliderPitch.value;
+    });
+  }
 
-  sfxToggle.addEventListener('change', () => {
-    sfxEnabled = sfxToggle.checked;
-  });
+  if (sfxToggle) {
+    sfxToggle.addEventListener('change', () => {
+      sfxEnabled = sfxToggle.checked;
+    });
+  }
 
   if (wakeWordCheckbox) {
     wakeWordCheckbox.addEventListener('change', () => {
@@ -846,29 +865,35 @@ function setupSettingsHandlers() {
   });
 
   // Save Assistant Settings
-  btnSave.addEventListener('click', async () => {
-    playSfx('ping');
-    const settings = {
-      voice_enabled: document.getElementById('setting-voice-enabled').checked,
-      voice_speed: parseInt(sliderRate.value, 10),
-      voice_pitch: parseInt(sliderPitch.value, 10),
-      sound_effects: sfxToggle.checked,
-      wake_word_active: document.getElementById('setting-wakeword-enabled').checked,
-      glow_theme: getActiveTheme()
-    };
+  if (btnSave) {
+    btnSave.addEventListener('click', async () => {
+      playSfx('ping');
+      const voiceCheck = document.getElementById('setting-voice-enabled');
+      const wakeCheck = document.getElementById('setting-wakeword-enabled');
+      const settings = {
+        voice_enabled: voiceCheck ? voiceCheck.checked : true,
+        voice_speed: sliderRate ? parseInt(sliderRate.value, 10) : 185,
+        voice_pitch: sliderPitch ? parseInt(sliderPitch.value, 10) : 50,
+        sound_effects: sfxToggle ? sfxToggle.checked : true,
+        wake_word_active: wakeCheck ? wakeCheck.checked : false,
+        glow_theme: getActiveTheme()
+      };
 
-    if (window.pywebview && window.pywebview.api) {
-      try {
-        await window.pywebview.api.save_assistant_settings(settings);
-      } catch (e) {
-        console.warn('Save settings API error:', e);
+      if (window.pywebview && window.pywebview.api) {
+        try {
+          await window.pywebview.api.save_assistant_settings(settings);
+        } catch (e) {
+          console.warn('Save settings API error:', e);
+        }
       }
-    }
 
-    const toast = document.getElementById('settings-toast');
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 2500);
-  });
+      const toast = document.getElementById('settings-toast');
+      if (toast) {
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2500);
+      }
+    });
+  }
 
   // Save Full API Configuration (CLI replacement)
   if (btnSaveApi) {
@@ -876,16 +901,16 @@ function setupSettingsHandlers() {
       playSfx('ping');
       const apiConfig = {
         keys: {
-          LLM_KEY: document.getElementById('cfg-llm-key').value.trim(),
-          GEMINI_KEY: document.getElementById('cfg-gemini-key').value.trim(),
-          WEATHER_KEY: document.getElementById('cfg-weather-key').value.trim(),
-          TAVILY_API_KEY: document.getElementById('cfg-tavily-key').value.trim(),
-          NEWS_API_KEY: document.getElementById('cfg-news-key').value.trim(),
-          AGENT_PASSWORD: document.getElementById('cfg-agent-pass').value.trim()
+          LLM_KEY: document.getElementById('cfg-llm-key')?.value.trim() || '',
+          GEMINI_KEY: document.getElementById('cfg-gemini-key')?.value.trim() || '',
+          WEATHER_KEY: document.getElementById('cfg-weather-key')?.value.trim() || '',
+          TAVILY_API_KEY: document.getElementById('cfg-tavily-key')?.value.trim() || '',
+          NEWS_API_KEY: document.getElementById('cfg-news-key')?.value.trim() || '',
+          AGENT_PASSWORD: document.getElementById('cfg-agent-pass')?.value.trim() || ''
         },
         llm: {
-          LLM_SERVICE_PROVIDER_URL: document.getElementById('cfg-llm-url').value.trim(),
-          MODEL: document.getElementById('cfg-llm-model').value.trim()
+          LLM_SERVICE_PROVIDER_URL: document.getElementById('cfg-llm-url')?.value.trim() || '',
+          MODEL: document.getElementById('cfg-llm-model')?.value.trim() || ''
         }
       };
 
@@ -906,18 +931,22 @@ function setupSettingsHandlers() {
   }
 
   // Reset Settings
-  btnReset.addEventListener('click', () => {
-    playSfx('click');
-    document.getElementById('setting-voice-enabled').checked = true;
-    sliderRate.value = 185;
-    valRate.textContent = '185';
-    sliderPitch.value = 50;
-    valPitch.textContent = '50';
-    sfxToggle.checked = true;
-    sfxEnabled = true;
-    document.getElementById('setting-wakeword-enabled').checked = false;
-    applyTheme('cyan');
-  });
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      playSfx('click');
+      const voiceCheck = document.getElementById('setting-voice-enabled');
+      if (voiceCheck) voiceCheck.checked = true;
+      if (sliderRate) sliderRate.value = 185;
+      if (valRate) valRate.textContent = '185';
+      if (sliderPitch) sliderPitch.value = 50;
+      if (valPitch) valPitch.textContent = '50';
+      if (sfxToggle) sfxToggle.checked = true;
+      sfxEnabled = true;
+      const wakeCheck = document.getElementById('setting-wakeword-enabled');
+      if (wakeCheck) wakeCheck.checked = false;
+      applyTheme('cyan');
+    });
+  }
 }
 
 function applyTheme(themeName) {
@@ -1027,48 +1056,55 @@ function setupProfileHandlers() {
   const btnSubmitReminder = document.getElementById('btn-submit-reminder');
   const btnSubmitTask = document.getElementById('btn-submit-task');
 
-  btnSaveProfile.addEventListener('click', async () => {
-    playSfx('ping');
-    const name = document.getElementById('prof-input-name').value.trim();
-    const email = document.getElementById('prof-input-email').value.trim();
-    const phone = document.getElementById('prof-input-phone').value.trim();
+  if (btnSaveProfile) {
+    btnSaveProfile.addEventListener('click', async () => {
+      playSfx('ping');
+      const name = document.getElementById('prof-input-name')?.value.trim() || '';
+      const email = document.getElementById('prof-input-email')?.value.trim() || '';
+      const phone = document.getElementById('prof-input-phone')?.value.trim() || '';
 
-    if (window.pywebview && window.pywebview.api) {
-      try {
-        await window.pywebview.api.save_user_profile_data({ name, email, phone });
-      } catch (e) {
-        console.warn('Save profile API error:', e);
+      if (window.pywebview && window.pywebview.api) {
+        try {
+          await window.pywebview.api.save_user_profile_data({ name, email, phone });
+        } catch (e) {
+          console.warn('Save profile API error:', e);
+        }
       }
-    }
 
-    if (name) {
-      document.getElementById('profile-display-name').textContent = name;
-    }
-
-    const toast = document.getElementById('profile-toast');
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 2500);
-  });
-
-  btnAddMemory.addEventListener('click', async () => {
-    playSfx('click');
-    const textInput = document.getElementById('add-mem-text');
-    const typeSelect = document.getElementById('add-mem-type');
-    const text = textInput.value.trim();
-    const memType = typeSelect.value;
-    if (!text) return;
-
-    if (window.pywebview && window.pywebview.api) {
-      try {
-        await window.pywebview.api.add_user_memory(text, memType);
-      } catch (e) {
-        console.warn('Add memory API error:', e);
+      if (name) {
+        const dName = document.getElementById('profile-display-name');
+        if (dName) dName.textContent = name;
       }
-    }
 
-    textInput.value = '';
-    loadUserProfile();
-  });
+      const toast = document.getElementById('profile-toast');
+      if (toast) {
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2500);
+      }
+    });
+  }
+
+  if (btnAddMemory) {
+    btnAddMemory.addEventListener('click', async () => {
+      playSfx('click');
+      const textInput = document.getElementById('add-mem-text');
+      const typeSelect = document.getElementById('add-mem-type');
+      const text = textInput ? textInput.value.trim() : '';
+      const memType = typeSelect ? typeSelect.value : 'fact';
+      if (!text) return;
+
+      if (window.pywebview && window.pywebview.api) {
+        try {
+          await window.pywebview.api.add_user_memory(text, memType);
+        } catch (e) {
+          console.warn('Add memory API error:', e);
+        }
+      }
+
+      if (textInput) textInput.value = '';
+      loadUserProfile();
+    });
+  }
 
   if (btnRefreshReminders) {
     btnRefreshReminders.addEventListener('click', () => {
