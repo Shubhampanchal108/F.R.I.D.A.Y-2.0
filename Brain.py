@@ -30,7 +30,9 @@ ACTION_TOOLS = {
     "add_task", "delete_task", "complete_task", "reopen_task", "update_task",
     "add_reminder", "delete_reminder_by_name", "update_reminder", "toggle_reminder",
     # Mobile
-    "connect_mobile_with_bat", "unlock_device", "send_whatsapp_message", "phone_call_with_mobile"
+    "connect_mobile_with_bat", "unlock_device", "send_whatsapp_message", "phone_call_with_mobile",
+    # New Productivity & Media Actions
+    "copy_to_clipboard", "system_media_control", "set_timer", "cancel_timer", "focus_window"
 }
 
 

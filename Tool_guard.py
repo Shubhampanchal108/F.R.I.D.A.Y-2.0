@@ -18,11 +18,21 @@ from Tools.Mobile_Automation import (
     phone_call_with_mobile
 )
 from Tools.browser import google_search, summrize_url 
-from RAG import save_longterm_memory
+try:
+    from RAG import save_longterm_memory
+except Exception:
+    def save_longterm_memory(*args, **kwargs):
+        return {"status": "error", "message": "ChromaDB memory is currently offline."}
 from Tools.Vision import analyze_screen, start_live_vision, analyze_camera, analyze_clipboard
 from Tools.code_interpreter import run_python_code
 from Tools.browser_autopilot import extract_webpage_content
 from sub_agents import deep_research_agent, code_reviewer_agent
+from Tools.clipboard_tool import copy_to_clipboard, get_clipboard_content
+from Tools.media_player_tool import system_media_control
+from Tools.timer_tool import set_timer, list_active_timers, cancel_timer
+from Tools.document_reader import read_pdf_or_document
+from Tools.network_tool import check_network_health
+from Tools.window_manager import focus_window, list_running_apps
 
 
 # ================================
@@ -202,6 +212,18 @@ TOOLS = {
         "unlock_device": unlock_device,
         "send_whatsapp_message": send_whatsapp_message,
         "phone_call_with_mobile": phone_call_with_mobile,
+
+        # ---- Productivity, Media, Windows & Diagnostics ----
+        "copy_to_clipboard": copy_to_clipboard,
+        "get_clipboard_content": get_clipboard_content,
+        "system_media_control": system_media_control,
+        "set_timer": set_timer,
+        "list_active_timers": list_active_timers,
+        "cancel_timer": cancel_timer,
+        "read_pdf_or_document": read_pdf_or_document,
+        "check_network_health": check_network_health,
+        "focus_window": focus_window,
+        "list_running_apps": list_running_apps,
     }
 
 

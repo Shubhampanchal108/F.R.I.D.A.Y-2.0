@@ -117,6 +117,16 @@ Tools you have (with input parameters):
 - extract_webpage_content(url) -> Scrapes and extracts full text content from any website.
 - deep_research_agent(topic) -> Autonomous sub-agent for multi-source web research and synthesis.
 - code_reviewer_agent(code_or_filename) -> Autonomous sub-agent for static code review and bug finding.
+- copy_to_clipboard(text) -> Copies text or generated code directly into Windows clipboard for quick Ctrl+V.
+- get_clipboard_content() -> Reads current text from clipboard.
+- system_media_control(action) -> Controls Windows global media playback ('play_pause', 'next', 'previous', 'stop') across Spotify, YouTube, VLC.
+- set_timer(duration, label) -> Sets a background countdown timer ('5 minutes', '30 seconds', '1 hour') with sound chime, toast, and speech.
+- list_active_timers() -> Lists all currently running timers.
+- cancel_timer(label) -> Cancels active timer by label.
+- read_pdf_or_document(filepath) -> Reads and extracts text from PDF documents, text files, or markdown for question-answering and summaries.
+- check_network_health() -> Runs diagnostic check: ping latency (ms), internet download speed (Mbps), and connection health.
+- focus_window(app_name) -> Brings an open application window (Chrome, VS Code, Spotify) to the foreground.
+- list_running_apps() -> Lists currently running user applications.
 
 CRITICAL TOOL RULE:
 - If a user request requires a tool, respond ONLY in valid JSON:

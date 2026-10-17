@@ -638,6 +638,25 @@ function setupChatHandlers() {
       }
     });
   });
+
+  // Delegated Click Handler for Copy Icon Buttons & Snippet Copy
+  const chatMessages = document.getElementById('chat-messages');
+  if (chatMessages) {
+    chatMessages.addEventListener('click', (e) => {
+      const copyBtn = e.target.closest('.msg-copy-btn');
+      if (copyBtn) {
+        e.stopPropagation();
+        handleCopyMessage(copyBtn);
+        return;
+      }
+      const codeBtn = e.target.closest('.code-copy-btn');
+      if (codeBtn) {
+        e.stopPropagation();
+        handleCopyCodeBlock(codeBtn);
+        return;
+      }
+    });
+  }
 }
 
 async function handleSendPrompt() {
@@ -1361,12 +1380,40 @@ function renderMemoriesList(memories) {
 // 8. DEDICATED LIVE MODE VIEW CONTROLLER
 // ==========================================================================
 let selectedLiveSource = 'screen';
+let isLiveStreamActive = false;
+
+function setLiveStreamButtons(active) {
+  isLiveStreamActive = active;
+  const btnStart = document.getElementById('btn-live-stream-start');
+  const btnStop = document.getElementById('btn-live-stream-stop');
+  if (btnStart) {
+    btnStart.disabled = active;
+    if (active) {
+      btnStart.classList.add('disabled');
+    } else {
+      btnStart.classList.remove('disabled');
+    }
+  }
+  if (btnStop) {
+    btnStop.disabled = !active;
+    if (!active) {
+      btnStop.classList.add('disabled');
+    } else {
+      btnStop.classList.remove('disabled');
+    }
+  }
+}
 
 function setupLiveModeHandlers() {
   const btnSrcScreen = document.getElementById('btn-src-screen');
   const btnSrcCamera = document.getElementById('btn-src-camera');
   const btnStart = document.getElementById('btn-live-stream-start');
   const btnStop = document.getElementById('btn-live-stream-stop');
+  const liveInput = document.getElementById('live-text-input');
+  const btnLiveSend = document.getElementById('btn-live-send');
+
+  // Initial button states
+  setLiveStreamButtons(false);
 
   if (btnSrcScreen && btnSrcCamera) {
     btnSrcScreen.addEventListener('click', () => {
@@ -1385,6 +1432,7 @@ function setupLiveModeHandlers() {
 
   if (btnStart) {
     btnStart.addEventListener('click', async () => {
+      if (btnStart.disabled) return;
       playSfx('ping');
       const statusBadge = document.getElementById('live-stream-status-badge');
       if (statusBadge) statusBadge.textContent = 'CONNECTING TO GEMINI LIVE...';
@@ -1392,15 +1440,18 @@ function setupLiveModeHandlers() {
         try {
           const res = await window.pywebview.api.start_live_mode(selectedLiveSource);
           if (res && res.status === 'running') {
-            btnStart.classList.add('hidden');
-            if (btnStop) btnStop.classList.remove('hidden');
-            if (statusBadge) statusBadge.textContent = `LIVE ${selectedLiveSource.toUpperCase()} STREAM ONLINE`;
+            setLiveStreamButtons(true);
+            if (statusBadge) statusBadge.textContent = `LIVE ${selectedLiveSource.toUpperCase()} STREAM ONLINE ⚡`;
+            appendLiveFeedMessage(`⚡ Live multimodal stream initialized (${selectedLiveSource.toUpperCase()} feed). Bidirectional audio and sentinel bridge online.`, 'alert');
           } else {
             const err = (res && res.message) || 'Failed to initialize live stream';
+            setLiveStreamButtons(false);
             if (statusBadge) statusBadge.textContent = `ERROR: ${err}`;
             appendAssistantMessage(`⚠️ [Live Mode Error]: ${err}`);
+            appendLiveFeedMessage(`⚠️ Initialization error: ${err}`, 'alert');
           }
         } catch (e) {
+          setLiveStreamButtons(false);
           if (statusBadge) statusBadge.textContent = `ERROR: ${e}`;
         }
       }
@@ -1409,6 +1460,7 @@ function setupLiveModeHandlers() {
 
   if (btnStop) {
     btnStop.addEventListener('click', async () => {
+      if (btnStop.disabled) return;
       playSfx('click');
       const statusBadge = document.getElementById('live-stream-status-badge');
       if (statusBadge) statusBadge.textContent = 'DISCONNECTING...';
@@ -1419,25 +1471,65 @@ function setupLiveModeHandlers() {
           console.warn('stop_live_mode error:', e);
         }
       }
-      btnStop.classList.add('hidden');
-      if (btnStart) btnStart.classList.remove('hidden');
+      setLiveStreamButtons(false);
       if (statusBadge) statusBadge.textContent = 'STATUS: STANDBY // DISCONNECTED';
+      appendLiveFeedMessage('🛑 Live Multimodal Stream terminated. Reverted to standby.', 'alert');
+    });
+  }
+
+  // Interactive Bottom Input Bar Handlers
+  async function handleSendLiveText() {
+    if (!liveInput) return;
+    const text = liveInput.value.trim();
+    if (!text) return;
+
+    playSfx('click');
+    liveInput.value = '';
+
+    // Append to Live Feed
+    appendLiveFeedMessage(text, 'user');
+    // Also sync to Chatbot page
+    appendUserMessage(`👤 [Live Directive] ${text}`);
+
+    if (window.pywebview && window.pywebview.api) {
+      try {
+        const res = await window.pywebview.api.send_live_text(text);
+        if (res && res.status === 'not_running') {
+          appendLiveFeedMessage('⚠️ Live stream is not currently running. Please click "START LIVE STREAM" above.', 'alert');
+        }
+      } catch (err) {
+        console.warn('send_live_text error:', err);
+      }
+    }
+  }
+
+  if (btnLiveSend) {
+    btnLiveSend.addEventListener('click', handleSendLiveText);
+  }
+
+  if (liveInput) {
+    liveInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSendLiveText();
+      }
     });
   }
 }
 
-function appendLiveFeedMessage(text) {
+function appendLiveFeedMessage(text, type = 'assistant') {
   const viewport = document.getElementById('live-feed-viewport');
   const empty = document.getElementById('live-feed-empty');
   if (empty) empty.classList.add('hidden');
   if (!viewport) return;
 
   const entry = document.createElement('div');
-  entry.className = 'live-feed-entry';
+  entry.className = `live-feed-entry ${type}`;
   const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const prefix = type === 'user' ? '👤 YOU: ' : type === 'alert' ? '⚡ ' : '🤖 FRIDAY: ';
   entry.innerHTML = `
     <div class="live-entry-time">${now}</div>
-    <div class="live-entry-text">${escapeHTML(text)}</div>
+    <div class="live-entry-text"><strong>${prefix}</strong>${escapeHTML(text)}</div>
   `;
   viewport.appendChild(entry);
   viewport.scrollTop = viewport.scrollHeight;
@@ -1445,21 +1537,36 @@ function appendLiveFeedMessage(text) {
 
 window.fridayOnLiveMessage = function(reply) {
   if (reply) {
-    appendLiveFeedMessage(reply);
-    appendAssistantMessage(`📷 [Live Vision] ${reply}`);
+    // 1. Show in Live Viewport
+    appendLiveFeedMessage(reply, 'assistant');
+    // 2. Synchronize to Core Chatbot Viewport
+    appendAssistantMessage(`🤖 [Live Mode] ${reply}`);
+  }
+};
+
+window.fridayOnLiveUserMessage = function(uQuery) {
+  if (uQuery) {
+    appendLiveFeedMessage(uQuery, 'user');
+    appendUserMessage(`👤 [Live Directive] ${uQuery}`);
+  }
+};
+
+window.fridayOnLiveAlert = function(alertMsg) {
+  if (alertMsg) {
+    appendLiveFeedMessage(`Sentinel Alert: ${alertMsg}`, 'alert');
+    appendAssistantMessage(`⚡ **[Sentinel Sentinel Alert]**\n${alertMsg}`);
   }
 };
 
 window.fridayOnLiveStatus = function(statusStr) {
   const statusBadge = document.getElementById('live-stream-status-badge');
-  const btnStart = document.getElementById('btn-live-stream-start');
-  const btnStop = document.getElementById('btn-live-stream-stop');
   if (statusBadge) {
     statusBadge.textContent = statusStr;
   }
-  if (statusStr === 'DISCONNECTED') {
-    if (btnStop) btnStop.classList.add('hidden');
-    if (btnStart) btnStart.classList.remove('hidden');
+  if (statusStr === 'DISCONNECTED' || statusStr.includes('STOPPED')) {
+    setLiveStreamButtons(false);
+  } else if (statusStr === 'CONNECTED' || statusStr.includes('ONLINE') || statusStr.includes('LIVE')) {
+    setLiveStreamButtons(true);
   }
 };
 
@@ -1607,12 +1714,20 @@ setTimeout(() => {
 }, 500);
 
 // ==========================================================================
-// 9. CHAT HELPERS & RENDERING
 // ==========================================================================
+// 9. CHAT HELPERS & RENDERING WITH COPY ACTIONS
+// ==========================================================================
+let latestUserDirective = '';
+
 function appendUserMessage(text) {
   const container = document.getElementById('chat-messages');
+  if (!container) return;
+
+  latestUserDirective = String(text || '').trim();
+
   const row = document.createElement('div');
   row.className = 'message-row user-row';
+  row.setAttribute('data-raw-text', text);
 
   const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -1621,7 +1736,20 @@ function appendUserMessage(text) {
       <div class="user-avatar">U</div>
     </div>
     <div class="message-content">
-      <div class="message-sender">YOU <span class="msg-time">${now}</span></div>
+      <div class="message-sender">
+        <button class="msg-copy-btn" title="Copy Query" data-copy-type="user" aria-label="Copy query">
+          <svg class="copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <svg class="check-icon hidden" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span class="copy-tooltip">Copy Query</span>
+        </button>
+        <span class="msg-time">${now}</span>
+        <span>YOU</span>
+      </div>
       <div class="message-bubble user-bubble">
         <p>${escapeHTML(text)}</p>
       </div>
@@ -1634,8 +1762,14 @@ function appendUserMessage(text) {
 
 function appendAssistantMessage(text) {
   const container = document.getElementById('chat-messages');
+  if (!container) return;
+
   const row = document.createElement('div');
   row.className = 'message-row assistant-row';
+  row.setAttribute('data-raw-text', text);
+  if (latestUserDirective) {
+    row.setAttribute('data-raw-query', latestUserDirective);
+  }
 
   const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const formattedHtml = formatMarkdown(text);
@@ -1648,7 +1782,35 @@ function appendAssistantMessage(text) {
       </div>
     </div>
     <div class="message-content">
-      <div class="message-sender">F.R.I.D.A.Y <span class="msg-time">${now}</span></div>
+      <div class="message-sender">
+        <span>F.R.I.D.A.Y</span>
+        <span class="msg-time">${now}</span>
+        <div class="msg-actions-group">
+          <button class="msg-copy-btn" title="Copy Response" data-copy-type="assistant" aria-label="Copy response">
+            <svg class="copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <svg class="check-icon hidden" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span class="copy-tooltip">Copy Response</span>
+          </button>
+          ${latestUserDirective ? `
+          <button class="msg-copy-btn copy-turn-btn" title="Copy Query & Response" data-copy-type="turn" aria-label="Copy Query & Response">
+            <svg class="copy-turn-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+              <path d="M9 12h6"></path>
+              <path d="M9 16h6"></path>
+            </svg>
+            <svg class="check-icon hidden" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span class="copy-tooltip">Copy Q&A</span>
+          </button>` : ''}
+        </div>
+      </div>
       <div class="message-bubble assistant-bubble">
         ${formattedHtml}
       </div>
@@ -1660,9 +1822,13 @@ function appendAssistantMessage(text) {
 }
 
 function clearChatMessages() {
+  latestUserDirective = '';
   const container = document.getElementById('chat-messages');
+  if (!container) return;
+
+  const defaultMsg = 'Chat buffer cleared, Sir. Standing by for instructions.';
   container.innerHTML = `
-    <div class="message-row assistant-row">
+    <div class="message-row assistant-row" data-raw-text="${escapeHTML(defaultMsg)}">
       <div class="avatar-cell">
         <div class="assistant-avatar">
           <span class="avatar-glow"></span>
@@ -1670,13 +1836,162 @@ function clearChatMessages() {
         </div>
       </div>
       <div class="message-content">
-        <div class="message-sender">F.R.I.D.A.Y <span class="msg-time">Just now</span></div>
+        <div class="message-sender">
+          <span>F.R.I.D.A.Y</span>
+          <span class="msg-time">Just now</span>
+          <div class="msg-actions-group">
+            <button class="msg-copy-btn" title="Copy Response" data-copy-type="assistant" aria-label="Copy response">
+              <svg class="copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <svg class="check-icon hidden" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span class="copy-tooltip">Copy Response</span>
+            </button>
+          </div>
+        </div>
         <div class="message-bubble assistant-bubble">
-          <p>Chat buffer cleared, Sir. Standing by for instructions.</p>
+          <p>${escapeHTML(defaultMsg)}</p>
         </div>
       </div>
     </div>
   `;
+}
+
+// Robust Multi-Tier Clipboard Copy (Async API -> Python PyWebView API -> execCommand Fallback)
+async function copyTextToClipboard(text) {
+  if (!text) return false;
+  let copied = false;
+
+  // Tier 1: Modern Browser Async Clipboard API
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    try {
+      await navigator.clipboard.writeText(text);
+      copied = true;
+    } catch (e) {
+      console.warn('Async clipboard API failed, attempting fallbacks...', e);
+    }
+  }
+
+  // Tier 2: Python Backend Bridge in pywebview
+  if (!copied && window.pywebview && window.pywebview.api && typeof window.pywebview.api.copy_to_clipboard === 'function') {
+    try {
+      const res = await window.pywebview.api.copy_to_clipboard(text);
+      if (res && res.success) copied = true;
+    } catch (pyErr) {
+      console.warn('Python clipboard API fallback failed...', pyErr);
+    }
+  }
+
+  // Tier 3: Classic execCommand fallback
+  if (!copied) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.top = '-9999px';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      copied = document.execCommand('copy');
+      document.body.removeChild(ta);
+    } catch (err) {
+      console.warn('execCommand copy fallback failed...', err);
+    }
+  }
+
+  return copied;
+}
+
+// Copy Action Handler with animated state morphing
+async function handleCopyMessage(btn) {
+  const row = btn.closest('.message-row');
+  if (!row) return;
+
+  const copyType = btn.getAttribute('data-copy-type') || 'assistant';
+  let textToCopy = '';
+
+  if (copyType === 'turn') {
+    // Copy combined user query AND assistant response
+    let queryText = row.getAttribute('data-raw-query');
+    if (!queryText) {
+      let prev = row.previousElementSibling;
+      while (prev) {
+        if (prev.classList.contains('user-row')) {
+          queryText = prev.getAttribute('data-raw-text') || prev.querySelector('.message-bubble')?.innerText?.trim();
+          break;
+        }
+        prev = prev.previousElementSibling;
+      }
+    }
+    const responseText = row.getAttribute('data-raw-text') || row.querySelector('.message-bubble')?.innerText?.trim() || '';
+    if (queryText && responseText) {
+      textToCopy = `User Directive:\n${queryText}\n\nF.R.I.D.A.Y Response:\n${responseText}`;
+    } else {
+      textToCopy = responseText || queryText || '';
+    }
+  } else if (copyType === 'user') {
+    // Copy user query
+    textToCopy = row.getAttribute('data-raw-text') || row.querySelector('.message-bubble')?.innerText?.trim() || '';
+  } else {
+    // Copy assistant response
+    textToCopy = row.getAttribute('data-raw-text') || row.querySelector('.message-bubble')?.innerText?.trim() || '';
+  }
+
+  if (!textToCopy) return;
+
+  playSfx('click');
+  const success = await copyTextToClipboard(textToCopy);
+
+  if (success !== false) {
+    btn.classList.add('copied');
+    const copyIcon = btn.querySelector('.copy-icon, .copy-turn-icon');
+    const checkIcon = btn.querySelector('.check-icon');
+    const tooltip = btn.querySelector('.copy-tooltip');
+
+    if (copyIcon) copyIcon.classList.add('hidden');
+    if (checkIcon) checkIcon.classList.remove('hidden');
+
+    const originalTooltip = tooltip ? tooltip.textContent : '';
+    if (tooltip) tooltip.textContent = 'Copied!';
+
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      if (copyIcon) copyIcon.classList.remove('hidden');
+      if (checkIcon) checkIcon.classList.add('hidden');
+      if (tooltip) tooltip.textContent = originalTooltip;
+    }, 1800);
+  }
+}
+
+// Copy code block snippet handler
+async function handleCopyCodeBlock(btn) {
+  const box = btn.closest('.code-block-box');
+  const code = box ? box.querySelector('pre code')?.innerText : null;
+  if (!code) return;
+
+  playSfx('click');
+  const success = await copyTextToClipboard(code);
+  if (success !== false) {
+    btn.classList.add('copied');
+    const copyIcon = btn.querySelector('.copy-icon');
+    const checkIcon = btn.querySelector('.check-icon');
+    const textSpan = btn.querySelector('.code-copy-text');
+
+    if (copyIcon) copyIcon.classList.add('hidden');
+    if (checkIcon) checkIcon.classList.remove('hidden');
+    if (textSpan) textSpan.textContent = 'Copied!';
+
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      if (copyIcon) copyIcon.classList.remove('hidden');
+      if (checkIcon) checkIcon.classList.add('hidden');
+      if (textSpan) textSpan.textContent = 'Copy';
+    }, 1800);
+  }
 }
 
 function scrollToBottom() {
@@ -1703,7 +2018,24 @@ function formatMarkdown(text) {
 
   str = str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   str = str.replace(/`(.*?)`/g, '<code class="inline-code">$1</code>');
-  str = str.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  str = str.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
+    return `<div class="code-block-box">
+      <div class="code-block-bar">
+        <span class="code-lang-tag">SNIPPET</span>
+        <button class="code-copy-btn" title="Copy code snippet" aria-label="Copy code snippet">
+          <svg class="copy-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <svg class="check-icon hidden" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span class="code-copy-text">Copy</span>
+        </button>
+      </div>
+      <pre><code>${codeContent}</code></pre>
+    </div>`;
+  });
 
   const paragraphs = str.split(/\n\s*\n/);
   return paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');

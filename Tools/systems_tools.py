@@ -1,5 +1,6 @@
 import psutil
 import ctypes
+import subprocess
 from datetime import datetime
 import requests
 import time
@@ -168,17 +169,73 @@ def open_application(app: str):
         except Exception as e:
             return {"error": str(e)}
     
-def close_app(app):
-    try :
-        pyautogui.hotkey('alt', 'f4')
+def close_app(app: str = None):
+    try:
+        # If no specific app is named, or user asks to close current/active window
+        if not app or str(app).lower().strip() in ["current", "active", "this", "window", "active_window"]:
+            pyautogui.hotkey('alt', 'f4')
+            return {
+                "status": "success",
+                "action": "close_app",
+                "message": "Active window closed successfully."
+            }
+
+        target = str(app).lower().strip().replace(".exe", "")
+
+        # 1. Try process matching and termination via psutil
+        closed_any = False
+        for p in psutil.process_iter(['name', 'pid']):
+            try:
+                p_name = (p.info.get('name') or "").lower()
+                if target in p_name:
+                    p.terminate()
+                    closed_any = True
+            except Exception:
+                pass
+
+        if closed_any:
+            return {
+                "status": "success",
+                "app": app,
+                "action": "close_app",
+                "message": f"Closed '{app}' successfully."
+            }
+
+        # 2. Try taskkill command
+        res = subprocess.run(["taskkill", "/f", "/im", f"{target}.exe"], capture_output=True, text=True)
+        if res.returncode == 0:
+            return {
+                "status": "success",
+                "app": app,
+                "action": "close_app",
+                "message": f"Closed '{app}' successfully."
+            }
+
+        # 3. Try AppOpener.close with exact name match
+        try:
+            from AppOpener import close as appclose
+            status = appclose(target, match_closest=False, output=False, throw_error=True)
+            if status:
+                return {
+                    "status": "success",
+                    "app": app,
+                    "action": "close_app",
+                    "message": f"Closed '{app}' successfully."
+                }
+        except Exception:
+            pass
+
         return {
-            "success": True,
-            "message": "closed successfully"
+            "status": "error",
+            "action": "close_app",
+            "message": f"Could not find running application matching '{app}'."
         }
+
     except Exception as e:
         return {
-            "success": False,
-            "message": e
+            "status": "error",
+            "action": "close_app",
+            "message": f"Error closing application: {str(e)}"
         }
 
 def volume_up(step=10):
@@ -395,16 +452,39 @@ def minimize_active_window():
     
 def maximize_active_window():
     try:
-        pyautogui.hotkey('alt', 'tab')
+        user32 = ctypes.windll.user32
+        hwnd = user32.GetForegroundWindow()
+        SW_MAXIMIZE = 3
+        if hwnd:
+            user32.ShowWindow(hwnd, SW_MAXIMIZE)
+        prev_fs = pyautogui.FAILSAFE
+        try:
+            pyautogui.FAILSAFE = False
+            pyautogui.hotkey('win', 'up')
+        finally:
+            pyautogui.FAILSAFE = prev_fs
+
         return {
             "status": "success",
             "action": "maximize_active_window",
-            "message": "Active window maximized successfully"
+            "message": "Active window maximized successfully."
         }
-
-    except Exception as e:
-        return {
-            "status": "error",
-            "action": "maximize_active_window",
-            "error": str(e)
-        }
+    except Exception:
+        try:
+            prev_fs = pyautogui.FAILSAFE
+            try:
+                pyautogui.FAILSAFE = False
+                pyautogui.hotkey('win', 'up')
+            finally:
+                pyautogui.FAILSAFE = prev_fs
+            return {
+                "status": "success",
+                "action": "maximize_active_window",
+                "message": "Active window maximized successfully."
+            }
+        except Exception as e:
+            return {
+                "status": "error",
+                "action": "maximize_active_window",
+                "message": str(e)
+            }

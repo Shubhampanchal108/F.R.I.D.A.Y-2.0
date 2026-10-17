@@ -427,7 +427,7 @@
           <!-- CONVERSATION CHAT FEED -->
           <div class="chat-viewport" id="chat-viewport">
             <div class="chat-messages" id="chat-messages">
-              <div class="message-row assistant-row">
+              <div class="message-row assistant-row" data-raw-text="Good day, Sir. All cognitive neural networks, tool guards, and background sentinels are operational. How may I assist you today? You can type your command below, speak with the mic, or shift operating modes anytime.">
                 <div class="avatar-cell">
                   <div class="assistant-avatar">
                     <span class="avatar-glow"></span>
@@ -435,7 +435,22 @@
                   </div>
                 </div>
                 <div class="message-content">
-                  <div class="message-sender">F.R.I.D.A.Y <span class="msg-time">Online</span></div>
+                  <div class="message-sender">
+                    <span>F.R.I.D.A.Y</span>
+                    <span class="msg-time">Online</span>
+                    <div class="msg-actions-group">
+                      <button class="msg-copy-btn" title="Copy response" data-copy-type="assistant" aria-label="Copy response">
+                        <svg class="copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <svg class="check-icon hidden" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span class="copy-tooltip">Copy Response</span>
+                      </button>
+                    </div>
+                  </div>
                   <div class="message-bubble assistant-bubble">
                     <p>Good day, Sir. All cognitive neural networks, tool guards, and background sentinels are operational.</p>
                     <p class="sub-text">How may I assist you today? You can type your command below, speak with the mic, or shift operating modes anytime.</p>
@@ -555,7 +570,7 @@
               <button class="live-action-btn start-stream" id="btn-live-stream-start">
                 <span>⚡</span> START LIVE STREAM
               </button>
-              <button class="live-action-btn stop-stream hidden" id="btn-live-stream-stop">
+              <button class="live-action-btn stop-stream" id="btn-live-stream-stop" disabled>
                 <span>✕</span> TERMINATE STREAM
               </button>
             </div>
@@ -572,6 +587,14 @@
                 Live stream is standing by. Select Screen or Camera above and click Start Live Stream to begin real-time multimodal interaction with Friday.
               </div>
             </div>
+          </div>
+
+          <!-- Live Interactive Command & Directive Input Bar -->
+          <div class="live-input-bar">
+            <input type="text" id="live-text-input" placeholder="Type command to Friday in Live Mode..." autocomplete="off" />
+            <button id="btn-live-send" title="Send Directive to Friday in Live Mode">
+              <span>➤</span>
+            </button>
           </div>
 
         </div>

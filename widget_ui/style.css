@@ -1126,6 +1126,186 @@ pre code {
   color: #38e1ff;
 }
 
+/* ==========================================================================
+   MESSAGE ACTIONS & COPY ICON BUTTONS (Cyber HUD Aesthetics)
+   ========================================================================== */
+.msg-actions-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.msg-copy-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0.65;
+  transition: var(--transition-smooth);
+  outline: none;
+}
+
+.message-row:hover .msg-copy-btn {
+  opacity: 0.95;
+}
+
+.msg-copy-btn:hover {
+  opacity: 1;
+  color: var(--accent-primary);
+  background: var(--accent-bg-tint);
+  border-color: var(--border-neon);
+  box-shadow: 0 0 8px var(--accent-glow-subtle);
+  transform: translateY(-1px);
+}
+
+.msg-copy-btn:active {
+  transform: translateY(0) scale(0.92);
+}
+
+.msg-copy-btn.copied {
+  opacity: 1;
+  color: var(--green-online);
+  border-color: rgba(0, 255, 157, 0.5);
+  background: rgba(0, 255, 157, 0.12);
+  box-shadow: 0 0 10px rgba(0, 255, 157, 0.35);
+}
+
+.msg-copy-btn svg {
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+.msg-copy-btn.copied svg.check-icon {
+  animation: copy-check-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes copy-check-pop {
+  0% { transform: scale(0.4) rotate(-15deg); opacity: 0; }
+  60% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.msg-copy-btn .hidden,
+.code-copy-btn .hidden {
+  display: none !important;
+}
+
+/* Cyber Tooltips */
+.msg-copy-btn .copy-tooltip {
+  position: absolute;
+  bottom: calc(100% + 5px);
+  background: #050913;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-neon);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7), 0 0 8px var(--accent-glow-subtle);
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 100;
+}
+
+.user-row .msg-copy-btn .copy-tooltip {
+  right: 0;
+  left: auto;
+  transform: translateY(4px);
+}
+
+.user-row .msg-copy-btn:hover .copy-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.assistant-row .msg-copy-btn .copy-tooltip {
+  left: 0;
+  right: auto;
+  transform: translateY(4px);
+}
+
+.assistant-row .msg-copy-btn:hover .copy-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Code Snippet Box with Copy Button */
+.code-block-box {
+  position: relative;
+  margin: 8px 0;
+  border-radius: var(--radius-sm);
+  background: #040711;
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.code-block-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.code-lang-tag {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  letter-spacing: 0.5px;
+}
+
+.code-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.code-copy-btn:hover {
+  color: var(--accent-primary);
+  border-color: var(--border-neon);
+  background: var(--accent-bg-tint);
+}
+
+.code-copy-btn.copied {
+  color: var(--green-online);
+  border-color: rgba(0, 255, 157, 0.5);
+  background: rgba(0, 255, 157, 0.12);
+}
+
+.code-block-box pre {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  padding: 8px 10px;
+}
+
 /* QUICK ACTION CHIPS */
 .quick-chips-scroll {
   display: flex;
@@ -2260,7 +2440,7 @@ body.mode-expanded .profile-scroll-container {
   border: none;
   box-shadow: 0 0 14px var(--accent-glow);
 }
-.live-action-btn.start-stream:hover {
+.live-action-btn.start-stream:hover:not(:disabled) {
   opacity: 0.9;
   transform: translateY(-1px);
 }
@@ -2270,8 +2450,16 @@ body.mode-expanded .profile-scroll-container {
   border: none;
   box-shadow: 0 0 12px rgba(255, 59, 48, 0.5);
 }
-.live-action-btn.stop-stream:hover {
+.live-action-btn.stop-stream:hover:not(:disabled) {
   background: #ff5549;
+}
+.live-action-btn:disabled,
+.live-action-btn.disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+  filter: grayscale(0.7);
 }
 .live-feed-card {
   background: var(--bg-glass-card);
@@ -2292,7 +2480,7 @@ body.mode-expanded .profile-scroll-container {
   color: var(--text-muted);
 }
 .live-feed-viewport {
-  max-height: 140px;
+  max-height: 125px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -2314,11 +2502,61 @@ body.mode-expanded .profile-scroll-container {
   color: var(--text-primary);
   animation: msg-appear 0.25s ease-out;
 }
+.live-feed-entry.user {
+  border-left-color: #30d158;
+  background: rgba(48, 209, 88, 0.08);
+}
+.live-feed-entry.alert {
+  border-left-color: #ffd60a;
+  background: rgba(255, 214, 10, 0.08);
+}
 .live-feed-entry .live-entry-time {
   font-family: var(--font-mono);
   font-size: 8px;
   color: var(--text-dim);
   margin-bottom: 2px;
+}
+.live-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-glass-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 4px 6px;
+  margin-top: 4px;
+}
+.live-input-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  padding: 6px 8px;
+}
+.live-input-bar input::placeholder {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+.live-input-bar button {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--accent-primary);
+  color: #040814;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: var(--transition-smooth);
+}
+.live-input-bar button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 /* ==========================================================================

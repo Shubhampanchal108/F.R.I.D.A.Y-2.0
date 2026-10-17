@@ -746,7 +746,7 @@ class FridayWidgetApi:
         def on_wake(phrase, command=None):
             print(f"⚡ [F.R.I.D.A.Y] Wake word detected: {phrase} (Command: {command})", flush=True)
             try:
-                self.show_window()
+                # Do not summon or pop up window automatically on wake word; summon is reserved strictly for Ctrl + Space
                 if self.window:
                     payload = {"raw": str(phrase), "command": str(command) if command else None}
                     self.window.evaluate_js(f"window.fridayOnWakeWord && window.fridayOnWakeWord({json.dumps(payload)});\n")
@@ -814,6 +814,7 @@ class FridayWidgetApi:
                 [py_exe, live_script, "--mode", video_mode],
                 creationflags=creationflags,
                 env=env,
+                stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -835,9 +836,18 @@ class FridayWidgetApi:
                             reply = line_str.replace("[LIVE_FEED_REPLY]", "").strip()
                             if self.window:
                                 self.window.evaluate_js(f"window.fridayOnLiveMessage && window.fridayOnLiveMessage({json.dumps(reply)});")
-                        elif "[LIVE_STATUS]" in line_str or "⚡" in line_str:
+                        elif "[LIVE_USER_QUERY]" in line_str:
+                            u_query = line_str.replace("[LIVE_USER_QUERY]", "").strip()
                             if self.window:
-                                self.window.evaluate_js(f"window.fridayOnLiveStatus && window.fridayOnLiveStatus({json.dumps(line_str)});")
+                                self.window.evaluate_js(f"window.fridayOnLiveUserMessage && window.fridayOnLiveUserMessage({json.dumps(u_query)});")
+                        elif "[LIVE_ALERT]" in line_str:
+                            alert_msg = line_str.replace("[LIVE_ALERT]", "").strip()
+                            if self.window:
+                                self.window.evaluate_js(f"window.fridayOnLiveAlert && window.fridayOnLiveAlert({json.dumps(alert_msg)});")
+                        elif "[LIVE_STATUS]" in line_str:
+                            status_val = line_str.replace("[LIVE_STATUS]", "").strip()
+                            if self.window:
+                                self.window.evaluate_js(f"window.fridayOnLiveStatus && window.fridayOnLiveStatus({json.dumps(status_val)});")
                 except Exception:
                     pass
 
@@ -855,6 +865,20 @@ class FridayWidgetApi:
         except Exception as e:
             self.current_mode = "core"
             return {"status": "error", "message": str(e)}
+
+    def send_live_text(self, text: str):
+        """Sends text directive directly into the active Live Mode process stdin."""
+        if not text or not text.strip():
+            return {"status": "empty"}
+        if getattr(self, "live_process", None) and self.live_process.poll() is None:
+            try:
+                if self.live_process.stdin:
+                    self.live_process.stdin.write(text.strip() + "\n")
+                    self.live_process.stdin.flush()
+                    return {"status": "sent"}
+            except Exception as e:
+                return {"status": "error", "message": str(e)}
+        return {"status": "not_running"}
 
     def stop_live_mode(self):
         """Terminates active live vision process and restores core mode."""
@@ -1030,6 +1054,28 @@ class FridayWidgetApi:
             return {"status": "success"}
         except Exception as e:
             return {"status": "error", "message": str(e)}
+
+    def copy_to_clipboard(self, text: str) -> dict:
+        """Copies text directly to the Windows OS system clipboard."""
+        if not text:
+            return {"success": False, "message": "No text provided"}
+        try:
+            import subprocess
+            proc = subprocess.Popen(["clip.exe"], stdin=subprocess.PIPE, shell=False)
+            proc.communicate(input=text.encode("utf-16le"))
+            return {"success": True}
+        except Exception as e:
+            try:
+                import tkinter as tk
+                root = tk.Tk()
+                root.withdraw()
+                root.clipboard_clear()
+                root.clipboard_append(text)
+                root.update()
+                root.destroy()
+                return {"success": True}
+            except Exception as e2:
+                return {"success": False, "message": f"{e}; {e2}"}
 
 
 def get_screen_work_area():
