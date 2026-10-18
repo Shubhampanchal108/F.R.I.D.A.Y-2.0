@@ -2277,90 +2277,73 @@ body.mode-expanded .profile-scroll-container {
   height: 100%;
   overflow-y: auto;
 }
-.live-hud-stage {
-  background: rgba(4, 8, 18, 0.75);
-  border: 1px solid var(--border-subtle);
+.live-hud-stage.live-hud-reactor {
+  width: 100%;
+  height: 200px;
+  min-height: 200px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius-lg);
-  padding: 16px 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+  background: radial-gradient(circle at center, rgba(14, 25, 48, 0.75) 0%, rgba(6, 10, 20, 0.9) 70%);
+  border: 1px solid var(--border-subtle);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7), 0 0 16px rgba(0, 240, 255, 0.08);
   overflow: hidden;
+  padding: 0;
+  transition: var(--transition-smooth);
 }
-.live-radar-box {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  border: 1px solid var(--border-neon);
-  box-shadow: 0 0 16px var(--accent-glow-subtle);
-  position: relative;
+
+.live-hud-stage.live-hud-reactor.state-active {
+  border-color: rgba(0, 240, 255, 0.45);
+  box-shadow: inset 0 0 35px rgba(0, 240, 255, 0.2), 0 0 25px var(--accent-glow-subtle);
+}
+
+.live-hud-stage.live-hud-reactor.state-active .hud-holo-ring.ring-ticks {
+  animation: ring-spin-cw 12s linear infinite;
+  border-color: var(--accent-primary);
+}
+
+.live-hud-stage.live-hud-reactor.state-active .hud-holo-ring.ring-mid {
+  animation: ring-spin-ccw 8s linear infinite;
+}
+
+.live-hud-stage.live-hud-reactor.state-active .hud-holo-ring.ring-counter {
+  animation: ring-spin-cw 6s linear infinite;
+}
+
+.live-hud-stage.live-hud-reactor.state-active .nucleus-inner-orb {
+  box-shadow:
+    0 0 28px var(--accent-primary),
+    0 0 45px var(--accent-glow),
+    inset 0 0 18px #ffffff;
+  animation: orb-breathe 2.5s ease-in-out infinite;
+}
+
+.live-hud-stage.live-hud-reactor.state-speaking .nucleus-inner-orb {
+  animation: nucleus-speaking-glow 0.8s ease-in-out infinite alternate !important;
+}
+
+.live-hud-stage.live-hud-reactor.state-thinking .nucleus-inner-orb {
+  animation: nucleus-thinking-spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+}
+
+.live-source-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  justify-content: space-between;
 }
-.live-radar-sweep {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, var(--accent-glow) 360deg);
-  animation: ring-spin-cw 3s linear infinite;
-}
-.live-radar-grid {
-  position: absolute;
-  width: 60%;
-  height: 60%;
-  border-radius: 50%;
-  border: 1px dashed var(--border-neon);
-  opacity: 0.5;
-}
-.live-radar-crosshair {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-.live-radar-crosshair::before,
-.live-radar-crosshair::after {
-  content: '';
-  position: absolute;
-  background: var(--border-subtle);
-}
-.live-radar-crosshair::before {
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-}
-.live-radar-crosshair::after {
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-}
-.live-center-beacon {
-  position: relative;
-  z-index: 2;
-  font-size: 20px;
-}
-.live-telemetry-badge {
-  margin-top: 10px;
+
+.live-telemetry-tag {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-family: var(--font-mono);
   font-size: 8.5px;
   color: var(--accent-primary);
-  background: var(--accent-bg-tint);
-  border: 1px solid var(--border-neon);
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
   letter-spacing: 0.5px;
 }
+
 .live-status-dot {
   width: 6px;
   height: 6px;
@@ -2461,71 +2444,33 @@ body.mode-expanded .profile-scroll-container {
   transform: none !important;
   filter: grayscale(0.7);
 }
-.live-feed-card {
-  background: var(--bg-glass-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-}
-.live-feed-title-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  color: var(--text-muted);
-}
-.live-feed-viewport {
-  max-height: 125px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.live-feed-empty {
-  font-size: 9px;
-  color: var(--text-dim);
-  text-align: center;
-  padding: 16px 8px;
-}
-.live-feed-entry {
-  background: rgba(5, 8, 16, 0.7);
-  border-left: 2px solid var(--accent-primary);
-  border-radius: 4px;
-  padding: 6px 8px;
-  font-size: 10px;
-  line-height: 1.4;
-  color: var(--text-primary);
-  animation: msg-appear 0.25s ease-out;
-}
-.live-feed-entry.user {
-  border-left-color: #30d158;
-  background: rgba(48, 209, 88, 0.08);
-}
-.live-feed-entry.alert {
-  border-left-color: #ffd60a;
-  background: rgba(255, 214, 10, 0.08);
-}
-.live-feed-entry .live-entry-time {
-  font-family: var(--font-mono);
-  font-size: 8px;
-  color: var(--text-dim);
-  margin-bottom: 2px;
-}
 .live-input-bar {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--bg-glass-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 4px 6px;
-  margin-top: 4px;
+  padding: 8px 12px;
+  margin-top: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition: var(--transition-smooth);
 }
+
+.live-input-bar:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 16px var(--accent-glow-subtle);
+  background: rgba(10, 18, 36, 0.85);
+}
+
+.live-input-bar .live-input-icon {
+  font-size: 14px;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .live-input-bar input {
   flex: 1;
   background: transparent;
@@ -2533,16 +2478,18 @@ body.mode-expanded .profile-scroll-container {
   outline: none;
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 11px;
-  padding: 6px 8px;
+  font-size: 11.5px;
+  padding: 4px 2px;
 }
+
 .live-input-bar input::placeholder {
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 10.5px;
 }
+
 .live-input-bar button {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 6px;
   background: var(--accent-primary);
   color: #040814;
@@ -2551,12 +2498,17 @@ body.mode-expanded .profile-scroll-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
   transition: var(--transition-smooth);
+  flex-shrink: 0;
 }
+
 .live-input-bar button:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 8px var(--accent-glow);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.live-input-bar button:active {
+  transform: scale(0.95);
 }
 
 /* ==========================================================================

@@ -534,27 +534,32 @@
       <!-- ============================================================== -->
       <section class="view-pane" id="view-live">
         <div class="live-view-container">
-          <!-- Holographic Radar & Video Feed HUD Stage -->
-          <div class="live-hud-stage">
-            <div class="live-radar-box">
-              <div class="live-radar-sweep"></div>
-              <div class="live-radar-grid"></div>
-              <div class="live-radar-crosshair"></div>
-              <div class="live-center-beacon">
-                <span class="live-beacon-pulse"></span>
-                <span class="live-beacon-icon">📡</span>
+          <!-- F.R.I.D.A.Y HOLOGRAPHIC HUD HERO STAGE -->
+          <div class="live-hud-stage arc-reactor-stage live-hud-reactor" id="live-hud-stage">
+            <div class="hud-holo-ring ring-outer"></div>
+            <div class="hud-holo-ring ring-ticks"></div>
+            <div class="hud-holo-ring ring-mid"></div>
+            <div class="hud-holo-ring ring-counter"></div>
+
+            <!-- Central Interactive Core Orb Button -->
+            <div class="arc-core-nucleus-btn live-hud-nucleus" id="btn-live-hud-core" title="F.R.I.D.A.Y Live HUD Core">
+              <div class="nucleus-wave-ring wave-1"></div>
+              <div class="nucleus-wave-ring wave-2"></div>
+              <div class="nucleus-inner-orb">
+                <span class="nucleus-symbol"></span>
               </div>
-            </div>
-            
-            <div class="live-telemetry-badge">
-              <span class="live-status-dot" id="live-indicator-dot"></span>
-              <span id="live-stream-status-badge">STATUS: STANDBY // IDLE</span>
             </div>
           </div>
 
           <!-- Video Source Selector & Start / Stop Controls -->
           <div class="live-source-card">
-            <div class="live-source-label">MULTIMODAL VISION SOURCE</div>
+            <div class="live-source-header">
+              <span class="live-source-label">MULTIMODAL VISION SOURCE</span>
+              <div class="live-telemetry-tag">
+                <span class="live-status-dot" id="live-indicator-dot"></span>
+                <span id="live-stream-status-badge">STATUS: STANDBY // IDLE</span>
+              </div>
+            </div>
             <div class="live-source-options">
               <button class="live-source-btn active" id="btn-src-screen" data-src="screen">
                 <span class="src-icon">🖥️</span>
@@ -576,24 +581,15 @@
             </div>
           </div>
 
-          <!-- Live Conversation & Cognitive Transcription Feed -->
-          <div class="live-feed-card">
-            <div class="live-feed-title-bar">
-              <span class="sec-icon">💬</span>
-              <span>Live Vision Intelligence Feed</span>
-            </div>
-            <div class="live-feed-viewport" id="live-feed-viewport">
-              <div class="live-feed-empty" id="live-feed-empty">
-                Live stream is standing by. Select Screen or Camera above and click Start Live Stream to begin real-time multimodal interaction with Friday.
-              </div>
-            </div>
-          </div>
-
           <!-- Live Interactive Command & Directive Input Bar -->
           <div class="live-input-bar">
-            <input type="text" id="live-text-input" placeholder="Type command to Friday in Live Mode..." autocomplete="off" />
+            <span class="live-input-icon">⌨️</span>
+            <input type="text" id="live-text-input" placeholder="Type directive to Friday in Live Mode..." autocomplete="off" />
             <button id="btn-live-send" title="Send Directive to Friday in Live Mode">
-              <span>➤</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
             </button>
           </div>
 

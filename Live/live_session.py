@@ -32,10 +32,11 @@ from Tool_guard import execute_tool
 console = Console()
 
 LIVE_MODELS = [
+    "models/gemini-2.5-flash-native-audio-preview-12-2025",
     "models/gemini-2.5-flash-native-audio-latest",
     "models/gemini-2.5-flash-native-audio-preview-09-2025",
-    "models/gemini-3.1-flash-live-preview",
-    "gemini-2.0-flash-exp"
+    "gemini-2.0-flash-exp",
+    "models/gemini-3.8-live"
 ]
 
 
@@ -246,7 +247,12 @@ class LiveSession:
         config = types.LiveConnectConfig(
             system_instruction=types.Content(parts=[types.Part(text=system_instruction)]),
             response_modalities=["AUDIO"],
-            media_resolution="MEDIA_RESOLUTION_MEDIUM",
+            media_resolution="MEDIA_RESOLUTION_LOW",
+            input_audio_transcription=types.AudioTranscriptionConfig(),
+            generation_config=types.GenerationConfig(
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
+                temperature=0.7,
+            ),
             tools=tools,
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
@@ -254,8 +260,8 @@ class LiveSession:
                 )
             ),
             context_window_compression=types.ContextWindowCompressionConfig(
-                trigger_tokens=25600,
-                sliding_window=types.SlidingWindow(target_tokens=12800),
+                trigger_tokens=16000,
+                sliding_window=types.SlidingWindow(target_tokens=8000),
             ),
         )
 
@@ -284,9 +290,6 @@ class LiveSession:
 
                     tg.create_task(self.receive_loop())
                     tg.create_task(self.audio.play_audio_loop(self.stop_event))
-
-                    # Proactive Sentinel Alert Monitor (Low battery, Due reminders, Emails)
-                    tg.create_task(self.bridge.start_sentinel_monitor(session, self.send_lock))
 
                     # Keep live session running continuously until stop_event is triggered
                     await self.stop_event.wait()

@@ -425,7 +425,7 @@ async function shiftOperatingMode(mode) {
       const res = await window.pywebview.api.set_operating_mode(mode);
       if (res && res.live_status && res.live_status.status === 'error') {
         const errMsg = res.live_status.message || 'Failed to start Live Vision';
-        appendAssistantMessage(`⚠️ [Live Multimodal Error]: ${errMsg}`);
+        console.warn('Live Multimodal Error:', errMsg);
         if (liveBanner) liveBanner.classList.add('hidden');
         setOrbState('idle', 'F.R.I.D.A.Y STANDBY');
         return;
@@ -1386,6 +1386,28 @@ function setLiveStreamButtons(active) {
   isLiveStreamActive = active;
   const btnStart = document.getElementById('btn-live-stream-start');
   const btnStop = document.getElementById('btn-live-stream-stop');
+  const liveStage = document.getElementById('live-hud-stage');
+  const liveDot = document.getElementById('live-indicator-dot');
+  const statusBadge = document.getElementById('live-stream-status-badge');
+
+  if (active) {
+    if (liveStage) liveStage.classList.add('state-active');
+    if (statusBadge) statusBadge.textContent = `LIVE ${selectedLiveSource.toUpperCase()} ONLINE ⚡`;
+    if (liveDot) {
+      liveDot.style.background = '#00f0ff';
+      liveDot.style.boxShadow = '0 0 8px #00f0ff';
+    }
+  } else {
+    if (liveStage) {
+      liveStage.classList.remove('state-active', 'state-speaking', 'state-thinking');
+    }
+    if (statusBadge) statusBadge.textContent = 'STATUS: STANDBY';
+    if (liveDot) {
+      liveDot.style.background = '';
+      liveDot.style.boxShadow = '';
+    }
+  }
+
   if (btnStart) {
     btnStart.disabled = active;
     if (active) {
@@ -1442,13 +1464,10 @@ function setupLiveModeHandlers() {
           if (res && res.status === 'running') {
             setLiveStreamButtons(true);
             if (statusBadge) statusBadge.textContent = `LIVE ${selectedLiveSource.toUpperCase()} STREAM ONLINE ⚡`;
-            appendLiveFeedMessage(`⚡ Live multimodal stream initialized (${selectedLiveSource.toUpperCase()} feed). Bidirectional audio and sentinel bridge online.`, 'alert');
           } else {
             const err = (res && res.message) || 'Failed to initialize live stream';
             setLiveStreamButtons(false);
             if (statusBadge) statusBadge.textContent = `ERROR: ${err}`;
-            appendAssistantMessage(`⚠️ [Live Mode Error]: ${err}`);
-            appendLiveFeedMessage(`⚠️ Initialization error: ${err}`, 'alert');
           }
         } catch (e) {
           setLiveStreamButtons(false);
@@ -1473,7 +1492,6 @@ function setupLiveModeHandlers() {
       }
       setLiveStreamButtons(false);
       if (statusBadge) statusBadge.textContent = 'STATUS: STANDBY // DISCONNECTED';
-      appendLiveFeedMessage('🛑 Live Multimodal Stream terminated. Reverted to standby.', 'alert');
     });
   }
 
@@ -1486,16 +1504,20 @@ function setupLiveModeHandlers() {
     playSfx('click');
     liveInput.value = '';
 
-    // Append to Live Feed
-    appendLiveFeedMessage(text, 'user');
-    // Also sync to Chatbot page
-    appendUserMessage(`👤 [Live Directive] ${text}`);
+    const liveStage = document.getElementById('live-hud-stage');
+    const statusBadge = document.getElementById('live-stream-status-badge');
+    if (liveStage) {
+      liveStage.classList.add('state-thinking');
+      setTimeout(() => {
+        if (liveStage) liveStage.classList.remove('state-thinking');
+      }, 2000);
+    }
 
     if (window.pywebview && window.pywebview.api) {
       try {
         const res = await window.pywebview.api.send_live_text(text);
         if (res && res.status === 'not_running') {
-          appendLiveFeedMessage('⚠️ Live stream is not currently running. Please click "START LIVE STREAM" above.', 'alert');
+          if (statusBadge) statusBadge.textContent = 'STREAM NOT ACTIVE (CLICK START)';
         }
       } catch (err) {
         console.warn('send_live_text error:', err);
@@ -1517,45 +1539,43 @@ function setupLiveModeHandlers() {
   }
 }
 
-function appendLiveFeedMessage(text, type = 'assistant') {
-  const viewport = document.getElementById('live-feed-viewport');
-  const empty = document.getElementById('live-feed-empty');
-  if (empty) empty.classList.add('hidden');
-  if (!viewport) return;
-
-  const entry = document.createElement('div');
-  entry.className = `live-feed-entry ${type}`;
-  const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  const prefix = type === 'user' ? '👤 YOU: ' : type === 'alert' ? '⚡ ' : '🤖 FRIDAY: ';
-  entry.innerHTML = `
-    <div class="live-entry-time">${now}</div>
-    <div class="live-entry-text"><strong>${prefix}</strong>${escapeHTML(text)}</div>
-  `;
-  viewport.appendChild(entry);
-  viewport.scrollTop = viewport.scrollHeight;
-}
-
 window.fridayOnLiveMessage = function(reply) {
   if (reply) {
-    // 1. Show in Live Viewport
-    appendLiveFeedMessage(reply, 'assistant');
-    // 2. Synchronize to Core Chatbot Viewport
-    appendAssistantMessage(`🤖 [Live Mode] ${reply}`);
+    const liveStage = document.getElementById('live-hud-stage');
+    const statusBadge = document.getElementById('live-stream-status-badge');
+    if (liveStage) {
+      liveStage.classList.remove('state-thinking');
+      liveStage.classList.add('state-speaking');
+      setTimeout(() => {
+        if (liveStage) liveStage.classList.remove('state-speaking');
+      }, 2800);
+    }
+    if (statusBadge) {
+      statusBadge.textContent = 'FRIDAY SPEAKING ⚡';
+      setTimeout(() => {
+        if (statusBadge && statusBadge.textContent === 'FRIDAY SPEAKING ⚡') {
+          statusBadge.textContent = `LIVE ${selectedLiveSource.toUpperCase()} STREAM ONLINE ⚡`;
+        }
+      }, 3000);
+    }
   }
 };
 
 window.fridayOnLiveUserMessage = function(uQuery) {
   if (uQuery) {
-    appendLiveFeedMessage(uQuery, 'user');
-    appendUserMessage(`👤 [Live Directive] ${uQuery}`);
+    const liveStage = document.getElementById('live-hud-stage');
+    const statusBadge = document.getElementById('live-stream-status-badge');
+    if (liveStage) {
+      liveStage.classList.add('state-thinking');
+    }
+    if (statusBadge) {
+      statusBadge.textContent = 'PROCESSING DIRECTIVE...';
+    }
   }
 };
 
 window.fridayOnLiveAlert = function(alertMsg) {
-  if (alertMsg) {
-    appendLiveFeedMessage(`Sentinel Alert: ${alertMsg}`, 'alert');
-    appendAssistantMessage(`⚡ **[Sentinel Sentinel Alert]**\n${alertMsg}`);
-  }
+  // Sentinel alerts in live mode are disabled; Core Friday handles all sentinels
 };
 
 window.fridayOnLiveStatus = function(statusStr) {

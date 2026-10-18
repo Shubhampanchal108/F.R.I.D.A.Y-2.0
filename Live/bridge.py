@@ -28,9 +28,8 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
 # Parent directory for relative imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from utiles import load_memory, add_to_history, search
+from utiles import load_memory, search
 from Tool_guard import load_tools, execute_tool, TOOLS
-from daemon import daemon_instance
 
 # Pre-load tools registry on import
 load_tools()
@@ -108,8 +107,9 @@ class FridayBridge:
             f"You are F.R.I.D.A.Y (Friendly Reliable Intelligent Digital Assistant for Youth), created by {creator_name}.\n"
             "You are currently operating in LIVE MULTIMODAL STREAMING MODE with continuous real-time screen/camera frames and bidirectional audio.\n"
             "\n"
-            "CRITICAL: YOU ARE NOT AN ISOLATED AGENT. You are the exact same F.R.I.D.A.Y that manages the user's desktop, tasks, reminders, and system sentinel. "
-            "You have direct memory of what Core Friday was working on with Sir.\n"
+            "CRITICAL: You are F.R.I.D.A.Y operating in dedicated live multimodal interaction. "
+            "Background sentinel monitoring and routine system alerts are handled independently by Core Friday. "
+            "In Live mode, focus on direct multimodal perception, answering Sir's questions, and executing requested tools on demand.\n"
             "\n"
             "--- RECENT CORE FRIDAY CONTEXT ---\n"
             f"Recent Conversation History with Sir:\n{context_str}\n"
@@ -120,39 +120,30 @@ class FridayBridge:
             "Rules & Directives:\n"
             f"1. Always address the user politely and respectfully as 'Sir' or '{creator_name}'.\n"
             "2. If asked about what is on screen or in front of the camera, describe it accurately, pointing out code, UI elements, errors, or objects.\n"
-            "3. Keep spoken replies natural, conversational, concise, and executive (around 1-3 sentences unless explaining a complex technical topic).\n"
+            "3. Keep spoken replies prompt, natural, crisp, and executive (1-2 sentences). Do not hesitate or add conversational fluff.\n"
             "4. Support both English and natural Hindi (Hinglish) seamlessly based on the user's language.\n"
             "5. Do NOT output raw JSON or code tags in spoken audio.\n"
             "6. You have DIRECT access to ALL live system tools (adjusting volume, brightness, battery check, launching apps, closing apps, focusing windows, taking screenshots, search, weather, news, media playback, timers, clipboard, tasks, reminders, email, files, mobile, network diagnostics). When the user asks you to perform an action or check system information, CALL the corresponding tool immediately, and after receiving the result, inform the user concisely in natural voice.\n"
             "7. REAL-TIME DYNAMIC VISION: Visual frames are continuously streamed to you. ALWAYS observe and describe the CURRENT / MOST RECENT frame you received. Screens and camera scenes change dynamically — never assume an older screen or application is still active if the current frame shows a different window or scene.\n"
-            "8. PROACTIVE SENTINEL ALERTS: If you receive a [SYSTEM NOTIFICATION / SENTINEL ALERT] turn, it is an urgent alert from Core Friday's background sentinel (e.g., low battery, due reminder, incoming email, health break). Immediately announce this alert to Sir politely and clearly in voice.\n"
-            "9. REAL-TIME VOICE ATTENTIVENESS: The user is speaking directly to you via live microphone streaming. Always listen attentively to what the user says. The moment you hear the user speak or ask a question, answer immediately in natural voice."
+            "8. ULTRA-LOW LATENCY REAL-TIME ATTENTIVENESS: The user is speaking directly via live microphone or typing directives. Respond immediately and fluidly the moment the user stops speaking."
         )
 
         return instruction
 
     def record_user_turn(self, query: str):
-        """Records a user query in Core Friday conversation memory."""
+        """Processes a live user directive without writing to Core conversation history."""
         if not query or not query.strip():
             return
         clean_q = query.strip()
-        try:
-            add_to_history("user", clean_q)
-        except Exception:
-            pass
-        # Emit structured token for UI widget listener
+        # Emit structured token for UI widget listener (does not touch core history)
         print(f"\n[LIVE_USER_QUERY]: {clean_q}\n", flush=True)
 
     def record_assistant_turn(self, reply: str):
-        """Records a Friday response in Core Friday conversation memory."""
+        """Processes a live Friday response without writing to Core conversation history."""
         if not reply or not reply.strip():
             return
         clean_r = reply.strip()
-        try:
-            add_to_history("assistant", clean_r)
-        except Exception:
-            pass
-        # Emit structured token for UI widget listener
+        # Emit structured token for UI widget listener (does not touch core history)
         print(f"\n[LIVE_FEED_REPLY]: {clean_r}\n", flush=True)
 
     def emit_status(self, status_msg: str):
@@ -160,65 +151,12 @@ class FridayBridge:
         print(f"\n[LIVE_STATUS]: {status_msg}\n", flush=True)
 
     def emit_alert(self, alert_text: str):
-        """Emits a proactive alert token."""
-        print(f"\n[LIVE_ALERT]: {alert_text}\n", flush=True)
+        """Alerts are handled by Core Friday."""
+        pass
 
     async def start_sentinel_monitor(self, session, send_lock):
-        """
-        Background sentinel monitor that checks Core Friday's daemon alerts
-        and forwards them to Gemini Live so Friday speaks them out in real time.
-        """
-        last_notif_count = len(daemon_instance.notification_history)
-
-        while not self._stop_event.is_set():
-            await asyncio.sleep(2.0)
-            if self._stop_event.is_set():
-                break
-
-            try:
-                # 1. Check newly added alerts from daemon notification history
-                current_history = daemon_instance.notification_history
-                if len(current_history) > last_notif_count:
-                    new_alerts = current_history[last_notif_count:]
-                    last_notif_count = len(current_history)
-
-                    for alert in new_alerts:
-                        title = alert.get("title", "Sentinel Notice")
-                        msg = alert.get("message", "")
-                        alert_prompt = f"[SYSTEM NOTIFICATION / SENTINEL ALERT]: {title} — {msg}. Please inform Sir right now in voice."
-
-                        self.emit_alert(f"{title}: {msg}")
-
-                        try:
-                            from google.genai import types
-                            async with send_lock:
-                                await session.send_client_content(
-                                    turns=[types.Content(role="user", parts=[types.Part(text=alert_prompt)])],
-                                    turn_complete=True
-                                )
-                        except Exception as e:
-                            pass
-
-                # 2. Check due reminders directly
-                from Tools.reminder import get_due_reminders
-                due_res = get_due_reminders()
-                if isinstance(due_res, dict) and due_res.get("due_reminders"):
-                    for rem in due_res["due_reminders"]:
-                        rem_text = rem.get("text", "")
-                        alert_prompt = f"[SYSTEM NOTIFICATION / SENTINEL ALERT]: Scheduled reminder '{rem_text}' is DUE NOW. Please alert Sir."
-                        self.emit_alert(f"Reminder Due: {rem_text}")
-                        try:
-                            from google.genai import types
-                            async with send_lock:
-                                await session.send_client_content(
-                                    turns=[types.Content(role="user", parts=[types.Part(text=alert_prompt)])],
-                                    turn_complete=True
-                                )
-                        except Exception:
-                            pass
-
-            except Exception:
-                await asyncio.sleep(2.0)
+        """Sentinel and background alerts are delegated exclusively to Core Friday."""
+        return
 
     def stop(self):
         """Signals stop to background bridge monitors."""

@@ -15,7 +15,7 @@ FORMAT = pyaudio.paInt16
 CHANNELS = 1
 SEND_SAMPLE_RATE = 16000
 RECEIVE_SAMPLE_RATE = 24000
-CHUNK_SIZE = 800
+CHUNK_SIZE = 1024
 
 
 class AudioStreamer:
@@ -86,12 +86,14 @@ class AudioStreamer:
 
                 blob = types.Blob(data=data, mime_type="audio/pcm;rate=16000")
                 async with send_lock:
-                    await session.send_realtime_input(media=blob)
+                    await session.send_realtime_input(audio=blob)
 
             except Exception as e:
-                if stop_event.is_set():
+                if not stop_event.is_set():
+                    print(f"\n[MIC STREAM NOTICE]: {e}\n", flush=True)
+                    await asyncio.sleep(0.02)
+                else:
                     break
-                await asyncio.sleep(0.01)
 
     async def play_audio_loop(self, stop_event):
         """

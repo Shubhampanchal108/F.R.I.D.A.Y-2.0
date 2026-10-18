@@ -62,7 +62,7 @@ Tools you have (with input parameters):
 - open_app(app) → App Opener
 - check_cpu() → CPU Check
 - clear_recycle_bin() → Clear Recycle Bin
-- close_app(app) -> close current application
+- close_app(app) -> close current application. If user did not tell the app name call this tool with arg app=None dont ask the app name to user just call tool.
 - find_my_ip -> find id address of device
 - minimize_active_window() -> minimize active window
 - maximize_active_window() -> maximize active window

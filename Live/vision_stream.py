@@ -21,7 +21,7 @@ class VisionStreamer:
     Optimized for low bandwidth to prioritize real-time audio streams.
     """
 
-    def __init__(self, target_size=(512, 384), quality=45):
+    def __init__(self, target_size=(448, 336), quality=38):
         self.target_size = target_size
         self.quality = quality
 
