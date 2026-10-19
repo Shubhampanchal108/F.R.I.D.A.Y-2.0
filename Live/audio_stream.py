@@ -84,6 +84,11 @@ class AudioStreamer:
                     await asyncio.sleep(0.01)
                     continue
 
+                # Echo Gate: If Friday is speaking via speakers, suppress mic forwarding to prevent acoustic feedback loop
+                if self.is_playing.is_set():
+                    await asyncio.sleep(0.01)
+                    continue
+
                 blob = types.Blob(data=data, mime_type="audio/pcm;rate=16000")
                 async with send_lock:
                     await session.send_realtime_input(audio=blob)
@@ -111,6 +116,8 @@ class AudioStreamer:
                 self.is_playing.set()
                 await asyncio.to_thread(self.output_stream.write, bytestream)
                 if self.audio_in_queue.empty():
+                    # Grace period to allow speaker acoustic reverb to decay
+                    await asyncio.sleep(0.12)
                     self.is_playing.clear()
             except asyncio.TimeoutError:
                 self.is_playing.clear()

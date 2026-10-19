@@ -9,6 +9,7 @@ from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 import screen_brightness_control as sbc
+import threading
 
 
 
@@ -488,3 +489,176 @@ def maximize_active_window():
                 "action": "maximize_active_window",
                 "message": str(e)
             }
+
+
+# =============================================================================
+# SYSTEM POWER & WORKSTATION CONTROLS (LOCK, SLEEP, SHUTDOWN, RESTART)
+# =============================================================================
+
+def lock_pc():
+    """Immediately locks the Windows workstation screen."""
+    try:
+        def _perform_lock():
+            time.sleep(0.5)  # Brief pause to allow voice confirmation before locking
+            ctypes.windll.user32.LockWorkStation()
+
+        t = threading.Thread(target=_perform_lock, daemon=True)
+        t.start()
+        return {
+            "status": "success",
+            "action": "lock_pc",
+            "message": "Workstation locked successfully."
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "action": "lock_pc",
+            "message": str(e)
+        }
+
+
+def sleep_pc():
+    """Puts the computer into sleep/suspend mode."""
+    def _perform_sleep():
+        time.sleep(1.5)  # Allow Friday to respond/speak before sleeping
+        try:
+            # Try via ctypes powrprof
+            ctypes.windll.powrprof.SetSuspendState(0, 1, 0)
+        except Exception:
+            try:
+                subprocess.run(
+                    ["powershell", "-NoProfile", "-Command",
+                     "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Application]::SetSuspendState([System.Windows.Forms.PowerState]::Suspend, $false, $false)"],
+                    shell=True
+                )
+            except Exception:
+                subprocess.run(["rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0"], shell=True)
+
+    try:
+        t = threading.Thread(target=_perform_sleep, daemon=True)
+        t.start()
+        return {
+            "status": "success",
+            "action": "sleep_pc",
+            "message": "Entering sleep mode."
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "action": "sleep_pc",
+            "message": str(e)
+        }
+
+
+def shutdown_pc(delay: int = 5):
+    """
+    Shuts down the Windows computer after a specified delay in seconds.
+    Default delay is 5 seconds to allow Friday to finish speaking.
+    """
+    try:
+        try:
+            delay = int(delay)
+        except (ValueError, TypeError):
+            delay = 5
+        if delay < 0:
+            delay = 0
+
+        # /s = shutdown, /t = timer in seconds
+        subprocess.run(["shutdown", "/s", "/t", str(delay)], check=True, shell=True)
+        return {
+            "status": "success",
+            "action": "shutdown_pc",
+            "delay": delay,
+            "message": f"System will shut down in {delay} seconds."
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "action": "shutdown_pc",
+            "message": str(e)
+        }
+
+
+def restart_pc(delay: int = 5):
+    """
+    Restarts the Windows computer after a specified delay in seconds.
+    Default delay is 5 seconds to allow Friday to finish speaking.
+    """
+    try:
+        try:
+            delay = int(delay)
+        except (ValueError, TypeError):
+            delay = 5
+        if delay < 0:
+            delay = 0
+
+        # /r = restart, /t = timer in seconds
+        subprocess.run(["shutdown", "/r", "/t", str(delay)], check=True, shell=True)
+        return {
+            "status": "success",
+            "action": "restart_pc",
+            "delay": delay,
+            "message": f"System will restart in {delay} seconds."
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "action": "restart_pc",
+            "message": str(e)
+        }
+
+
+def cancel_shutdown():
+    """Cancels a pending shutdown or restart if one is in progress."""
+    try:
+        res = subprocess.run(["shutdown", "/a"], capture_output=True, text=True, shell=True)
+        if res.returncode == 0:
+            return {
+                "status": "success",
+                "action": "cancel_shutdown",
+                "message": "Scheduled shutdown or restart has been cancelled."
+            }
+        else:
+            return {
+                "status": "info",
+                "action": "cancel_shutdown",
+                "message": "No scheduled shutdown or restart was in progress."
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "action": "cancel_shutdown",
+            "message": f"Unable to cancel shutdown: {str(e)}"
+        }
+
+
+def system_power_control(action: str, delay: int = 5):
+    """
+    Controls computer power states: lock screen, sleep, shutdown, restart, or cancel shutdown.
+
+    Parameters:
+        action (str): One of 'lock', 'sleep', 'shutdown', 'restart', 'cancel'.
+        delay (int): Delay in seconds before shutdown or restart (default: 5).
+    """
+    if not action:
+        return {
+            "status": "error",
+            "message": "Please specify a power action: 'lock', 'sleep', 'shutdown', 'restart', or 'cancel'."
+        }
+
+    act = str(action).lower().strip()
+    if act in ["lock", "lock_screen", "lock_pc", "lock_workstation"]:
+        return lock_pc()
+    elif act in ["sleep", "suspend", "sleep_pc", "standby"]:
+        return sleep_pc()
+    elif act in ["shutdown", "poweroff", "power_off", "turn_off", "shutdown_pc"]:
+        return shutdown_pc(delay=delay)
+    elif act in ["restart", "reboot", "restart_pc"]:
+        return restart_pc(delay=delay)
+    elif act in ["cancel", "cancel_shutdown", "abort", "abort_shutdown"]:
+        return cancel_shutdown()
+    else:
+        return {
+            "status": "error",
+            "message": f"Unknown power action '{action}'. Supported actions: 'lock', 'sleep', 'shutdown', 'restart', 'cancel'."
+        }

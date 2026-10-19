@@ -32,7 +32,9 @@ ACTION_TOOLS = {
     # Mobile
     "connect_mobile_with_bat", "unlock_device", "send_whatsapp_message", "phone_call_with_mobile",
     # New Productivity & Media Actions
-    "copy_to_clipboard", "system_media_control", "set_timer", "cancel_timer", "focus_window"
+    "copy_to_clipboard", "system_media_control", "set_timer", "cancel_timer", "focus_window",
+    # System Power Controls
+    "system_power_control", "lock_pc", "sleep_pc", "shutdown_pc", "restart_pc", "cancel_shutdown"
 }
 
 
@@ -41,8 +43,9 @@ def format_fallback_response(tool_name: str, args: dict, result) -> str:
     if not tool_name:
         return "Sir, I have completed the request."
 
-    if isinstance(result, dict) and "error" in result:
-        return f"Sir, I encountered an issue: {result.get('error')}."
+    if isinstance(result, dict) and (result.get("status") == "error" or "error" in result):
+        err_msg = result.get("message") or result.get("error") or "Operation failed"
+        return f"Sir, I encountered an issue: {err_msg}."
 
     if tool_name == "get_weather":
         if isinstance(result, dict):
@@ -111,6 +114,57 @@ def format_fallback_response(tool_name: str, args: dict, result) -> str:
         rem = args.get("reminder_text", "your reminder")
         t = args.get("remind_at", "")
         return f"Sir, reminder for '{rem}' at {t} has been set."
+
+    if tool_name in ["lock_pc", "lock_screen"]:
+        return "Sir, I have locked your workstation."
+
+    if tool_name == "sleep_pc":
+        return "Sir, putting your computer to sleep now."
+
+    if tool_name == "shutdown_pc":
+        delay = args.get("delay", 5)
+        return f"Sir, shutting down the computer in {delay} seconds. Have a good day."
+
+    if tool_name == "restart_pc":
+        delay = args.get("delay", 5)
+        return f"Sir, restarting the computer in {delay} seconds."
+
+    if tool_name == "cancel_shutdown":
+        return "Sir, the pending shutdown or restart has been cancelled."
+
+    if tool_name == "system_power_control":
+        action = str(args.get("action", "")).lower()
+        if "lock" in action:
+            return "Sir, I have locked your workstation."
+        elif "sleep" in action:
+            return "Sir, putting your computer to sleep now."
+        elif "shutdown" in action or "turn_off" in action or "power" in action:
+            delay = args.get("delay", 5)
+            return f"Sir, shutting down the computer in {delay} seconds. Have a good day."
+        elif "restart" in action or "reboot" in action:
+            delay = args.get("delay", 5)
+            return f"Sir, restarting the computer in {delay} seconds."
+        elif "cancel" in action or "abort" in action:
+            return "Sir, the pending shutdown or restart has been cancelled."
+        return "Sir, power control command executed."
+
+    if tool_name == "connect_mobile_with_bat":
+        if isinstance(result, dict) and result.get("status") == "success":
+            ip = result.get("device_ip") or args.get("ip_address") or args.get("device_ip") or "your mobile"
+            return f"Sir, mobile device at {ip} has been connected successfully."
+        elif isinstance(result, dict) and "message" in result:
+            return f"Sir, {result['message']}."
+
+    if tool_name == "unlock_device":
+        return "Sir, your mobile device has been unlocked."
+
+    if tool_name == "phone_call_with_mobile":
+        num = args.get("phone_number") or args.get("number", "")
+        return f"Sir, dialing {num} from your mobile."
+
+    if tool_name == "send_whatsapp_message":
+        num = args.get("phone_number") or args.get("number", "")
+        return f"Sir, WhatsApp message sent to {num}."
 
     if isinstance(result, dict) and "message" in result:
         return f"Sir, {result['message']}."
@@ -235,7 +289,32 @@ def Brain(prompt: str, origin='server', source=None, tool_callback=None):
 
             msg = response.choices[0].message.content
             if not msg:
-                return "Sir, I received an empty text reply from the language model."
+                # 1. Check if reasoning model (e.g. gpt-oss, deepseek-r1) populated reasoning field instead
+                reasoning = getattr(response.choices[0].message, "reasoning", None) or getattr(response.choices[0].message, "reasoning_content", None)
+                if reasoning and isinstance(reasoning, str) and reasoning.strip():
+                    parsed = parse_tool_call(reasoning)
+                    if parsed:
+                        msg = json.dumps(parsed)
+                    elif len(reasoning.strip()) > 10:
+                        msg = reasoning.strip()
+
+                # 2. Check if model provided a refusal
+                refusal = getattr(response.choices[0].message, "refusal", None)
+                if not msg and refusal:
+                    return f"Sir, the language model refused the request: {refusal}"
+
+                # 3. Check finish reason or fallback to last executed tool result
+                finish_reason = getattr(response.choices[0], "finish_reason", None)
+                if not msg:
+                    if last_tool_result is not None:
+                        # If a tool already completed, return clean confirmation instead of error
+                        return format_fallback_response(last_tool_name, last_tool_args, last_tool_result)
+                    elif finish_reason == "content_filter":
+                        return "Sir, the language model filtered this prompt under its content safety policy."
+                    elif finish_reason == "length":
+                        return "Sir, the model exhausted its token context length during reasoning."
+                    else:
+                        return "Sir, I received an empty text reply from the language model. Please try asking again."
             
             msg = msg.strip()
 
@@ -296,11 +375,16 @@ def Brain(prompt: str, origin='server', source=None, tool_callback=None):
                     last_tool_args = args
                     last_tool_result = tool_result
 
-                    # For pure action tools that succeeded, we can immediately return a clean response
+                    # For pure action tools, immediately return formatted natural language response (whether success or error)
                     is_action = tool_name in ACTION_TOOLS
-                    is_success = not (isinstance(tool_result, dict) and "error" in tool_result)
+                    has_error = (
+                        isinstance(tool_result, dict) and (
+                            "error" in tool_result or tool_result.get("status") == "error"
+                        )
+                    ) or (isinstance(tool_result, str) and tool_result.startswith("❌"))
+                    is_success = not has_error
 
-                    if is_action and is_success:
+                    if is_action:
                         action_reply = format_fallback_response(tool_name, args, tool_result)
                         add_to_history("user", prompt)
                         add_to_history("assistant", action_reply)

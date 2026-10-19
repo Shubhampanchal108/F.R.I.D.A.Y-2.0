@@ -31,12 +31,14 @@ from Tool_guard import execute_tool
 
 console = Console()
 
+
+
 LIVE_MODELS = [
-    "models/gemini-2.5-flash-native-audio-preview-12-2025",
     "models/gemini-2.5-flash-native-audio-latest",
+    "models/gemini-2.5-flash-native-audio-preview-12-2025",
     "models/gemini-2.5-flash-native-audio-preview-09-2025",
-    "gemini-2.0-flash-exp",
-    "models/gemini-3.8-live"
+    "models/gemini-3.8-live",
+    "gemini-2.0-flash-exp"
 ]
 
 
@@ -154,8 +156,13 @@ class LiveSession:
                     if data := response.data:
                         self.audio.audio_in_queue.put_nowait(data)
 
-                    # 2. Text response parts & output transcription
-                    text_chunk = response.text
+                    # 2. Text response parts & output transcription (safely extracted without non-text parts warnings)
+                    text_chunk = None
+                    if response.server_content and getattr(response.server_content, "model_turn", None):
+                        for part in response.server_content.model_turn.parts:
+                            if getattr(part, "text", None):
+                                text_chunk = part.text
+                                break
                     if not text_chunk and response.server_content and getattr(response.server_content, "output_transcription", None):
                         text_chunk = response.server_content.output_transcription.text
 

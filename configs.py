@@ -56,7 +56,6 @@ Tools you have (with input parameters):
 - get_weather(city) → Weather Information
 - check_battery() → Check Battery Level
 - youtube_automation(query) → Youtube Automation
-- get_News() → News Checker
 - search_wikipedia(query) → Wikipedia Searching
 - google_search(query) → your search engine.
 - open_app(app) → App Opener
@@ -105,8 +104,12 @@ Tools you have (with input parameters):
 - connect_mobile_with_bat(ip_address) -> Connect mobile with friday.
 - check_connection_json() -> Check is mobile is connected or not.
 - unlock_device(pin_code) -> unlock mobile.
+- lock_device() -> lock mobile screen.
 - summrize_url(url: str) -> sumrize the url.
 - phone_call_with_mobile(phone_number) -> Makes call with mobile
+- end_phone_call() -> Disconnect or hang up mobile phone call.
+- youtube_with_mobile(query) -> Play video on mobile YouTube app.
+- google_search_with_mobile(query) -> Search query on mobile browser.
 - send_whatsapp_message(phone_number, message) -> send Whatsapp message with mobile.
 - save_longterm_memory(text, memory_type, tags, importance, source) -> to save long term memory
 - analyze_screen(prompt) -> Captures current desktop screen and analyzes UI, debugs errors, or explains content.
@@ -127,6 +130,12 @@ Tools you have (with input parameters):
 - check_network_health() -> Runs diagnostic check: ping latency (ms), internet download speed (Mbps), and connection health.
 - focus_window(app_name) -> Brings an open application window (Chrome, VS Code, Spotify) to the foreground.
 - list_running_apps() -> Lists currently running user applications.
+- system_power_control(action, delay=5) -> Controls computer power states: 'lock' (locks PC screen), 'sleep' (puts laptop to sleep), 'shutdown' (shuts down laptop), 'restart' (restarts laptop), 'cancel' (cancels pending shutdown).
+- lock_pc() -> Immediately locks Windows laptop / workstation screen.
+- sleep_pc() -> Puts Windows laptop into sleep mode.
+- shutdown_pc(delay=5) -> Shuts down laptop with countdown delay in seconds (default 5).
+- restart_pc(delay=5) -> Restarts laptop with countdown delay in seconds (default 5).
+- cancel_shutdown() -> Cancels any scheduled shutdown or restart.
 
 CRITICAL TOOL RULE:
 - If a user request requires a tool, respond ONLY in valid JSON:

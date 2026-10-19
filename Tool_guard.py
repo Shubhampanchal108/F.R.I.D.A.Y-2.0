@@ -14,8 +14,12 @@ from Tools.Mobile_Automation import (
     check_connection_json,
     connect_mobile_with_bat,
     unlock_device,
+    lock_device,
     send_whatsapp_message,
-    phone_call_with_mobile
+    phone_call_with_mobile,
+    end_phone_call,
+    youtube_with_mobile,
+    google_search_with_mobile
 )
 from Tools.browser import google_search, summrize_url 
 try:
@@ -62,7 +66,13 @@ MOBILE_ALLOWED = {
     "readmail_Full_body",
     "save_longterm_memory",
     "summrize_url",
-    "check_new_mail"
+    "check_new_mail",
+    "system_power_control",
+    "lock_pc",
+    "sleep_pc",
+    "shutdown_pc",
+    "restart_pc",
+    "cancel_shutdown"
 }
 
 WEB_ALLOWED = {
@@ -87,7 +97,13 @@ WEB_ALLOWED = {
     "readmail_Full_body",
     "save_longterm_memory",
     "summrize_url",
-    "check_new_mail"
+    "check_new_mail",
+    "system_power_control",
+    "lock_pc",
+    "sleep_pc",
+    "shutdown_pc",
+    "restart_pc",
+    "cancel_shutdown"
 }
 
 
@@ -168,6 +184,12 @@ TOOLS = {
         "capture_screenshot": capture_screenshot,
         "minimize_active_window": minimize_active_window,
         "maximize_active_window": maximize_active_window,
+        "system_power_control": system_power_control,
+        "lock_pc": lock_pc,
+        "sleep_pc": sleep_pc,
+        "shutdown_pc": shutdown_pc,
+        "restart_pc": restart_pc,
+        "cancel_shutdown": cancel_shutdown,
 
         # ---- YouTube ----
         "youtube_automation": play_youtube,
@@ -210,8 +232,12 @@ TOOLS = {
         "connect_mobile_with_bat": connect_mobile_with_bat,
         "check_connection_json": check_connection_json,
         "unlock_device": unlock_device,
+        "lock_device": lock_device,
         "send_whatsapp_message": send_whatsapp_message,
         "phone_call_with_mobile": phone_call_with_mobile,
+        "end_phone_call": end_phone_call,
+        "youtube_with_mobile": youtube_with_mobile,
+        "google_search_with_mobile": google_search_with_mobile,
 
         # ---- Productivity, Media, Windows & Diagnostics ----
         "copy_to_clipboard": copy_to_clipboard,

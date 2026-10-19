@@ -100,6 +100,62 @@ LIVE_TOOLS = [
                 "description": "Maximize the current active window."
             },
             {
+                "name": "system_power_control",
+                "description": "Control computer power state: lock screen, put to sleep, shutdown, restart, or cancel pending shutdown.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "action": {
+                            "type": "STRING",
+                            "description": "Power action: 'lock' (lock screen), 'sleep' (put laptop to sleep), 'shutdown' (power off laptop), 'restart' (reboot laptop), or 'cancel' (cancel pending shutdown)."
+                        },
+                        "delay": {
+                            "type": "INTEGER",
+                            "description": "Delay in seconds before shutdown or restart (default 5)."
+                        }
+                    },
+                    "required": ["action"]
+                }
+            },
+            {
+                "name": "lock_pc",
+                "description": "Immediately lock the Windows workstation / laptop screen."
+            },
+            {
+                "name": "sleep_pc",
+                "description": "Put the laptop / computer into sleep mode."
+            },
+            {
+                "name": "shutdown_pc",
+                "description": "Shut down the Windows laptop / computer with an optional countdown delay timer.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "delay": {
+                            "type": "INTEGER",
+                            "description": "Delay in seconds before shutting down (default 5)."
+                        }
+                    }
+                }
+            },
+            {
+                "name": "restart_pc",
+                "description": "Restart / reboot the Windows laptop / computer with an optional countdown delay timer.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "delay": {
+                            "type": "INTEGER",
+                            "description": "Delay in seconds before restarting (default 5)."
+                        }
+                    }
+                }
+            },
+            {
+                "name": "cancel_shutdown",
+                "description": "Cancel a scheduled shutdown or restart if one is in progress."
+            },
+            {
                 "name": "clear_recycle_bin",
                 "description": "Empty the Windows recycle bin."
             },
