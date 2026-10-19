@@ -690,6 +690,97 @@ LIVE_TOOLS = [
                     },
                     "required": ["code_or_filename"]
                 }
+            },
+            # ---- Computer-Use & Desktop GUI Automation ----
+            {
+                "name": "click_screen",
+                "description": "Click on any visual UI element on the desktop screen using normalized coordinates (0 to 1000). Inspect the current screen frame to locate the element's center point.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "x": {"type": "INTEGER", "description": "Normalized X coordinate (0 = leftmost edge, 1000 = rightmost edge)."},
+                        "y": {"type": "INTEGER", "description": "Normalized Y coordinate (0 = topmost edge, 1000 = bottommost edge)."},
+                        "button": {"type": "STRING", "description": "Mouse button: 'left' or 'right' (default 'left')."}
+                    },
+                    "required": ["x", "y"]
+                }
+            },
+            {
+                "name": "double_click_screen",
+                "description": "Double click on a desktop icon, file, or word on screen using normalized coordinates (0 to 1000).",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "x": {"type": "INTEGER", "description": "Normalized X coordinate (0-1000)."},
+                        "y": {"type": "INTEGER", "description": "Normalized Y coordinate (0-1000)."}
+                    },
+                    "required": ["x", "y"]
+                }
+            },
+            {
+                "name": "right_click_screen",
+                "description": "Right click on a visual UI element on screen to open its context menu using normalized coordinates (0 to 1000).",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "x": {"type": "INTEGER", "description": "Normalized X coordinate (0-1000)."},
+                        "y": {"type": "INTEGER", "description": "Normalized Y coordinate (0-1000)."}
+                    },
+                    "required": ["x", "y"]
+                }
+            },
+            {
+                "name": "type_on_screen",
+                "description": "Type text into the currently active or clicked input field, search bar, or document. Supports pressing enter immediately.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "text": {"type": "STRING", "description": "Text to type into the focused field."},
+                        "press_enter": {"type": "BOOLEAN", "description": "Whether to press Enter after typing (e.g. to submit search)."}
+                    },
+                    "required": ["text"]
+                }
+            },
+            {
+                "name": "press_hotkey",
+                "description": "Press keyboard shortcut or special keys (e.g. ['ctrl', 't'] for new tab, ['ctrl', 'w'] to close tab, ['alt', 'tab'], ['enter'], ['escape']).",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "keys": {
+                            "type": "ARRAY",
+                            "items": {"type": "STRING"},
+                            "description": "List of key names to press in combination (e.g. ['ctrl', 't'])."
+                        }
+                    },
+                    "required": ["keys"]
+                }
+            },
+            {
+                "name": "scroll_screen",
+                "description": "Scroll the active web page, document, or window up or down.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "direction": {"type": "STRING", "description": "Scroll direction: 'down' or 'up'."},
+                        "amount": {"type": "INTEGER", "description": "Scroll distance intensity in pixels (default 300)."}
+                    },
+                    "required": ["direction"]
+                }
+            },
+            {
+                "name": "drag_and_drop_screen",
+                "description": "Drag from starting coordinates to ending coordinates using normalized (0-1000) scale.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "start_x": {"type": "INTEGER", "description": "Starting normalized X (0-1000)."},
+                        "start_y": {"type": "INTEGER", "description": "Starting normalized Y (0-1000)."},
+                        "end_x": {"type": "INTEGER", "description": "Ending normalized X (0-1000)."},
+                        "end_y": {"type": "INTEGER", "description": "Ending normalized Y (0-1000)."}
+                    },
+                    "required": ["start_x", "start_y", "end_x", "end_y"]
+                }
             }
         ]
     }

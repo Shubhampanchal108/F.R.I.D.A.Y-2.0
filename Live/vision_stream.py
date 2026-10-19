@@ -21,31 +21,53 @@ class VisionStreamer:
     Optimized for low bandwidth to prioritize real-time audio streams.
     """
 
-    def __init__(self, target_size=(448, 336), quality=38):
+    def __init__(self, target_size=(768, 432), quality=45):
         self.target_size = target_size
         self.quality = quality
 
     def _get_screen_blob(self):
         """Captures a screenshot of the primary monitor as a JPEG Blob."""
+        img = None
+
+        # 1. Try mss (fastest)
         try:
             with mss.mss() as sct:
                 monitor = sct.monitors[1] if len(sct.monitors) > 1 else sct.monitors[0]
-                i = sct.grab(monitor)
-                img = PIL.Image.frombytes("RGB", i.size, i.rgb)
-                img.thumbnail(self.target_size)
-                image_io = io.BytesIO()
-                img.save(image_io, format="JPEG", quality=self.quality)
-                return types.Blob(data=image_io.getvalue(), mime_type="image/jpeg")
+                shot = sct.grab(monitor)
+                pil_img = PIL.Image.frombytes("RGB", shot.size, shot.bgra, "raw", "BGRX")
+                extrema = pil_img.getextrema()
+                if extrema != ((0, 0), (0, 0), (0, 0)):
+                    img = pil_img
         except Exception:
+            pass
+
+        # 2. Try PIL ImageGrab fallback
+        if img is None:
             try:
                 import PIL.ImageGrab
-                img = PIL.ImageGrab.grab()
-                img.thumbnail(self.target_size)
-                image_io = io.BytesIO()
-                img.save(image_io, format="JPEG", quality=self.quality)
-                return types.Blob(data=image_io.getvalue(), mime_type="image/jpeg")
+                pil_img = PIL.ImageGrab.grab()
+                if pil_img and pil_img.getextrema() != ((0, 0), (0, 0), (0, 0)):
+                    img = pil_img
+            except Exception:
+                pass
+
+        # 3. Fallback to shot if both were dark (e.g. dark desktop theme)
+        if img is None:
+            try:
+                with mss.mss() as sct:
+                    monitor = sct.monitors[1] if len(sct.monitors) > 1 else sct.monitors[0]
+                    shot = sct.grab(monitor)
+                    img = PIL.Image.frombytes("RGB", shot.size, shot.bgra, "raw", "BGRX")
             except Exception:
                 return None
+
+        try:
+            img.thumbnail(self.target_size)
+            image_io = io.BytesIO()
+            img.save(image_io, format="JPEG", quality=self.quality)
+            return types.Blob(data=image_io.getvalue(), mime_type="image/jpeg")
+        except Exception:
+            return None
 
     def _get_camera_blob(self, cap):
         """Captures a frame from the webcam VideoCapture as a JPEG Blob."""
@@ -67,8 +89,11 @@ class VisionStreamer:
             try:
                 async with send_lock:
                     await session.send_realtime_input(media=init_blob)
-            except Exception:
-                pass
+            except Exception as e:
+                err_msg = str(e).lower()
+                if "closed" in err_msg or "no close frame" in err_msg or "1006" in err_msg:
+                    stop_event.set()
+                    return
 
         while not stop_event.is_set():
             await asyncio.sleep(interval)
@@ -82,9 +107,11 @@ class VisionStreamer:
             try:
                 async with send_lock:
                     await session.send_realtime_input(media=blob)
-            except Exception:
-                if stop_event.is_set():
-                    break
+            except Exception as e:
+                err_msg = str(e).lower()
+                if "closed" in err_msg or "no close frame" in err_msg or "1006" in err_msg:
+                    stop_event.set()
+                break
 
     async def stream_camera(self, session, send_lock, stop_event, interval=1.0):
         """Continuously captures and streams webcam frames."""

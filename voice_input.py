@@ -37,35 +37,30 @@ def UniversalTranslator(Text: str) -> str:
         return Text
 
 
-def SpeechRecognition(input_language="en", timeout=6, phrase_time_limit=10):
+def SpeechRecognition(input_language="en", timeout=8, phrase_time_limit=20):
     """
-    Native, lightweight microphone speech recognition using Google Speech API.
-    Does not launch external browsers or pollute the terminal with logs.
+    Robust microphone speech recognition using Google Speech API.
+    Configured with a generous 1.8s pause threshold so it never cuts off speech mid-sentence.
     """
     recognizer = sr.Recognizer()
-    recognizer.energy_threshold = 300
-    recognizer.dynamic_energy_threshold = True
-    recognizer.pause_threshold = 0.8
+    recognizer.energy_threshold = 350
+    recognizer.dynamic_energy_threshold = False  # Fixed threshold to prevent fading out sentence tails
+    recognizer.pause_threshold = 1.8             # Allows natural breathing & pauses without cutting off
+    recognizer.non_speaking_duration = 1.2
 
     try:
         with sr.Microphone() as source:
-            recognizer.adjust_for_ambient_noise(source, duration=0.4)
+            recognizer.adjust_for_ambient_noise(source, duration=0.5)
             audio = recognizer.listen(source, timeout=timeout, phrase_time_limit=phrase_time_limit)
 
-        lang_code = "en-US" if input_language.lower() == "en" else input_language
+        # en-IN recognizes Indian English & Hinglish significantly better than en-US
+        lang_code = "en-IN" if input_language.lower() in ["en", "en-us"] else input_language
         raw_text = recognizer.recognize_google(audio, language=lang_code).strip()
 
         if not raw_text:
             return None
 
-        if input_language.lower() != "en":
-            try:
-                translated = UniversalTranslator(raw_text)
-                return QueryModifier(translated)
-            except Exception:
-                return QueryModifier(raw_text)
-        else:
-            return QueryModifier(raw_text)
+        return QueryModifier(raw_text)
 
     except (sr.WaitTimeoutError, sr.UnknownValueError):
         return None

@@ -37,6 +37,16 @@ from Tools.timer_tool import set_timer, list_active_timers, cancel_timer
 from Tools.document_reader import read_pdf_or_document
 from Tools.network_tool import check_network_health
 from Tools.window_manager import focus_window, list_running_apps
+from Tools.gui_automation import (
+    click_screen,
+    double_click_screen,
+    right_click_screen,
+    type_on_screen,
+    press_hotkey,
+    scroll_screen,
+    drag_and_drop_screen,
+    move_cursor_to,
+)
 
 
 # ================================
@@ -250,6 +260,16 @@ TOOLS = {
         "check_network_health": check_network_health,
         "focus_window": focus_window,
         "list_running_apps": list_running_apps,
+
+        # ---- Computer-Use & Desktop GUI Automation ----
+        "click_screen": click_screen,
+        "double_click_screen": double_click_screen,
+        "right_click_screen": right_click_screen,
+        "type_on_screen": type_on_screen,
+        "press_hotkey": press_hotkey,
+        "scroll_screen": scroll_screen,
+        "drag_and_drop_screen": drag_and_drop_screen,
+        "move_cursor_to": move_cursor_to,
     }
 
 

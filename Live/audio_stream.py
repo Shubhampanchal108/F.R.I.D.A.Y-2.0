@@ -77,6 +77,8 @@ class AudioStreamer:
         print("🎙️ [AUDIO STREAM]: Hardware microphone active and streaming live audio (16000Hz Mono PCM)...", flush=True)
 
         kwargs = {"exception_on_overflow": False}
+        import numpy as np
+
         while not stop_event.is_set():
             try:
                 data = await asyncio.to_thread(self.audio_stream.read, CHUNK_SIZE, **kwargs)
@@ -84,21 +86,46 @@ class AudioStreamer:
                     await asyncio.sleep(0.01)
                     continue
 
-                # Echo Gate: If Friday is speaking via speakers, suppress mic forwarding to prevent acoustic feedback loop
+                # Calculate RMS sound energy of current microphone chunk
+                samples = np.frombuffer(data, dtype=np.int16)
+                rms = float(np.sqrt(np.mean(samples.astype(np.float32)**2))) if len(samples) > 0 else 0.0
+
+                # Dynamic Smart Gate:
+                # 1. When Friday is speaking: Only allow loud/intentional user interruption (speech > 550 RMS)
+                #    Soft speaker echo (< 550 RMS) is dropped to prevent acoustic feedback loop.
+                # 2. When Friday is silent: Filter out faint ambient room noise (< 120 RMS).
                 if self.is_playing.is_set():
-                    await asyncio.sleep(0.01)
-                    continue
+                    if rms < 550.0:
+                        await asyncio.sleep(0.01)
+                        continue
+                else:
+                    if rms < 120.0:
+                        await asyncio.sleep(0.01)
+                        continue
 
                 blob = types.Blob(data=data, mime_type="audio/pcm;rate=16000")
                 async with send_lock:
                     await session.send_realtime_input(audio=blob)
 
             except Exception as e:
+                err_msg = str(e).lower()
+                if "closed" in err_msg or "no close frame" in err_msg or "1006" in err_msg:
+                    stop_event.set()
+                    break
                 if not stop_event.is_set():
                     print(f"\n[MIC STREAM NOTICE]: {e}\n", flush=True)
-                    await asyncio.sleep(0.02)
+                    await asyncio.sleep(0.2)
                 else:
                     break
+
+    def clear_playback(self):
+        """Instantly clears all audio output queue and silences speaker on interruption."""
+        self.is_playing.clear()
+        while not self.audio_in_queue.empty():
+            try:
+                self.audio_in_queue.get_nowait()
+            except Exception:
+                break
 
     async def play_audio_loop(self, stop_event):
         """
@@ -117,7 +144,7 @@ class AudioStreamer:
                 await asyncio.to_thread(self.output_stream.write, bytestream)
                 if self.audio_in_queue.empty():
                     # Grace period to allow speaker acoustic reverb to decay
-                    await asyncio.sleep(0.12)
+                    await asyncio.sleep(0.10)
                     self.is_playing.clear()
             except asyncio.TimeoutError:
                 self.is_playing.clear()

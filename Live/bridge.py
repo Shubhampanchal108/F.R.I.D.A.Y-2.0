@@ -125,7 +125,15 @@ class FridayBridge:
             "5. Do NOT output raw JSON or code tags in spoken audio.\n"
             "6. You have DIRECT access to ALL live system tools (adjusting volume, brightness, power control like lock screen, sleep, shutdown, restart, battery check, launching apps, closing apps, focusing windows, taking screenshots, search, weather, news, media playback, timers, clipboard, tasks, reminders, email, files, mobile, network diagnostics). When the user asks you to perform an action or check system information, CALL the corresponding tool immediately, and after receiving the result, inform the user concisely in natural voice.\n"
             "7. REAL-TIME DYNAMIC VISION: Visual frames are continuously streamed to you. ALWAYS observe and describe the CURRENT / MOST RECENT frame you received. Screens and camera scenes change dynamically — never assume an older screen or application is still active if the current frame shows a different window or scene.\n"
-            "8. ULTRA-LOW LATENCY REAL-TIME ATTENTIVENESS: The user is speaking directly via live microphone or typing directives. Respond immediately and fluidly the moment the user stops speaking."
+            "8. ULTRA-LOW LATENCY REAL-TIME ATTENTIVENESS: The user is speaking directly via live microphone or typing directives. Respond immediately and fluidly the moment the user stops speaking.\n"
+            "9. COMPUTER-USE & SCREEN AUTOMATION (CLICK, TYPE, SCROLL): You have full visual grounding on the screen frames streamed to you. When Sir asks you to click, type, press keys, scroll, or interact with any window, browser, button, or link:\n"
+            "   - Visually locate the center of the target UI element on the current screen frame.\n"
+            "   - Compute its normalized coordinates on a 0 to 1000 scale: X (0=left, 1000=right) and Y (0=top, 1000=bottom).\n"
+            "   - Call `click_screen(x, y)` to click, `double_click_screen(x, y)` to open files/apps, `right_click_screen(x, y)` for context menus.\n"
+            "   - Call `type_on_screen(text, press_enter=True)` to fill search bars, address bars, or forms.\n"
+            "   - Call `press_hotkey(keys)` for browser/window shortcuts (e.g. ['ctrl', 't'] for new tab, ['ctrl', 'w'] to close, ['alt', 'tab']).\n"
+            "   - Call `scroll_screen(direction, amount)` to scroll pages up/down.\n"
+            "   - Chain these actions smoothly to complete multi-step tasks autonomously."
         )
 
         return instruction

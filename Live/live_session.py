@@ -120,9 +120,16 @@ class LiveSession:
                 # Record in shared Core Friday conversation memory & UI
                 self.bridge.record_user_turn(text)
 
+                parts = []
+                if self.video_mode == "screen":
+                    screen_blob = await asyncio.to_thread(self.vision._get_screen_blob)
+                    if screen_blob:
+                        parts.append(types.Part(inline_data=screen_blob))
+                parts.append(types.Part(text=text))
+
                 async with self.send_lock:
                     await self.session.send_client_content(
-                        turns=[types.Content(role="user", parts=[types.Part(text=text)])],
+                        turns=[types.Content(role="user", parts=parts)],
                         turn_complete=True
                     )
             except (asyncio.CancelledError, KeyboardInterrupt):
@@ -131,6 +138,58 @@ class LiveSession:
                 if self.stop_event.is_set():
                     break
                 await asyncio.sleep(0.05)
+
+    async def stt_voice_input_loop(self):
+        """
+        Continuous robust voice listener:
+        - Listens to full sentences without mid-sentence cutoffs using generous pause threshold.
+        - Automatically pauses while Friday is speaking to prevent self-echo.
+        - Sends full, clean text turns to Gemini Live WebSocket.
+        """
+        from voice_input import SpeechRecognition
+        console.print("[bold green]🎙️ Robust Voice Recognition Active: Speak naturally, full sentences supported.[/bold green]")
+
+        while not self.stop_event.is_set():
+            try:
+                # Wait if Friday is currently speaking through the speakers
+                while self.audio.is_playing.is_set() and not self.stop_event.is_set():
+                    await asyncio.sleep(0.1)
+
+                if self.stop_event.is_set():
+                    break
+
+                # Run robust SpeechRecognition in background worker thread
+                text = await asyncio.to_thread(SpeechRecognition, input_language="en", timeout=8, phrase_time_limit=20)
+                if not text or not str(text).strip():
+                    await asyncio.sleep(0.05)
+                    continue
+
+                clean_text = str(text).strip()
+                if self.stop_event.is_set():
+                    break
+
+                console.print(f"\n[bold green]👤 You (Spoken):[/bold green] {clean_text}", highlight=False)
+                self.bridge.record_user_turn(clean_text)
+
+                parts = []
+                if self.video_mode == "screen":
+                    screen_blob = await asyncio.to_thread(self.vision._get_screen_blob)
+                    if screen_blob:
+                        parts.append(types.Part(inline_data=screen_blob))
+                parts.append(types.Part(text=clean_text))
+
+                async with self.send_lock:
+                    await self.session.send_client_content(
+                        turns=[types.Content(role="user", parts=parts)],
+                        turn_complete=True
+                    )
+
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                if self.stop_event.is_set():
+                    break
+                await asyncio.sleep(0.1)
 
     async def receive_loop(self):
         """
@@ -142,6 +201,7 @@ class LiveSession:
         """
         new_turn = True
         turn_text_buffer = []
+        user_speech_buffer = []
 
         try:
             while not self.stop_event.is_set():
@@ -151,6 +211,11 @@ class LiveSession:
                 async for response in turn:
                     if self.stop_event.is_set():
                         break
+
+                    # 0. Check for Barge-in / User Interruption
+                    if response.server_content and getattr(response.server_content, "interrupted", False):
+                        self.audio.clear_playback()
+                        new_turn = True
 
                     # 1. Neural audio playback chunk
                     if data := response.data:
@@ -173,14 +238,13 @@ class LiveSession:
                             new_turn = False
                         print(text_chunk, end="", flush=True)
 
-                    # 3. User spoken voice transcription feedback (Gemini recognized speech)
+                    # 3. User spoken voice transcription (buffer deltas to avoid phoneme-by-phoneme terminal spam)
                     if response.server_content and getattr(response.server_content, "input_transcription", None):
-                        u_speech = response.server_content.input_transcription.text
-                        if u_speech and u_speech.strip():
-                            console.print(f"\n[bold green]👤 You (Spoken):[/bold green] {u_speech.strip()}", highlight=False)
-                            self.bridge.record_user_turn(u_speech.strip())
+                        u_chunk = response.server_content.input_transcription.text
+                        if u_chunk:
+                            user_speech_buffer.append(u_chunk)
 
-                    # 3. Function Calling / Live Tool Execution
+                    # 4. Function Calling / Live Tool Execution
                     if tool_call := response.tool_call:
                         function_responses = []
                         for call in tool_call.function_calls:
@@ -215,6 +279,14 @@ class LiveSession:
                     if response.tool_call_cancellation:
                         console.print("[dim yellow]⚠️ Tool call was cancelled by model.[/dim yellow]")
 
+                # Emit consolidated user spoken query (only when full sentence/turn is recognized)
+                if user_speech_buffer:
+                    full_u_speech = "".join(user_speech_buffer).strip()
+                    if full_u_speech and full_u_speech != "<noise>" and len(full_u_speech) > 1:
+                        console.print(f"\n[bold green]👤 You (Spoken):[/bold green] {full_u_speech}", highlight=False)
+                        self.bridge.record_user_turn(full_u_speech)
+                    user_speech_buffer = []
+
                 new_turn = True
                 if turn_text_buffer:
                     full_reply = "".join(turn_text_buffer).strip()
@@ -234,7 +306,8 @@ class LiveSession:
             pass
         except Exception as e:
             if not self.stop_event.is_set():
-                console.print(f"\n[dim red]⚠️ Receive notice: {e}[/dim red]")
+                console.print(f"\n[dim red]⚠️ Live connection closed: {e}[/dim red]")
+                self.stop_event.set()
 
     async def run(self):
         """Main connection and streaming loop."""
@@ -258,7 +331,7 @@ class LiveSession:
             input_audio_transcription=types.AudioTranscriptionConfig(),
             generation_config=types.GenerationConfig(
                 thinking_config=types.ThinkingConfig(thinking_budget=0),
-                temperature=0.7,
+                temperature=0.5,
             ),
             tools=tools,
             speech_config=types.SpeechConfig(
@@ -288,7 +361,7 @@ class LiveSession:
 
                     # Launch concurrent multimodal tasks
                     send_text_task = tg.create_task(self.send_text_loop())
-                    tg.create_task(self.audio.listen_audio_loop(session, self.send_lock, self.stop_event))
+                    tg.create_task(self.stt_voice_input_loop())
 
                     if self.video_mode == "camera":
                         tg.create_task(self.vision.stream_camera(session, self.send_lock, self.stop_event))
