@@ -1406,6 +1406,7 @@ function setLiveStreamButtons(active) {
       liveDot.style.background = '';
       liveDot.style.boxShadow = '';
     }
+    resetLiveUserQuery();
   }
 
   if (btnStart) {
@@ -1423,6 +1424,52 @@ function setLiveStreamButtons(active) {
     } else {
       btnStop.classList.remove('disabled');
     }
+  }
+}
+
+function updateLiveUserQuery(queryText, source = 'VOICE / TEXT') {
+  if (!queryText) return;
+  const clean = String(queryText).replace(/^\[LIVE_USER_QUERY\]:?\s*/i, '').trim();
+  if (!clean) return;
+
+  const displayEl = document.getElementById('live-user-query-display');
+  const containerEl = document.getElementById('live-user-query-container');
+  const badgeEl = document.getElementById('live-query-source-badge');
+
+  if (displayEl) {
+    displayEl.textContent = clean;
+    displayEl.classList.remove('empty');
+    displayEl.classList.remove('animate-in');
+    void displayEl.offsetWidth; // Force reflow to replay smooth animation
+    displayEl.classList.add('animate-in');
+  }
+
+  if (containerEl) {
+    containerEl.classList.add('has-query');
+  }
+
+  if (badgeEl && source) {
+    badgeEl.textContent = source;
+  }
+}
+
+function resetLiveUserQuery() {
+  const displayEl = document.getElementById('live-user-query-display');
+  const containerEl = document.getElementById('live-user-query-container');
+  const badgeEl = document.getElementById('live-query-source-badge');
+
+  if (displayEl) {
+    displayEl.textContent = 'Awaiting voice or text directive...';
+    displayEl.classList.add('empty');
+    displayEl.classList.remove('animate-in');
+  }
+
+  if (containerEl) {
+    containerEl.classList.remove('has-query');
+  }
+
+  if (badgeEl) {
+    badgeEl.textContent = 'STANDBY';
   }
 }
 
@@ -1503,6 +1550,7 @@ function setupLiveModeHandlers() {
 
     playSfx('click');
     liveInput.value = '';
+    updateLiveUserQuery(text, 'TEXT INPUT');
 
     const liveStage = document.getElementById('live-hud-stage');
     const statusBadge = document.getElementById('live-stream-status-badge');
@@ -1563,6 +1611,7 @@ window.fridayOnLiveMessage = function(reply) {
 
 window.fridayOnLiveUserMessage = function(uQuery) {
   if (uQuery) {
+    updateLiveUserQuery(uQuery, 'VOICE INPUT');
     const liveStage = document.getElementById('live-hud-stage');
     const statusBadge = document.getElementById('live-stream-status-badge');
     if (liveStage) {

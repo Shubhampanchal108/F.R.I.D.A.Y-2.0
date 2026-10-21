@@ -837,7 +837,7 @@ class FridayWidgetApi:
                             if self.window:
                                 self.window.evaluate_js(f"window.fridayOnLiveMessage && window.fridayOnLiveMessage({json.dumps(reply)});")
                         elif "[LIVE_USER_QUERY]" in line_str:
-                            u_query = line_str.replace("[LIVE_USER_QUERY]", "").strip()
+                            u_query = line_str.replace("[LIVE_USER_QUERY]", "").lstrip(":").strip()
                             if self.window:
                                 self.window.evaluate_js(f"window.fridayOnLiveUserMessage && window.fridayOnLiveUserMessage({json.dumps(u_query)});")
                         elif "[LIVE_ALERT]" in line_str:

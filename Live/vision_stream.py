@@ -8,6 +8,9 @@ Includes frame rate pacing, dynamic resizing, and token-backlog prevention.
 """
 
 import io
+import os
+import sys
+import threading
 import asyncio
 import cv2
 import PIL.Image
@@ -19,11 +22,15 @@ class VisionStreamer:
     """
     High-performance real-time visual capture engine.
     Optimized for low bandwidth to prioritize real-time audio streams.
+    Supports both desktop screen capture and webcam streaming.
     """
 
-    def __init__(self, target_size=(768, 432), quality=45):
+    def __init__(self, target_size=(768, 432), quality=60):
         self.target_size = target_size
         self.quality = quality
+        self.cap = None
+        self._cam_lock = threading.Lock()
+        self.latest_camera_blob = None
 
     def _get_screen_blob(self):
         """Captures a screenshot of the primary monitor as a JPEG Blob."""
@@ -69,17 +76,91 @@ class VisionStreamer:
         except Exception:
             return None
 
-    def _get_camera_blob(self, cap):
-        """Captures a frame from the webcam VideoCapture as a JPEG Blob."""
-        ret, frame = cap.read()
-        if not ret or frame is None:
-            return None
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        img = PIL.Image.fromarray(frame_rgb)
-        img.thumbnail(self.target_size)
-        image_io = io.BytesIO()
-        img.save(image_io, format="JPEG", quality=self.quality)
-        return types.Blob(data=image_io.getvalue(), mime_type="image/jpeg")
+    def _open_camera_device(self):
+        """Opens camera with DirectShow on Windows for instant initialization and warms up sensor."""
+        c = None
+        # Try DirectShow on Windows first for fast, reliable hardware initialization
+        if sys.platform == "win32":
+            try:
+                for idx in [0, 1]:
+                    test_cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)
+                    if test_cap.isOpened():
+                        c = test_cap
+                        break
+            except Exception:
+                pass
+
+        # Fallback to default backend
+        if c is None or not c.isOpened():
+            for idx in [0, 1]:
+                test_cap = cv2.VideoCapture(idx)
+                if test_cap.isOpened():
+                    c = test_cap
+                    break
+
+        if c and c.isOpened():
+            try:
+                c.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                c.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                c.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            except Exception:
+                pass
+            # Warm up sensor so first frames are not pitch black
+            for _ in range(4):
+                c.read()
+        return c
+
+    def _capture_camera_frame(self):
+        """Captures a frame from active webcam as a JPEG Blob."""
+        with self._cam_lock:
+            if not self.cap or not self.cap.isOpened():
+                return None
+            ret, frame = self.cap.read()
+            if not ret or frame is None:
+                return None
+            try:
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                img = PIL.Image.fromarray(frame_rgb)
+                img.thumbnail(self.target_size)
+                image_io = io.BytesIO()
+                img.save(image_io, format="JPEG", quality=self.quality)
+                blob = types.Blob(data=image_io.getvalue(), mime_type="image/jpeg")
+                self.latest_camera_blob = blob
+                return blob
+            except Exception:
+                return None
+
+    async def get_camera_blob(self):
+        """Retrieves a fresh or latest camera frame blob to attach directly to user turns."""
+        if self.cap and self.cap.isOpened():
+            blob = await asyncio.to_thread(self._capture_camera_frame)
+            if blob:
+                return blob
+        if self.latest_camera_blob:
+            return self.latest_camera_blob
+
+        # Standalone capture fallback if streaming loop is not running
+        def _quick_capture():
+            c = self._open_camera_device()
+            if not c or not c.isOpened():
+                return None
+            ret, frame = c.read()
+            c.release()
+            if not ret or frame is None:
+                return None
+            try:
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                img = PIL.Image.fromarray(frame_rgb)
+                img.thumbnail(self.target_size)
+                image_io = io.BytesIO()
+                img.save(image_io, format="JPEG", quality=self.quality)
+                blob = types.Blob(data=image_io.getvalue(), mime_type="image/jpeg")
+                self.latest_camera_blob = blob
+                return blob
+            except Exception:
+                return None
+
+        return await asyncio.to_thread(_quick_capture)
 
     async def stream_screen(self, session, send_lock, stop_event, interval=1.5):
         """Continuously captures and streams desktop screen frames."""
@@ -115,14 +196,16 @@ class VisionStreamer:
 
     async def stream_camera(self, session, send_lock, stop_event, interval=1.0):
         """Continuously captures and streams webcam frames."""
-        cap = await asyncio.to_thread(cv2.VideoCapture, 0)
-        if not cap.isOpened():
-            print("\n[VISION NOTICE]: Webcam could not be opened on device 0. Falling back to audio-only.\n", flush=True)
+        self.cap = await asyncio.to_thread(self._open_camera_device)
+        if not self.cap or not self.cap.isOpened():
+            print("\n[VISION NOTICE]: Webcam could not be opened. Falling back to audio-only.\n", flush=True)
             return
+
+        print("\n📷 [VISION STREAM]: Webcam streaming active.\n", flush=True)
 
         try:
             # Send initial webcam frame immediately
-            init_blob = await asyncio.to_thread(self._get_camera_blob, cap)
+            init_blob = await asyncio.to_thread(self._capture_camera_frame)
             if init_blob:
                 try:
                     async with send_lock:
@@ -135,15 +218,22 @@ class VisionStreamer:
                 if stop_event.is_set():
                     break
 
-                blob = await asyncio.to_thread(self._get_camera_blob, cap)
+                blob = await asyncio.to_thread(self._capture_camera_frame)
                 if blob is None:
                     continue
 
                 try:
                     async with send_lock:
                         await session.send_realtime_input(media=blob)
-                except Exception:
+                except Exception as e:
+                    err_msg = str(e).lower()
+                    if "closed" in err_msg or "no close frame" in err_msg or "1006" in err_msg:
+                        stop_event.set()
+                        break
                     if stop_event.is_set():
                         break
         finally:
-            cap.release()
+            with self._cam_lock:
+                if self.cap:
+                    self.cap.release()
+                    self.cap = None

@@ -47,11 +47,11 @@ class FridayBridge:
         self._daemon_listener_task = None
         self._stop_event = asyncio.Event()
 
-    def get_unified_system_instruction(self) -> str:
+    def get_unified_system_instruction(self, video_mode: str = "screen") -> str:
         """
         Builds a comprehensive system instruction that includes:
         - Core Friday identity and rules
-        - Real-time multimodal streaming directives
+        - Real-time multimodal streaming directives (tailored to camera vs screen)
         - Recent Core Friday conversation context (what user & Friday discussed)
         - Pending tasks and active reminders
         """
@@ -103,10 +103,27 @@ class FridayBridge:
         except Exception:
             pass
 
+        if video_mode == "camera":
+            vision_mode_desc = (
+                "CURRENT VISION SOURCE: 📷 LIVE WEBCAM CAMERA STREAM.\n"
+                "- Visual video frames are continuously streamed directly from Sir's webcam camera.\n"
+                "- When Sir asks what you see, what is in front of the camera, or what Sir is doing/holding/showing, describe the current camera frame accurately, concisely, and naturally.\n"
+                "- If Sir holds up books, cards, phones, objects, or shows his surroundings/hands, analyze and identify them.\n"
+                "- Never claim you cannot see the camera or that the camera is dark/empty when camera frames are streamed to you."
+            )
+        else:
+            vision_mode_desc = (
+                "CURRENT VISION SOURCE: 🖥️ LIVE DESKTOP SCREEN STREAM.\n"
+                "- Visual screen frames are continuously streamed directly from Sir's computer monitor.\n"
+                "- Observe open windows, active software, code errors, web browsers, and desktop state."
+            )
+
         instruction = (
             f"You are F.R.I.D.A.Y (Friendly Reliable Intelligent Digital Assistant for Youth), created by {creator_name}.\n"
-            "You are currently operating in LIVE MULTIMODAL STREAMING MODE with continuous real-time screen/camera frames and bidirectional audio.\n"
-            "\n"
+            f"You are currently operating in LIVE MULTIMODAL STREAMING MODE ({video_mode.upper()}) with continuous real-time visual frames and bidirectional audio.\n"
+            f"\n"
+            f"{vision_mode_desc}\n"
+            f"\n"
             "CRITICAL: You are F.R.I.D.A.Y operating in dedicated live multimodal interaction. "
             "Background sentinel monitoring and routine system alerts are handled independently by Core Friday. "
             "In Live mode, focus on direct multimodal perception, answering Sir's questions, and executing requested tools on demand.\n"
@@ -126,7 +143,7 @@ class FridayBridge:
             "6. You have DIRECT access to ALL live system tools (adjusting volume, brightness, power control like lock screen, sleep, shutdown, restart, battery check, launching apps, closing apps, focusing windows, taking screenshots, search, weather, news, media playback, timers, clipboard, tasks, reminders, email, files, mobile, network diagnostics). When the user asks you to perform an action or check system information, CALL the corresponding tool immediately, and after receiving the result, inform the user concisely in natural voice.\n"
             "7. REAL-TIME DYNAMIC VISION: Visual frames are continuously streamed to you. ALWAYS observe and describe the CURRENT / MOST RECENT frame you received. Screens and camera scenes change dynamically — never assume an older screen or application is still active if the current frame shows a different window or scene.\n"
             "8. ULTRA-LOW LATENCY REAL-TIME ATTENTIVENESS: The user is speaking directly via live microphone or typing directives. Respond immediately and fluidly the moment the user stops speaking.\n"
-            "9. COMPUTER-USE & SCREEN AUTOMATION (CLICK, TYPE, SCROLL): You have full visual grounding on the screen frames streamed to you. When Sir asks you to click, type, press keys, scroll, or interact with any window, browser, button, or link:\n"
+            "9. COMPUTER-USE & SCREEN AUTOMATION (CLICK, TYPE, SCROLL): When Sir asks you to click, type, press keys, scroll, or interact with any window, browser, button, or link:\n"
             "   - Visually locate the center of the target UI element on the current screen frame.\n"
             "   - Compute its normalized coordinates on a 0 to 1000 scale: X (0=left, 1000=right) and Y (0=top, 1000=bottom).\n"
             "   - Call `click_screen(x, y)` to click, `double_click_screen(x, y)` to open files/apps, `right_click_screen(x, y)` for context menus.\n"

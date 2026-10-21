@@ -125,6 +125,10 @@ class LiveSession:
                     screen_blob = await asyncio.to_thread(self.vision._get_screen_blob)
                     if screen_blob:
                         parts.append(types.Part(inline_data=screen_blob))
+                elif self.video_mode == "camera":
+                    cam_blob = await self.vision.get_camera_blob()
+                    if cam_blob:
+                        parts.append(types.Part(inline_data=cam_blob))
                 parts.append(types.Part(text=text))
 
                 async with self.send_lock:
@@ -176,6 +180,10 @@ class LiveSession:
                     screen_blob = await asyncio.to_thread(self.vision._get_screen_blob)
                     if screen_blob:
                         parts.append(types.Part(inline_data=screen_blob))
+                elif self.video_mode == "camera":
+                    cam_blob = await self.vision.get_camera_blob()
+                    if cam_blob:
+                        parts.append(types.Part(inline_data=cam_blob))
                 parts.append(types.Part(text=clean_text))
 
                 async with self.send_lock:
@@ -321,7 +329,7 @@ class LiveSession:
             api_key=api_key,
         )
 
-        system_instruction = self.bridge.get_unified_system_instruction()
+        system_instruction = self.bridge.get_unified_system_instruction(video_mode=self.video_mode)
         tools = get_live_tools()
 
         config = types.LiveConnectConfig(
