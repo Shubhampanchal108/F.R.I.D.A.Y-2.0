@@ -50,21 +50,21 @@ _daemon = None
 def get_brain():
     global _brain_func
     if _brain_func is None:
-        from Brain import Brain
+        from core.brain import Brain
         _brain_func = Brain
     return _brain_func
 
 def get_speak():
     global _speak_func
     if _speak_func is None:
-        from speak import speak
+        from voice.speak import speak
         _speak_func = speak
     return _speak_func
 
 def get_speech_recog():
     global _speech_recog_func
     if _speech_recog_func is None:
-        from voice_input import SpeechRecognition
+        from voice.voice_input import SpeechRecognition
         _speech_recog_func = SpeechRecognition
     return _speech_recog_func
 
@@ -72,7 +72,7 @@ def get_instant_filler():
     global _instant_filler_func
     if _instant_filler_func is None:
         try:
-            from instant_filler import trigger_instant_filler
+            from voice.instant_filler import trigger_instant_filler
             _instant_filler_func = trigger_instant_filler
         except Exception:
             _instant_filler_func = lambda q, audio_enabled=True: None
@@ -82,7 +82,7 @@ def get_daemon():
     global _daemon
     if _daemon is None:
         try:
-            from daemon import daemon_instance
+            from services.daemon import daemon_instance
             _daemon = daemon_instance
         except Exception:
             _daemon = None
@@ -118,7 +118,7 @@ class FridayWidgetApi:
 
         # Load persisted voice output preference
         try:
-            from config_driver import load_data
+            from config.config_driver import load_data
             cfg = load_data()
             saved_voice = cfg.get("WIDGET_SETTINGS", {}).get("voice_enabled", True)
             self.audio_drive = bool(saved_voice)
@@ -126,7 +126,7 @@ class FridayWidgetApi:
             self.audio_drive = True
 
         try:
-            from speak import set_voice_enabled, set_authenticated as speak_set_auth
+            from voice.speak import set_voice_enabled, set_authenticated as speak_set_auth
             set_voice_enabled(self.audio_drive)
             speak_set_auth(False)
         except Exception:
@@ -139,6 +139,17 @@ class FridayWidgetApi:
         self.screen_width = sw
         self.screen_height = sh
 
+    def safe_eval_js(self, js_code: str):
+        """Asynchronously executes JS in WebView2 without blocking Python caller or deadlocking IPC."""
+        if not self.window:
+            return
+        def _exec():
+            try:
+                self.window.evaluate_js(js_code)
+            except Exception:
+                pass
+        threading.Thread(target=_exec, daemon=True).start()
+
     # ---------------- AUTHENTICATION SYSTEM ---------------- #
     def _on_authenticated(self, user_name: str):
         """Synchronizes authenticated state across backend and triggers executive startup briefing."""
@@ -147,7 +158,7 @@ class FridayWidgetApi:
         if d:
             d.set_authenticated(True)
         try:
-            from speak import set_authenticated as speak_set_auth
+            from voice.speak import set_authenticated as speak_set_auth
             speak_set_auth(True)
         except Exception:
             pass
@@ -189,7 +200,7 @@ class FridayWidgetApi:
             # Push to UI chat history
             if self.window:
                 js_code = f"window.fridayOnStartupBriefing && window.fridayOnStartupBriefing({json.dumps(briefing_text)});"
-                self.window.evaluate_js(js_code)
+                self.safe_eval_js(js_code)
 
             # Announce via Centralized Speech Manager
             if self.audio_drive:
@@ -201,7 +212,7 @@ class FridayWidgetApi:
     def check_auth_status(self) -> dict:
         """Returns whether the current widget session is authenticated."""
         try:
-            from config_driver import load_data
+            from config.config_driver import load_data
             data = load_data()
             pwd = data.get("KEYS", {}).get("AGENT_PASSWORD", "")
             user_name = data.get("USER", {}).get("Name", "Sir")
@@ -221,7 +232,7 @@ class FridayWidgetApi:
             return {"success": False, "message": "Security passkey cannot be empty"}
 
         try:
-            from config_driver import load_data, update_config
+            from config.config_driver import load_data, update_config
             data = load_data()
             stored_pwd = data.get("KEYS", {}).get("AGENT_PASSWORD", "")
 
@@ -259,7 +270,7 @@ class FridayWidgetApi:
         if d:
             d.set_authenticated(False)
         try:
-            from speak import set_authenticated as speak_set_auth, interrupt_speech
+            from voice.speak import set_authenticated as speak_set_auth, interrupt_speech
             speak_set_auth(False)
             interrupt_speech()
         except Exception:
@@ -286,7 +297,7 @@ class FridayWidgetApi:
 
         # 0. Immediately interrupt any previous speech or alert before processing new directive
         try:
-            from speak import interrupt_speech
+            from voice.speak import interrupt_speech
             interrupt_speech()
         except Exception:
             pass
@@ -308,33 +319,27 @@ class FridayWidgetApi:
                         for k, v in args.items():
                             clean_args[k] = str(v)[:60]
                     js_code = f"window.fridayOnToolStart && window.fridayOnToolStart({json.dumps(tool_name)}, {json.dumps(clean_args)});"
-                    self.window.evaluate_js(js_code)
+                    self.safe_eval_js(js_code)
             except Exception:
                 pass
 
         # 3. Process via F.R.I.D.A.Y Cognitive Brain
+        speak_fn = get_speak() if self.audio_drive else None
         try:
             brain_fn = get_brain()
-            response = brain_fn(q, origin='server', tool_callback=on_tool_call)
+            response = brain_fn(q, origin='server', tool_callback=on_tool_call, speak=speak_fn)
         except Exception as err:
             response = f"⚠️ System Exception in Brain: {err}"
 
         # Clean tool execution ticker in UI
         try:
             if self.window:
-                self.window.evaluate_js("window.fridayOnToolEnd && window.fridayOnToolEnd();")
+                self.safe_eval_js("window.fridayOnToolEnd && window.fridayOnToolEnd();")
         except Exception:
             pass
 
-        # 4. Speak response sequentially via centralized Speech Queue
-        if self.audio_drive and response:
-            clean_speech = response.replace("*", "").replace("`", "")
-            speak_fn = get_speak()
-            try:
-                speak_fn(clean_speech, priority=1, allow_interrupt=True, block=False)
-            except Exception as e:
-                print(f"Speech enqueue note: {e}", flush=True)
-
+        # 4. Speech is handled dynamically by Agent Master via speak_fn
+        # (Zero hardcoded speech; LLM determines spoken output)
         return response or "Directive executed successfully, Sir."
 
     def start_voice_input(self) -> str:
@@ -343,21 +348,37 @@ class FridayWidgetApi:
             return ""
 
         try:
-            from speak import interrupt_speech
+            from voice.speak import interrupt_speech
             interrupt_speech()
         except Exception:
             pass
+
+        # Temporarily pause wake word listener to prevent microphone contention on Windows
+        was_wake_running = False
+        if getattr(self, "wake_listener", None) and getattr(self.wake_listener, "_running", False):
+            was_wake_running = True
+            try:
+                self.wake_listener.stop()
+            except Exception:
+                pass
+
         try:
             recog_fn = get_speech_recog()
             recognized = recog_fn(timeout=6, phrase_time_limit=9)
             return recognized if recognized else ""
         except Exception:
             return ""
+        finally:
+            if was_wake_running:
+                try:
+                    self.start_wake_word_listener()
+                except Exception:
+                    pass
 
     def interrupt_speech(self):
         """Immediately interrupts and silences all ongoing and queued speech."""
         try:
-            from speak import interrupt_speech
+            from voice.speak import interrupt_speech
             interrupt_speech()
         except Exception:
             pass
@@ -367,7 +388,7 @@ class FridayWidgetApi:
         """Toggles TTS speaking responses on or off globally and persists state."""
         self.audio_drive = bool(is_active)
         try:
-            from speak import set_voice_enabled
+            from voice.speak import set_voice_enabled
             set_voice_enabled(self.audio_drive)
         except Exception:
             pass
@@ -375,7 +396,7 @@ class FridayWidgetApi:
         if daemon:
             daemon.notify_voice = self.audio_drive
         try:
-            from config_driver import load_data, save_data
+            from config.config_driver import load_data, save_data
             data = load_data()
             if "WIDGET_SETTINGS" not in data:
                 data["WIDGET_SETTINGS"] = {}
@@ -525,8 +546,8 @@ class FridayWidgetApi:
             pass
 
         try:
-            from utiles import load_memory
-            from memory_controller import save_session_summary
+            from utils.helpers import load_memory
+            from memory.memory_manager import save_session_summary
             memory = load_memory()
             history = memory.get("conversation_history", [])
             save_session_summary(history)
@@ -566,7 +587,7 @@ class FridayWidgetApi:
 
         tools_count = 42
         try:
-            from Tool_guard import TOOLS
+            from core.tool_guard import TOOLS
             tools_count = len(TOOLS) if TOOLS else 42
         except Exception:
             pass
@@ -586,7 +607,7 @@ class FridayWidgetApi:
     def get_assistant_settings(self) -> dict:
         """Returns assistant configuration settings."""
         try:
-            from config_driver import load_data
+            from config.config_driver import load_data
             data = load_data()
         except Exception:
             data = {}
@@ -613,7 +634,7 @@ class FridayWidgetApi:
     def save_assistant_settings(self, new_settings: dict) -> dict:
         """Saves assistant settings to config file and applies them."""
         try:
-            from config_driver import load_data, save_data
+            from config.config_driver import load_data, save_data
             data = load_data()
             if "WIDGET_SETTINGS" not in data:
                 data["WIDGET_SETTINGS"] = {}
@@ -630,7 +651,7 @@ class FridayWidgetApi:
     def get_user_profile_data(self) -> dict:
         """Returns user profile information, memory entries, and system info."""
         try:
-            from config_driver import Check_Keys
+            from config.config_driver import Check_Keys
             name = Check_Keys("USER", "Name") or "Sir"
             email = Check_Keys("USER", "email") or "Not configured"
             phone = Check_Keys("USER", "phone_number") or ""
@@ -641,7 +662,7 @@ class FridayWidgetApi:
 
         memories = {}
         try:
-            from memory_controller import _load_user_profile
+            from memory.memory_manager import _load_user_profile
             memories = _load_user_profile()
         except Exception:
             pass
@@ -658,7 +679,7 @@ class FridayWidgetApi:
     def save_user_profile_data(self, profile_data: dict) -> dict:
         """Updates user profile information in config."""
         try:
-            from config_driver import update_config
+            from config.config_driver import update_config
             if "name" in profile_data:
                 update_config("USER", "Name", profile_data["name"])
             if "email" in profile_data:
@@ -672,7 +693,7 @@ class FridayWidgetApi:
     def add_user_memory(self, text: str, mem_type: str = "preference") -> dict:
         """Manually records a memory item into RAG and user profile."""
         try:
-            from RAG import save_longterm_memory
+            from memory.rag import save_longterm_memory
             save_longterm_memory(
                 text=text,
                 memory_type=mem_type,
@@ -681,7 +702,7 @@ class FridayWidgetApi:
                 source="widget_ui"
             )
             try:
-                from memory_controller import _update_user_profile
+                from memory.memory_manager import _update_user_profile
                 _update_user_profile([{"text": text, "type": mem_type, "importance": "high"}])
             except Exception:
                 pass
@@ -749,12 +770,12 @@ class FridayWidgetApi:
                 # Do not summon or pop up window automatically on wake word; summon is reserved strictly for Ctrl + Space
                 if self.window:
                     payload = {"raw": str(phrase), "command": str(command) if command else None}
-                    self.window.evaluate_js(f"window.fridayOnWakeWord && window.fridayOnWakeWord({json.dumps(payload)});\n")
+                    self.safe_eval_js(f"window.fridayOnWakeWord && window.fridayOnWakeWord({json.dumps(payload)});\n")
             except Exception:
                 pass
 
         try:
-            from wake_word import WakeWordListener
+            from voice.wake_word import WakeWordListener
             self.wake_listener = WakeWordListener(on_wake_word=on_wake)
             started = self.wake_listener.start()
             return {"status": "started" if started else "error"}
@@ -780,7 +801,7 @@ class FridayWidgetApi:
 
         # Mutual exclusivity: interrupt speech & stop wake listener
         try:
-            from speak import interrupt_speech
+            from voice.speak import interrupt_speech
             interrupt_speech()
         except Exception:
             pass
@@ -788,7 +809,7 @@ class FridayWidgetApi:
         self.stop_live_mode()
 
         try:
-            from config_driver import load_data
+            from config.config_driver import load_data
             cfg = load_data()
             gkey = cfg.get("KEYS", {}).get("GEMINI_KEY", "")
             if not gkey or not str(gkey).strip().startswith("AIza"):
@@ -835,19 +856,19 @@ class FridayWidgetApi:
                         if "[LIVE_FEED_REPLY]" in line_str:
                             reply = line_str.replace("[LIVE_FEED_REPLY]", "").strip()
                             if self.window:
-                                self.window.evaluate_js(f"window.fridayOnLiveMessage && window.fridayOnLiveMessage({json.dumps(reply)});")
+                                self.safe_eval_js(f"window.fridayOnLiveMessage && window.fridayOnLiveMessage({json.dumps(reply)});")
                         elif "[LIVE_USER_QUERY]" in line_str:
                             u_query = line_str.replace("[LIVE_USER_QUERY]", "").lstrip(":").strip()
                             if self.window:
-                                self.window.evaluate_js(f"window.fridayOnLiveUserMessage && window.fridayOnLiveUserMessage({json.dumps(u_query)});")
+                                self.safe_eval_js(f"window.fridayOnLiveUserMessage && window.fridayOnLiveUserMessage({json.dumps(u_query)});")
                         elif "[LIVE_ALERT]" in line_str:
                             alert_msg = line_str.replace("[LIVE_ALERT]", "").strip()
                             if self.window:
-                                self.window.evaluate_js(f"window.fridayOnLiveAlert && window.fridayOnLiveAlert({json.dumps(alert_msg)});")
+                                self.safe_eval_js(f"window.fridayOnLiveAlert && window.fridayOnLiveAlert({json.dumps(alert_msg)});")
                         elif "[LIVE_STATUS]" in line_str:
                             status_val = line_str.replace("[LIVE_STATUS]", "").strip()
                             if self.window:
-                                self.window.evaluate_js(f"window.fridayOnLiveStatus && window.fridayOnLiveStatus({json.dumps(status_val)});")
+                                self.safe_eval_js(f"window.fridayOnLiveStatus && window.fridayOnLiveStatus({json.dumps(status_val)});")
                 except Exception:
                     pass
 
@@ -895,7 +916,7 @@ class FridayWidgetApi:
         self.current_mode = "core"
         if self.window:
             try:
-                self.window.evaluate_js("window.fridayOnLiveStatus && window.fridayOnLiveStatus('DISCONNECTED');")
+                self.safe_eval_js("window.fridayOnLiveStatus && window.fridayOnLiveStatus('DISCONNECTED');")
             except Exception:
                 pass
         return {"status": "stopped"}
@@ -1031,7 +1052,7 @@ class FridayWidgetApi:
     def get_api_keys_config(self) -> dict:
         """Returns API keys and model configuration from config.json."""
         try:
-            from config_driver import load_data
+            from config.config_driver import load_data
             data = load_data()
             return {
                 "keys": data.get("KEYS", {}),
@@ -1044,7 +1065,7 @@ class FridayWidgetApi:
     def save_api_keys_config(self, new_config: dict) -> dict:
         """Saves API keys and LLM settings to config.json."""
         try:
-            from config_driver import load_data, save_data
+            from config.config_driver import load_data, save_data
             data = load_data()
             if "keys" in new_config and isinstance(new_config["keys"], dict):
                 data.setdefault("KEYS", {}).update(new_config["keys"])
@@ -1158,7 +1179,9 @@ def run_widget_app():
     init_x = work_w - FULL_WIDTH - MARGIN_X
     init_y = work_h - FULL_HEIGHT - MARGIN_Y
 
-    html_path = os.path.join(BASE_DIR, "widget_ui", "index.html")
+    html_path = os.path.join(BASE_DIR, "interface", "index.html")
+    if not os.path.exists(html_path):
+        html_path = os.path.join(BASE_DIR, "widget_ui", "index.html")
 
     # Create Bridge API
     api = FridayWidgetApi()
@@ -1187,19 +1210,19 @@ def run_widget_app():
         try:
             if api.window:
                 preview = (text or "")[:80]
-                api.window.evaluate_js(f"window.fridayOnSpeechStart && window.fridayOnSpeechStart({json.dumps(preview)});")
+                api.safe_eval_js(f"window.fridayOnSpeechStart && window.fridayOnSpeechStart({json.dumps(preview)});")
         except Exception:
             pass
 
     def _on_speech_end(interrupted=False):
         try:
             if api.window:
-                api.window.evaluate_js(f"window.fridayOnSpeechEnd && window.fridayOnSpeechEnd({json.dumps(bool(interrupted))});")
+                api.safe_eval_js(f"window.fridayOnSpeechEnd && window.fridayOnSpeechEnd({json.dumps(bool(interrupted))});")
         except Exception:
             pass
 
     try:
-        from speak import register_speech_callback
+        from voice.speak import register_speech_callback
         register_speech_callback(on_start=_on_speech_start, on_end=_on_speech_end)
     except Exception:
         pass
@@ -1258,8 +1281,8 @@ def run_widget_app():
     finally:
         # Save episodic memory on close
         try:
-            from utiles import load_memory
-            from memory_controller import save_session_summary
+            from utils.helpers import load_memory
+            from memory.memory_manager import save_session_summary
             memory = load_memory()
             history = memory.get("conversation_history", [])
             save_session_summary(history)

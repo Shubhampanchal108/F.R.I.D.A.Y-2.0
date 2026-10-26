@@ -27,7 +27,7 @@ from Live.tools_schema import get_live_tools
 from Live.vision_stream import VisionStreamer
 from Live.audio_stream import AudioStreamer
 from Live.bridge import FridayBridge
-from Tool_guard import execute_tool
+from core.tool_guard import execute_tool
 
 console = Console()
 
@@ -46,7 +46,7 @@ def get_gemini_api_key():
     """Retrieve verified Google Gemini API key (must start with 'AIza')."""
     # 1. Local config.json under KEYS -> GEMINI_KEY
     try:
-        from config_driver import load_data
+        from config.config_driver import load_data
         data = load_data()
         k = data.get("KEYS", {}).get("GEMINI_KEY")
         if k and str(k).strip().startswith("AIza"):
@@ -73,7 +73,7 @@ def get_gemini_api_key():
 
     # 4. Prompt via Check_Keys
     try:
-        from config_driver import Check_Keys
+        from config.config_driver import Check_Keys
         return Check_Keys("KEYS", "GEMINI_KEY")
     except Exception:
         return None
@@ -150,7 +150,7 @@ class LiveSession:
         - Automatically pauses while Friday is speaking to prevent self-echo.
         - Sends full, clean text turns to Gemini Live WebSocket.
         """
-        from voice_input import SpeechRecognition
+        from voice.voice_input import SpeechRecognition
         console.print("[bold green]🎙️ Robust Voice Recognition Active: Speak naturally, full sentences supported.[/bold green]")
 
         while not self.stop_event.is_set():

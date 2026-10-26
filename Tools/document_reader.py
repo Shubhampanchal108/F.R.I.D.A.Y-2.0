@@ -9,7 +9,7 @@ import sys
 
 # Ensure parent path in sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from path import CONTENT_PATH
+from utils.paths import CONTENT_PATH
 
 
 def read_pdf_or_document(filepath: str, max_pages: int = 10, max_chars: int = 6000) -> dict:

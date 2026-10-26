@@ -4,7 +4,7 @@ from datetime import datetime
 
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from path import  DOCS_PATH
+from utils.paths import  DOCS_PATH
 
 
 FILE = os.path.join(DOCS_PATH, "todo.json")

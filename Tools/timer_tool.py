@@ -45,7 +45,7 @@ def _timer_worker(timer_id: str, total_seconds: float, label: str):
 
     # 3. Spoken Announcement via Central Speech Manager
     try:
-        from speak import speak
+        from voice.speak import speak
         speak(f"Sir, your timer for {label} has finished.", priority=1, allow_interrupt=True, block=False)
     except Exception:
         pass

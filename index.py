@@ -39,18 +39,18 @@ try:
 except ImportError:
     winsound = None
 
-from Brain import Brain
-from voice_input import SpeechRecognition
-from speak import speak
-from wake_word import WakeWordListener
+from core.brain import Brain
+from voice.voice_input import SpeechRecognition
+from voice.speak import speak
+from voice.wake_word import WakeWordListener
 from Tools.systems_tools import greet
-from config_driver import Check_Keys, is_agent_configured, run_first_time_setup, interactive_config_editor
+from config.config_driver import Check_Keys, is_agent_configured, run_first_time_setup, interactive_config_editor
 
-from cli_interface import FridayCLI, console
-from daemon import daemon_instance
-from memory_controller import save_session_summary, get_last_session_context
-from utiles import load_memory
-from instant_filler import trigger_instant_filler
+from interface.cli_interface import FridayCLI, console
+from services.daemon import daemon_instance
+from memory.memory_manager import save_session_summary, get_last_session_context
+from utils.helpers import load_memory
+from voice.instant_filler import trigger_instant_filler
 
 VOICE_COMMANDS = ["switch to voice", "voice mode", "/voice"]
 TYPE_COMMANDS = ["switch to typing", "type mode", "/type"]
@@ -268,6 +268,45 @@ def main():
                 cli.render_agent_response(briefing_res)
                 continue
 
+            if query_lower.startswith("/plan"):
+                goal_text = query[5:].strip()
+                if not goal_text:
+                    console.print("[bold yellow]Please specify a goal. Example: /plan research quantum computing and save notes to desktop[/bold yellow]")
+                    continue
+
+                if cli.audio_drive:
+                    speak("Initializing autonomous goal planner, Sir.")
+
+                def plan_tool_callback(tool_name, args):
+                    cli.render_tool_call(tool_name, args)
+
+                with cli.spinner_task(f"F.R.I.D.A.Y Autonomous Planner Executing: '{goal_text[:40]}'"):
+                    from agent.executor import execute_goal
+                    plan_result = execute_goal(goal=goal_text, tool_callback=plan_tool_callback, origin='server')
+
+                cli.render_agent_response(plan_result)
+                if cli.audio_drive:
+                    speak(plan_result)
+                continue
+
+            if query_lower.startswith("/gui"):
+                gui_goal = query[4:].strip()
+                if not gui_goal:
+                    console.print("[bold yellow]Please specify a GUI goal. Example: /gui Open Downloads and double click on resume.pdf[/bold yellow]")
+                    continue
+
+                if cli.audio_drive:
+                    speak("Initiating autonomous visual computer use, Sir.")
+
+                with cli.spinner_task(f"F.R.I.D.A.Y Visual Agent Operating Desktop: '{gui_goal[:40]}'"):
+                    from Tools.gui_automation import autonomous_computer_use
+                    gui_res = autonomous_computer_use(goal=gui_goal)
+
+                cli.render_agent_response(gui_res)
+                if cli.audio_drive:
+                    speak(gui_res)
+                continue
+
             if any(cmd == query_lower for cmd in WAKE_COMMANDS):
                 cli.wake_protocol = not cli.wake_protocol
                 if cli.wake_protocol:
@@ -336,10 +375,8 @@ def main():
                     speak(f"Activating live {'camera' if chosen_mode == 'camera' else 'screen'} mode, Sir.")
 
                 try:
-                    import importlib
-                    import Live_mode
-                    importlib.reload(Live_mode)
-                    Live_mode.run_live_mode(video_mode=chosen_mode)
+                    from Live import run_live_mode
+                    run_live_mode(video_mode=chosen_mode)
                 except Exception as live_err:
                     console.print(f"[bold red]❌ Live Mode Error: {live_err}[/bold red]")
                 finally:

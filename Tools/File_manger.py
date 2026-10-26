@@ -3,7 +3,7 @@ from datetime import datetime
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from path import CONTENT_PATH
+from utils.paths import CONTENT_PATH
 
 
 # ==============================
