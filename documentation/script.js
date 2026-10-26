@@ -292,12 +292,17 @@ function initCommandSimulator() {
     if (!simBtn || !simInput || !simOutput) return;
 
     const sampleResponses = {
-        "/status": `[F.R.I.D.A.Y HUD SYSTEM STATUS]\n• CPU Usage: 14.2% | Battery: 94% (Charging)\n• Active Daemon Watchdog: ONLINE (Thread-3)\n• Vector RAG Memory: 1,248 ChromaDB Embeddings Loaded\n• Access Control Guard: ALL SYSTEMS OPTIMAL`,
+        "/status": `[F.R.I.D.A.Y HUD SYSTEM STATUS]\n• CPU Usage: 14.2% | Battery: 94% (Charging)\n• Active Daemon Watchdog: ONLINE (Thread-3)\n• Vector RAG Memory: 1,248 ChromaDB Embeddings Loaded\n• Multi-Model Failover: OpenRouter Resilient Pool Ready (25+ models)\n• Access Control Guard: ALL SYSTEMS OPTIMAL`,
+        "/live": `👁️ [Gemini 2.5 Live WebSocket Stream]\nConnecting to Google Multimodal Live Session...\n• Mode: Screen Vision (640x480 @ 15fps)\n• Audio: Bidirectional Zephyr Native Audio Stream\n• 25+ Live In-Stream Tools Loaded!\n"I can see your primary display, Boss. What shall we work on?"`,
+        "/vision": `👁️ [Multimodal Vision Active]\nAnalyzing desktop screen frames via Gemini 2.5 Live Vision...\nFound 2 open IDE windows, terminal, and documentation portal. All clear!`,
+        "/config": `⚙️ [F.R.I.D.A.Y Configuration Vault]\n• Active Provider: Groq Cloud (Llama-3.3-70b-versatile)\n• API Key: sk-proj-•••••••••••••••• (Masked)\n• Voice Synthesizer: Edge-TTS Neural\n• Auto-Failover: ENABLED (OpenRouter)`,
         "/briefing": `🌅 Morning Briefing Generated!\n"Good Morning Boss. The current weather in Delhi is 28°C with clear skies. Battery is at 94%. You have 2 pending reminders: 'Submit project report' at 4:00 PM and 'Team Sync' at 6:00 PM."`,
         "/reminders": `⏰ Active Reminders:\n1. [DUE TODAY] Submit project report (4:00 PM)\n2. [UPCOMING] Team Sync meeting (6:00 PM)\n3. [RECURRING] Daily morning briefing (8:00 AM)`,
         "analyze my screen and explain the code": `📸 [JARVIS Vision Active] Taking desktop screenshot...\n"Boss, I can see VS Code open with 'Vision.py'. The code is using PIL ImageGrab to capture the screen and pass it to Gemini Vision LLM. There are no syntax errors visible."`,
         "run python code to calculate 10th fibonacci number": `🐍 [Python Sandbox Execution]\nExecuted snippet in 0.04s:\nResult: 55`,
-        "deep research on quantum computing trends 2026": `🤖 [Deep Researcher Sub-Agent]\nSynthesizing multi-query web search & dynamic scraping...\n• Found 14 sources.\n• Topic: Quantum Supremacy & Commercial QPU Scaling in 2026.\nReport saved to memory!`
+        "deep research on quantum computing trends 2026": `🤖 [Deep Researcher Sub-Agent]\nSynthesizing multi-query web search & dynamic scraping...\n• Found 14 sources.\n• Topic: Quantum Supremacy & Commercial QPU Scaling in 2026.\nReport saved to memory!`,
+        "set a timer for 15 minutes": `⏱️ [Timer Tool]\nTimer initialized for 15 minutes (900 seconds).\nAlarm scheduled at 17:45:00. Watchdog daemon monitoring countdown!`,
+        "check network health": `🌐 [Network Diagnostics Tool]\n• Status: ONLINE (Ping: 14ms)\n• External IP: 103.xxx.xxx.xxx\n• DNS Resolution: Google DNS (8.8.8.8) - 12ms\n• Network Interface: Wi-Fi 6 (802.11ax) Stable`
     };
 
     function runSim() {

@@ -37,11 +37,14 @@
       <button class="theme-toggle-btn" id="themeToggle" title="Switch Theme">
         <i class="fa-solid fa-moon"></i>
       </button>
-      <a href="assets/Friday_Agent.exe" download class="btn-primary" title="Download F.R.I.D.A.Y Agent">
-        <i class="fa-solid fa-download"></i> <span class="btn-text">Download</span>
+      <a href="#quickstart" class="btn-primary" title="Quick Start & Installation">
+        <i class="fa-solid fa-rocket"></i> <span class="btn-text">Quick Start</span>
       </a>
       <a href="#tools-catalog" class="btn-outline btn-tools">
-        <i class="fa-solid fa-toolbox"></i> <span class="btn-text">40+ Tools</span>
+        <i class="fa-solid fa-toolbox"></i> <span class="btn-text">60+ Tools</span>
+      </a>
+      <a href="https://github.com/Shubhampanchal108/F.R.I.D.A.Y-2.0" target="_blank" class="btn-outline" title="GitHub Repository">
+        <i class="fa-brands fa-github"></i> <span class="btn-text">GitHub</span>
       </a>
     </div>
   </header>
@@ -67,16 +70,19 @@
         <div class="sidebar-title"><i class="fa-solid fa-compass"></i> Navigation</div>
         <ul class="sidebar-menu">
           <li class="sidebar-item"><a href="#overview" class="sidebar-link active"><i class="fa-solid fa-eye"></i> Overview & Features</a></li>
-          <li class="sidebar-item"><a href="#quickstart" class="sidebar-link"><i class="fa-solid fa-bolt"></i> Installation & Setup</a></li>
-          <li class="sidebar-item"><a href="#slash-commands" class="sidebar-link"><i class="fa-solid fa-terminal"></i> Slash Commands <span class="sidebar-badge">10</span></a></li>
-          <li class="sidebar-item"><a href="#architecture" class="sidebar-link"><i class="fa-solid fa-network-wired"></i> System Architecture</a></li>
+          <li class="sidebar-item"><a href="#quickstart" class="sidebar-link"><i class="fa-solid fa-bolt"></i> Installation & 4 Launch Modes</a></li>
+          <li class="sidebar-item"><a href="#slash-commands" class="sidebar-link"><i class="fa-solid fa-terminal"></i> Slash Commands & Hotkeys <span class="sidebar-badge">12+</span></a></li>
+          <li class="sidebar-item"><a href="#architecture" class="sidebar-link"><i class="fa-solid fa-network-wired"></i> System Architecture & Restructuring</a></li>
         </ul>
       </div>
 
       <div class="sidebar-group">
         <div class="sidebar-title"><i class="fa-solid fa-robot"></i> Super-Agent Features</div>
         <ul class="sidebar-menu">
-          <li class="sidebar-item"><a href="#feature-vision" class="sidebar-link"><i class="fa-solid fa-display"></i> Screen Vision Perception</a></li>
+          <li class="sidebar-item"><a href="#feature-vision" class="sidebar-link"><i class="fa-solid fa-display"></i> Screen & Webcam Live Vision</a></li>
+          <li class="sidebar-item"><a href="#feature-widget" class="sidebar-link"><i class="fa-solid fa-circle-dot"></i> Holographic Corner HUD Widget</a></li>
+          <li class="sidebar-item"><a href="#feature-interruption" class="sidebar-link"><i class="fa-solid fa-hand"></i> Instant Speech Interruption</a></li>
+          <li class="sidebar-item"><a href="#feature-router" class="sidebar-link"><i class="fa-solid fa-shuffle"></i> Multi-Model Quota Failover</a></li>
           <li class="sidebar-item"><a href="#feature-sandbox" class="sidebar-link"><i class="fa-brands fa-python"></i> Python Code Interpreter</a></li>
           <li class="sidebar-item"><a href="#feature-briefing" class="sidebar-link"><i class="fa-solid fa-sun"></i> Morning Briefing Watchdog</a></li>
           <li class="sidebar-item"><a href="#feature-subagents" class="sidebar-link"><i class="fa-solid fa-brain"></i> Research & Reviewer Sub-Agents</a></li>
@@ -89,7 +95,7 @@
       <div class="sidebar-group">
         <div class="sidebar-title"><i class="fa-solid fa-toolbox"></i> Tool Catalog</div>
         <ul class="sidebar-menu">
-          <li class="sidebar-item"><a href="#tools-catalog" class="sidebar-link"><i class="fa-solid fa-list-check"></i> Complete 40+ Tool Reference</a></li>
+          <li class="sidebar-item"><a href="#tools-catalog" class="sidebar-link"><i class="fa-solid fa-list-check"></i> Complete 60+ Tool Reference</a></li>
           <li class="sidebar-item"><a href="#mobile-automation" class="sidebar-link"><i class="fa-solid fa-mobile-screen-button"></i> Mobile ADB Automation</a></li>
         </ul>
       </div>
@@ -129,7 +135,35 @@
           </div>
 
           <div class="feature-card">
-            <div class="feature-icon" style="color: var(--accent-magenta);"><i class="fa-brands fa-python"></i></div>
+            <div class="feature-icon" style="color: var(--accent-primary);"><i class="fa-solid fa-circle-dot"></i></div>
+            <div class="feature-name">Holographic HUD Corner Widget</div>
+            <div class="feature-desc">Floating screen-corner Iron Man Arc-Reactor glowing neural orb with collapsible chat HUD, summoned from anywhere with <kbd>Ctrl + Space</kbd>.</div>
+            <span class="command-badge">friday_widget.py</span>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-green);"><i class="fa-solid fa-video"></i></div>
+            <div class="feature-name">Gemini 2.5 Live Vision Stream</div>
+            <div class="feature-desc">Bidirectional low-latency WebSocket stream combining native audio with 640x480 screen or camera feed and real-time tool calling.</div>
+            <span class="command-badge">Live_mode.py</span>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-magenta);"><i class="fa-solid fa-hand"></i></div>
+            <div class="feature-name">Instant Speech Interruption</div>
+            <div class="feature-desc">Never wait for long AI speeches! Press <kbd>Ctrl + D</kbd>, <kbd>Esc</kbd>, or <kbd>q</kbd> for instantaneous (&lt;30ms) speech cutoff and queue purge.</div>
+            <span class="tool-badge">Ctrl + D / Esc</span>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-amber);"><i class="fa-solid fa-shuffle"></i></div>
+            <div class="feature-name">Multi-Model Quota Failover</div>
+            <div class="feature-desc">Seamlessly auto-switches on HTTP 429 quota limits across a 25+ model resilient free pool on OpenRouter with cooldown tracking.</div>
+            <span class="tool-badge">core/llm_router.py</span>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="color: var(--accent-cyan);"><i class="fa-brands fa-python"></i></div>
             <div class="feature-name">Python Code Sandbox</div>
             <div class="feature-desc">Executes Python snippets safely inside isolated subprocesses with stdout capture and 15s automatic timeout guardrails.</div>
             <span class="tool-badge">run_python_code</span>
@@ -165,90 +199,159 @@
         </div>
       </section>
 
-      <!-- SECTION 2: QUICK START & SETUP -->
+      <!-- SECTION 2: QUICK START & 4 LAUNCH MODES -->
       <section id="quickstart" class="doc-section">
         <div class="section-header">
           <div class="section-tag"><i class="fa-solid fa-rocket"></i> Getting Started</div>
-          <h2 class="section-title">Download & Setup Guide</h2>
-          <p class="section-subtitle">Get F.R.I.D.A.Y 2.0 running on your computer as a standalone Windows executable or developer Python package.</p>
+          <h2 class="section-title">Installation & 4 Launch Modes</h2>
+          <p class="section-subtitle">F.R.I.D.A.Y 2.0 can be launched in four modular operating modes depending on your workflow — from a rich Cyberpunk CLI HUD to a floating holographic screen-corner widget.</p>
         </div>
 
-        <!-- RECOMMENDED METHOD: STANDALONE EXE -->
+        <!-- 4 LAUNCH MODES CARDS -->
+        <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 2rem;">
+          
+          <div class="glass-card" style="border-color: var(--accent-cyan); margin-bottom: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+              <span class="origin-badge origin-server" style="font-size: 0.75rem;">MODE 1</span>
+              <i class="fa-solid fa-terminal" style="color: var(--accent-cyan); font-size: 1.3rem;"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; color: var(--text-primary); font-weight: 700; margin-bottom: 0.4rem;">Cyberpunk Terminal HUD</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">
+              Full-featured interactive terminal with Rich cyberpunk styling, live status banners, voice/type toggles, and instant audio interruption.
+            </p>
+            <div class="code-block-wrapper">
+              <pre class="code-block" style="padding: 0.6rem 0.8rem; font-size: 0.85rem;">python index.py</pre>
+            </div>
+          </div>
+
+          <div class="glass-card" style="border-color: var(--accent-primary); margin-bottom: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+              <span class="origin-badge origin-server" style="font-size: 0.75rem;">MODE 2</span>
+              <i class="fa-solid fa-circle-dot" style="color: var(--accent-primary); font-size: 1.3rem;"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; color: var(--text-primary); font-weight: 700; margin-bottom: 0.4rem;">Holographic Corner Widget</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">
+              Floating Arc-Reactor glowing neural orb with expandable glass HUD chat panel. Summon or dismiss globally anytime with <kbd>Ctrl + Space</kbd>.
+            </p>
+            <div class="code-block-wrapper">
+              <pre class="code-block" style="padding: 0.6rem 0.8rem; font-size: 0.85rem;">python friday_widget.py</pre>
+            </div>
+          </div>
+
+          <div class="glass-card" style="border-color: var(--accent-green); margin-bottom: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+              <span class="origin-badge origin-server" style="font-size: 0.75rem;">MODE 3</span>
+              <i class="fa-solid fa-video" style="color: var(--accent-green); font-size: 1.3rem;"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; color: var(--text-primary); font-weight: 700; margin-bottom: 0.4rem;">Multimodal Live Vision</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">
+              Real-time screen or camera streaming via Google Gemini 2.5 Live WebSocket API with native Zephyr audio and 25+ in-stream tool executions.
+            </p>
+            <div class="code-block-wrapper">
+              <pre class="code-block" style="padding: 0.6rem 0.8rem; font-size: 0.85rem;">python Live_mode.py --mode screen</pre>
+            </div>
+          </div>
+
+          <div class="glass-card" style="border-color: var(--accent-amber); margin-bottom: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+              <span class="origin-badge origin-server" style="font-size: 0.75rem;">MODE 4</span>
+              <i class="fa-solid fa-shield-dog" style="color: var(--accent-amber); font-size: 1.3rem;"></i>
+            </div>
+            <h3 style="font-size: 1.2rem; color: var(--text-primary); font-weight: 700; margin-bottom: 0.4rem;">24/7 Background Autostart</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">
+              Automated Windows Startup daemon with silent VBS wrappers that trigger desktop toast notifications, reminder alerts, and morning briefings.
+            </p>
+            <div class="code-block-wrapper">
+              <pre class="code-block" style="padding: 0.6rem 0.8rem; font-size: 0.85rem;">scripts\setup_autostart.bat</pre>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- STEP BY STEP SETUP -->
         <div class="glass-card" style="border-color: var(--accent-primary); background: var(--bg-card);">
           <div class="download-card-header">
             <div>
-              <span class="origin-badge origin-server" style="font-size: 0.75rem; padding: 3px 10px; margin-bottom: 0.5rem; display: inline-block;">RECOMMENDED FOR USERS</span>
-              <h3 style="font-size: 1.4rem; color: var(--text-primary); font-weight: 800;"><i class="fa-solid fa-file-zipper" style="color: var(--accent-primary);"></i> Download F.R.I.D.A.Y Standalone Agent (.exe)</h3>
-              <p style="color: var(--text-secondary); margin-top: 0.4rem; max-width: 650px;">
-                No Python installation, virtual environment, or terminal commands needed! Download the pre-compiled <strong>Friday_Agent.exe</strong> executable for Windows.
+              <span class="origin-badge origin-server" style="font-size: 0.75rem; padding: 3px 10px; margin-bottom: 0.5rem; display: inline-block;">DEVELOPER & USER SETUP</span>
+              <h3 style="font-size: 1.35rem; color: var(--text-primary); font-weight: 800;"><i class="fa-solid fa-terminal" style="color: var(--accent-primary);"></i> Quick Installation Guide (Python 3.10+)</h3>
+              <p style="color: var(--text-secondary); margin-top: 0.4rem; max-width: 680px;">
+                Clone the repository, activate a virtual environment, install requirements, and run! F.R.I.D.A.Y is completely modular and self-configuring.
               </p>
             </div>
-            <a href="assets/Friday_Agent.exe" download class="btn-primary" style="padding: 0.85rem 1.6rem; font-size: 1rem; border-radius: var(--radius-md);">
-              <i class="fa-solid fa-download"></i> Download Friday_Agent.exe
+            <a href="https://github.com/Shubhampanchal108/F.R.I.D.A.Y-2.0" target="_blank" class="btn-primary" style="padding: 0.85rem 1.6rem; font-size: 1rem; border-radius: var(--radius-md);">
+              <i class="fa-brands fa-github"></i> View on GitHub
             </a>
           </div>
 
           <div class="quickstart-steps-grid">
             <div>
-              <strong style="color: var(--text-primary);"><i class="fa-solid fa-1" style="color: var(--accent-cyan);"></i> Step 1: Download</strong>
-              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;">Click the download button to save <code>Friday_Agent.exe</code>.</p>
+              <strong style="color: var(--text-primary);"><i class="fa-solid fa-1" style="color: var(--accent-cyan);"></i> Step 1: Clone Repo</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;"><code>git clone https://github.com/Shubhampanchal108/F.R.I.D.A.Y-2.0.git</code></p>
             </div>
             <div>
-              <strong style="color: var(--text-primary);"><i class="fa-solid fa-2" style="color: var(--accent-green);"></i> Step 2: Run Executable</strong>
-              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;">Double-click <code>Friday_Agent.exe</code> on Windows 10/11.</p>
+              <strong style="color: var(--text-primary);"><i class="fa-solid fa-2" style="color: var(--accent-green);"></i> Step 2: Virtual Environment</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;"><code>python -m venv .venv</code> and activate it via <code>.\.venv\Scripts\activate</code></p>
             </div>
             <div>
-              <strong style="color: var(--text-primary);"><i class="fa-solid fa-3" style="color: var(--accent-amber);"></i> Step 3: Setup Wizard</strong>
-              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;">Follow the interactive setup wizard to configure your AI key.</p>
+              <strong style="color: var(--text-primary);"><i class="fa-solid fa-3" style="color: var(--accent-amber);"></i> Step 3: Install & Run</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;"><code>pip install -r requirements.txt</code> then <code>python index.py</code></p>
             </div>
           </div>
         </div>
 
         <div class="glass-card">
-          <h3 class="card-title"><i class="fa-solid fa-laptop-code" style="color: var(--accent-primary);"></i> System Requirements</h3>
-          <ul style="padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.8;">
-            <li><strong>Supported OS:</strong> Windows 10 / Windows 11 (64-bit).</li>
-            <li><strong>Hardware:</strong> Minimum 4GB RAM, Microphone for voice input, Speakers for audio response.</li>
-            <li><strong>Internet Connection:</strong> Required for LLM API connection & web research.</li>
-          </ul>
-        </div>
-
-        <div class="glass-card">
-          <h3 class="card-title"><i class="fa-solid fa-code" style="color: var(--accent-magenta);"></i> Developer Setup (Run from Python Source Code)</h3>
-          <p style="color: var(--text-secondary); margin-bottom: 0.75rem;">If you wish to modify or contribute to F.R.I.D.A.Y's source code, clone the repository and run via Python 3.10+:</p>
+          <h3 class="card-title"><i class="fa-solid fa-code" style="color: var(--accent-magenta);"></i> Complete PowerShell / Terminal Command Walkthrough</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 0.75rem;">Run the following sequence in Windows PowerShell, Command Prompt, or Terminal:</p>
 
           <div class="code-block-wrapper">
             <div class="code-header">
               <span>POWERSHELL / BASH</span>
               <button class="code-copy-btn"><i class="fa-regular fa-copy"></i> Copy Commands</button>
             </div>
-            <pre class="code-block"># Clone Repository
-git clone https://github.com/Shubhampanchal108/F.R.I.D.A.Y.git
+            <pre class="code-block"># 1. Clone Repository
+git clone https://github.com/Shubhampanchal108/F.R.I.D.A.Y-2.0.git
 cd F.R.I.D.A.Y
 
-# Create & Activate Virtual Environment
+# 2. Create & Activate Virtual Environment
 python -m venv .venv
-.venv\Scripts\activate   # On Windows
+.\.venv\Scripts\activate   # On Windows (PowerShell / CMD)
+# source .venv/bin/activate # On Linux / macOS
 
-# Install Dependencies
+# 3. Install Dependencies
 pip install -r requirements.txt
 
-# Launch F.R.I.D.A.Y Super-Agent
-python index.py</pre>
+# 4. Launch F.R.I.D.A.Y (Interactive Wizard starts automatically on first run!)
+python index.py
+
+# Optional: Launch Floating Corner Arc-Reactor Widget
+python friday_widget.py
+
+# Optional: Launch Live Multimodal Screen & Webcam Vision
+python Live_mode.py --mode screen</pre>
           </div>
+        </div>
+
+        <div class="glass-card">
+          <h3 class="card-title"><i class="fa-solid fa-laptop-code" style="color: var(--accent-primary);"></i> System Requirements</h3>
+          <ul style="padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.8;">
+            <li><strong>Supported OS:</strong> Windows 10 / Windows 11 (64-bit recommended for full system controls, widget, and autostart). Linux / macOS supported for core agent & Live vision.</li>
+            <li><strong>Hardware:</strong> Minimum 4GB RAM (8GB recommended for ChromaDB vector embeddings), Microphone for voice recognition, Speakers/Headphones for speech output.</li>
+            <li><strong>Python Version:</strong> Python 3.10, 3.11, or 3.12 (64-bit).</li>
+            <li><strong>Internet Connection:</strong> Required for LLM APIs (Gemini, Groq, OpenAI, OpenRouter) and live web tools. Local models (Ollama) supported offline.</li>
+          </ul>
         </div>
 
         <div class="callout callout-tip">
           <i class="fa-solid fa-wand-magic-sparkles callout-icon"></i>
           <div>
-            <strong>Interactive Setup Wizard:</strong> On your first launch, F.R.I.D.A.Y detects missing configurations and automatically starts the <strong>First-Time Setup Wizard</strong>! You will be guided to enter your preferred LLM Provider URL (OpenAI / Groq / Ollama / Gemini), API Key, User Name, and Access Password.
+            <strong>Interactive Setup Wizard:</strong> On your first launch, F.R.I.D.A.Y detects missing configurations and automatically starts the <strong>First-Time Setup Wizard</strong>! You will be guided to enter your preferred LLM Provider URL (OpenAI / Groq / Ollama / Gemini / OpenRouter), API Key, User Name, and Access Password.
           </div>
         </div>
 
         <div class="glass-card">
           <h3 class="card-title"><i class="fa-solid fa-sliders" style="color: var(--accent-green);"></i> Dynamic Config Editor (/config)</h3>
           <p style="color: var(--text-secondary); font-size: 0.95rem;">
-            You can change your settings at any time without opening code files! Simply type <span class="command-badge">/config</span> in the HUD terminal to view or update keys, model names, voice speed, or passwords with masked key privacy.
+            You can change your settings at any time without editing source files! Simply type <span class="command-badge">/config</span> in the HUD terminal or widget to view or update keys, model names, voice speed, or passwords with masked key privacy.
           </p>
         </div>
       </section>
@@ -257,8 +360,31 @@ python index.py</pre>
       <section id="slash-commands" class="doc-section">
         <div class="section-header">
           <div class="section-tag"><i class="fa-solid fa-gamepad"></i> Control Center</div>
-          <h2 class="section-title">Terminal Slash Commands</h2>
-          <p class="section-subtitle">Control F.R.I.D.A.Y's operational modes, hardware audio, reminders, and system status instantly from the command line.</p>
+          <h2 class="section-title">Terminal Commands & Global Hotkeys</h2>
+          <p class="section-subtitle">Control F.R.I.D.A.Y's operational modes, multimodal vision, hardware audio, reminders, and system status instantly from the command line or global hotkeys.</p>
+        </div>
+
+        <!-- HOTKEYS CALLOUT -->
+        <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 1.5rem;">
+          <div class="glass-card" style="border-color: var(--accent-primary); margin-bottom: 0;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+              <i class="fa-solid fa-bolt" style="color: var(--accent-primary); font-size: 1.2rem;"></i>
+              <strong style="color: var(--text-primary); font-size: 1.05rem;">Global Summon Hotkey</strong>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">
+              Press <kbd style="background: var(--bg-card); border: 1px solid var(--accent-primary); padding: 3px 8px; border-radius: 4px; color: var(--accent-primary); font-weight: 700;">Ctrl + Space</kbd> anywhere on Windows to summon or dismiss the Holographic HUD Corner Widget instantly!
+            </p>
+          </div>
+
+          <div class="glass-card" style="border-color: var(--accent-magenta); margin-bottom: 0;">
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+              <i class="fa-solid fa-hand" style="color: var(--accent-magenta); font-size: 1.2rem;"></i>
+              <strong style="color: var(--text-primary); font-size: 1.05rem;">Instant Speech Interruption</strong>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5;">
+              Press <kbd style="background: var(--bg-card); border: 1px solid var(--accent-magenta); padding: 3px 8px; border-radius: 4px; color: var(--accent-magenta); font-weight: 700;">Ctrl + D</kbd>, <kbd style="background: var(--bg-card); border: 1px solid var(--accent-magenta); padding: 3px 8px; border-radius: 4px; color: var(--accent-magenta); font-weight: 700;">Esc</kbd>, or <kbd style="background: var(--bg-card); border: 1px solid var(--accent-magenta); padding: 3px 8px; border-radius: 4px; color: var(--accent-magenta); font-weight: 700;">q</kbd> to halt voice playback in &lt;30ms and return immediately to typing input!
+            </p>
+          </div>
         </div>
 
         <div class="custom-table-wrapper responsive-table">
@@ -272,6 +398,18 @@ python index.py</pre>
               </tr>
             </thead>
             <tbody>
+              <tr>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/live</span></td>
+                <td data-label="Mode / Function">Gemini 2.5 Live Multimodal Mode</td>
+                <td data-label="Description">Launches real-time bidirectional WebSocket streaming with Google Gemini 2.5 Live. Streams screen or camera frames with native voice and 25+ live in-stream desktop tool calls.</td>
+                <td data-label="Trigger">Type <code class="inline-code">/live</code> (or <code class="inline-code">/live camera</code>)</td>
+              </tr>
+              <tr>
+                <td data-label="Command"><span class="command-badge copyable-cmd">/vision</span></td>
+                <td data-label="Mode / Function">Instant Screen & Webcam Vision</td>
+                <td data-label="Description">Alternative alias for Live Vision mode. Instantly analyzes display screen or camera frames for debugging, chart reading, and visual assistance.</td>
+                <td data-label="Trigger">Type <code class="inline-code">/vision</code> or <code class="inline-code">/vision screen</code></td>
+              </tr>
               <tr>
                 <td data-label="Command"><span class="command-badge copyable-cmd">/voice</span></td>
                 <td data-label="Mode / Function">Speech Recognition Mode</td>
@@ -299,7 +437,7 @@ python index.py</pre>
               <tr>
                 <td data-label="Command"><span class="command-badge copyable-cmd">/wakeword</span></td>
                 <td data-label="Mode / Function">Hands-Free Wake Listener</td>
-                <td data-label="Description">Toggles background background wake-word thread. Listens for keyword <strong>"Friday"</strong> to activate voice input. <em>Use case: Room voice control without clicking anything.</em></td>
+                <td data-label="Description">Toggles background wake-word thread. Listens for keyword <strong>"Friday"</strong> or <strong>"Hey Friday"</strong> to activate voice input hands-free.</td>
                 <td data-label="Trigger">Type <code class="inline-code">/wakeword</code></td>
               </tr>
               <tr>
@@ -317,7 +455,7 @@ python index.py</pre>
               <tr>
                 <td data-label="Command"><span class="command-badge copyable-cmd">/config</span></td>
                 <td data-label="Mode / Function">Interactive Config Editor</td>
-                <td data-label="Description">Launches terminal wizard to edit API Keys, Provider Base URLs, LLM Model names, and Security Passwords safely. <em>Use case: Changing models or keys.</em></td>
+                <td data-label="Description">Launches terminal wizard to edit API Keys, Provider Base URLs, LLM Model names, and Security Passwords safely with masked privacy.</td>
                 <td data-label="Trigger">Type <code class="inline-code">/config</code></td>
               </tr>
               <tr>
@@ -337,111 +475,224 @@ python index.py</pre>
         </div>
       </section>
 
-      <!-- SECTION 4: ARCHITECTURE -->
+      <!-- SECTION 4: ARCHITECTURE & RESTRUCTURING -->
       <section id="architecture" class="doc-section">
         <div class="section-header">
-          <div class="section-tag"><i class="fa-solid fa-network-wired"></i> Architecture</div>
-          <h2 class="section-title">System Flow & Infrastructure</h2>
-          <p class="section-subtitle">Understanding F.R.I.D.A.Y's multi-layered async architecture: CLI Interface, Event Watchdog Daemon, Brain Loop, RAG Vector Engine, and Security ACL Guard.</p>
+          <div class="section-tag"><i class="fa-solid fa-network-wired"></i> Architecture & System Design</div>
+          <h2 class="section-title">Modular System Flow & Architecture</h2>
+          <p class="section-subtitle">F.R.I.D.A.Y 2.0 has been re-architected into modular packages with clean separation of concerns: sensory inputs, cognitive brain, multi-model failover, autonomous planner, background daemon, tool guard security, and 60+ native tools.</p>
         </div>
 
         <div class="glass-card">
-          <h3 class="card-title"><i class="fa-solid fa-diagram-project" style="color: var(--accent-primary);"></i> Architectural Flowchart</h3>
+          <h3 class="card-title"><i class="fa-solid fa-diagram-project" style="color: var(--accent-primary);"></i> System Infrastructure Flowchart</h3>
           <div class="code-block-wrapper">
-            <pre class="code-block" style="color: var(--accent-cyan);">
-┌────────────────────────────────────────────────────────────────────────┐
-│                        F.R.I.D.A.Y  CLI HUD                           │
-│       - Rich Console Output  - Voice / Typing Toggle  - Slash Palette  │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-           ┌────────────────────────┴────────────────────────┐
-           ▼                                                 ▼
-┌─────────────────────────────┐                   ┌─────────────────────────────┐
-│   CLI Interface / Input     │                   │   Background Event Daemon   │
-│   - Speech / Typing Input   │                   │   - Due Reminder Watchdog   │
-│   - Wake-Word Listener      │                   │   - Morning Voice Briefing  │
-└──────────────┬──────────────┘                   │   - Windows Desktop Alerts  │
-               │                                  └──────────────┬──────────────┘
-               │                                                 │
-               └────────────────────┬────────────────────────────┘
-                                    │
-                                    ▼
-                     ┌─────────────────────────────┐
-                     │      Brain Engine Loop      │
-                     │  - OpenAI / Ollama Client   │
-                     │  - ChromaDB Vector RAG      │
-                     │  - Dynamic Memory Context   │
-                     └──────────────┬──────────────┘
-                                    │
-                                    ▼
-                     ┌─────────────────────────────┐
-                     │   Access Control List (ACL) │
-                     │   - Tool Guard Security     │
-                     │   - Origin Permissions      │
-                     └──────────────┬──────────────┘
-                                    │
-                                    ▼
-                     ┌─────────────────────────────┐
-                     │   40+ Native Tools Engine   │
-                     │   - Vision Perception       │
-                     │   - Python Sandbox Code     │
-                     │   - Mobile ADB Autopilot    │
-                     │   - Research Sub-Agents     │
-                     └─────────────────────────────┘</pre>
+            <pre class="code-block" style="color: var(--accent-cyan); font-size: 0.82rem; line-height: 1.45;">
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                               USER INTERFACES & SENSORY LAYER                          │
+│  • Terminal Cyberpunk HUD (index.py)          • Floating Arc-Reactor Widget (friday_widget.py) │
+│  • Multimodal Live Stream (Live_mode.py)       • Background Wake-Word ("Friday" / "Hey Friday")│
+│  • Instant Interruption (<30ms: Ctrl+D / Esc) • Windows Autostart VBS / Bat Daemons           │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │
+                     ┌──────────────────────┴──────────────────────┐
+                     ▼                                             ▼
+┌─────────────────────────────────────────┐   ┌─────────────────────────────────────────┐
+│     interface/ & voice/ Engines         │   │       services/ Proactive Daemon        │
+│  • FridayCLI (interface/cli_interface.py│   │  • 24/7 Watchdog Thread (daemon.py)     │
+│  • Arc-Reactor HUD (friday_widget.py)   │   │  • Due Reminders & Morning Briefing     │
+│  • Interruptible Audio (voice/speak.py) │   │  • Low Battery & High CPU Alerts        │
+│  • Instant Audio Fillers & Mic Input    │   │  • Native Windows Toast Notifications   │
+└────────────────────┬────────────────────┘   └────────────────────┬────────────────────┘
+                     │                                             │
+                     └──────────────────────┬──────────────────────┘
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        core/brain.py & agent/ Autonomous Master                        │
+│  • FridayAgentPlanner (agent/planner.py)  -> Atomic step decomposition with verifications│
+│  • FridayAgentExecutor (agent/executor.py)-> Tool callbacks, dynamic retry & recovery │
+│  • Specialized Sub-Agents (Deep Research & Code Reviewer)                             │
+└────────────────────┬─────────────────────────────────────────────┬────────────────────┘
+                     │                                             │
+                     ▼                                             ▼
+┌─────────────────────────────────────────┐   ┌─────────────────────────────────────────┐
+│      core/llm_router.py (Failover)      │   │     memory/ Knowledge & State RAG       │
+│  • Primary LLM (OpenAI / Groq / Gemini) │   │  • ChromaDB Vector RAG (rag.py)         │
+│  • HTTP 429 Quota Exhaustion Detection  │   │  • Episodic Session Context & Profile   │
+│  • 25+ Resilient OpenRouter Free Pool   │   │  • Temporal Memory Associations         │
+└────────────────────┬────────────────────┘   └─────────────────────────────────────────┘
+                     │
+                     ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                       core/tool_guard.py — Triple-Tier ACL Security                     │
+│  • SERVER / CLI / WIDGET / DESKTOP (Full Access to all 60+ tools & Python interpreter) │
+│  • MOBILE (ADB Whitelist: WhatsApp, Phone Calls, Reminders, Search, Weather, Emails)  │
+│  • WEB (Restricted: Public searches, Read-only utilities, Safe Information queries)   │
+└────────────────────┬───────────────────────────────────────────────────────────────────┘
+                     │
+                     ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                         Tools/ — 60+ Native System Tools Arsenal                       │
+│  • Vision & Screen (Vision.py)          • System & Power Control (systems_tools.py)   │
+│  • Python Code Sandbox (code_interpreter)• Mobile ADB Automation (Mobile_Automation.py)│
+│  • Window Manager (window_manager.py)   • System Media Control (media_player_tool.py) │
+│  • Timers (timer_tool.py)               • Document Reader (document_reader.py)        │
+│  • Network Diagnostics (network_tool.py)• Clipboard Tool (clipboard_tool.py)         │
+│  • Files, Emails, Tasks, Reminders, Weather, News, Wikipedia, YouTube Autopilot       │
+└────────────────────────────────────────────────────────────────────────────────────────┘</pre>
+          </div>
+        </div>
+
+        <!-- FOLDER STRUCTURE BREAKDOWN -->
+        <div class="glass-card">
+          <h3 class="card-title"><i class="fa-solid fa-folder-tree" style="color: var(--accent-green);"></i> Modular Folder Restructuring Breakdown</h3>
+          <div class="quickstart-steps-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+            <div>
+              <strong style="color: var(--accent-primary);"><i class="fa-solid fa-brain"></i> core/</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;"><code>brain.py</code> (Master-Slave coordination), <code>llm_router.py</code> (25+ model pool failover), <code>tool_guard.py</code> (ACL security matrix), <code>context_builder.py</code> (multi-tier system prompts).</p>
+            </div>
+            <div>
+              <strong style="color: var(--accent-cyan);"><i class="fa-solid fa-robot"></i> agent/</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;"><code>planner.py</code> (autonomous multi-step goal planner), <code>executor.py</code> (verified execution), <code>sub_agents.py</code> (Deep Research & Code Reviewer), <code>task_queue.py</code>, <code>error_handler.py</code>.</p>
+            </div>
+            <div>
+              <strong style="color: var(--accent-green);"><i class="fa-solid fa-video"></i> Live/</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;"><code>live_session.py</code> (Gemini 2.5 Live WebSocket), <code>audio_stream.py</code> (PyAudio PCM), <code>vision_stream.py</code> (screen/webcam feed), <code>tools_schema.py</code> (25+ live function schemas).</p>
+            </div>
+            <div>
+              <strong style="color: var(--accent-magenta);"><i class="fa-solid fa-microphone"></i> voice/</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;"><code>speak.py</code> (&lt;30ms interruptible audio playback), <code>instant_filler.py</code> (zero-silence audio fillers), <code>wake_word.py</code> (hands-free listener), <code>voice_input.py</code>.</p>
+            </div>
+            <div>
+              <strong style="color: var(--accent-amber);"><i class="fa-solid fa-display"></i> interface/</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;"><code>cli_interface.py</code> (Rich cyberpunk terminal HUD), <code>friday_widget.py</code> (floating pywebview corner HUD & neural orb), <code>app.js</code>, <code>style.css</code>, <code>orb.js</code>.</p>
+            </div>
+            <div>
+              <strong style="color: var(--accent-primary);"><i class="fa-solid fa-clock-rotate-left"></i> services/ & memory/</strong>
+              <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 0.2rem;"><code>daemon.py</code> (24/7 proactive watchdog thread, toast notifications), <code>rag.py</code> (ChromaDB vector RAG), <code>memory_manager.py</code> (episodic session persistence).</p>
+            </div>
           </div>
         </div>
 
         <div class="feature-grid">
           <div class="glass-card" style="margin-bottom: 0;">
-            <h4 style="color: var(--accent-primary); font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-brain"></i> Brain Loop (<code class="inline-code">Brain.py</code>)</h4>
+            <h4 style="color: var(--accent-primary); font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-brain"></i> Agent Brain & Planner (<code class="inline-code">core/brain.py</code> + <code class="inline-code">agent/planner.py</code>)</h4>
             <p style="color: var(--text-secondary); font-size: 0.9rem;">
-              The central cognitive processor. Formats system instructions, loads short-term chat history, injects user profile facts, queries ChromaDB vector memories, parses JSON tool calls, executes functions up to 4 call iterations, and yields final synthesized voice responses.
+              The cognitive headquarters. The planner analyzes directives into atomic steps with verification contracts (<code>content</code>, <code>file_exists</code>, <code>status_ok</code>). The executor handles dynamic replanning, error recovery, and tool callbacks.
             </p>
           </div>
 
           <div class="glass-card" style="margin-bottom: 0;">
-            <h4 style="color: var(--accent-green); font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-clock-rotate-left"></i> Background Daemon (<code class="inline-code">daemon.py</code>)</h4>
+            <h4 style="color: var(--accent-amber); font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-shuffle"></i> Multi-Model Quota Failover (<code class="inline-code">core/llm_router.py</code>)</h4>
             <p style="color: var(--text-secondary); font-size: 0.9rem;">
-              Runs as a non-blocking background thread. Constantly checks local JSON databases for due reminders every 10 seconds. When triggered, it fires native Windows balloon notifications and speaks aloud via voice synthesis.
+              100% quota resilience. When primary providers encounter HTTP 429 rate limits, the router seamlessly fails over across a resilient pool of 25+ top free models on OpenRouter with automated cooldown tracking.
             </p>
           </div>
 
           <div class="glass-card" style="margin-bottom: 0;">
-            <h4 style="color: var(--accent-magenta); font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-shield-halved"></i> Access Control ACL (<code class="inline-code">Tool_guard.py</code>)</h4>
+            <h4 style="color: var(--accent-magenta); font-size: 1.1rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-shield-halved"></i> Access Control ACL (<code class="inline-code">core/tool_guard.py</code>)</h4>
             <p style="color: var(--text-secondary); font-size: 0.9rem;">
-              Enforces origin-based security boundaries. Ensures dangerous system actions (e.g., executing code, deleting files, turning off PC) are restricted to local <code class="inline-code">SERVER</code> origins, while web and mobile clients are granted safe scoped access.
+              Enforces origin-based security boundaries. System operations, file mutations, and code sandboxes are strictly restricted to local <code class="inline-code">SERVER</code> origins, while web and mobile clients are granted safe scoped access.
             </p>
           </div>
         </div>
       </section>
 
       <!-- SECTION 5: SUPER-AGENT FEATURES DEEP DIVES -->
+      
+      <!-- FEATURE: LIVE VISION & MULTIMODAL -->
       <section id="feature-vision" class="doc-section">
         <div class="section-header">
-          <div class="section-tag"><i class="fa-solid fa-eye"></i> Feature 1</div>
-          <h2 class="section-title">📸 Desktop Screen Vision Perception</h2>
-          <p class="section-subtitle">Give F.R.I.D.A.Y eyes to see whatever is visible on your primary computer display.</p>
+          <div class="section-tag"><i class="fa-solid fa-video"></i> Multimodal Stream</div>
+          <h2 class="section-title">👁️ Multimodal Live Screen & Webcam Vision (<code class="inline-code">Live_mode.py</code>)</h2>
+          <p class="section-subtitle">Real-time computer vision streaming and natural bidirectional speech via Google Gemini 2.5 Live WebSocket API.</p>
         </div>
 
         <div class="glass-card">
           <div class="tool-usecase-box">
-            <div class="tool-usecase-title">Real-World Use Cases</div>
+            <div class="tool-usecase-title">Core Capabilities</div>
             <ul style="padding-left: 1.2rem; margin-top: 0.3rem; line-height: 1.6;">
-              <li><strong>Debugging Code Errors:</strong> When your IDE or terminal shows a complex stack trace, ask F.R.I.D.A.Y to "look at my screen and tell me what is causing this bug".</li>
-              <li><strong>Document & Chart Analysis:</strong> Inspect open PDFs, dashboards, Excel charts, or web pages without copy-pasting text manually.</li>
-              <li><strong>UI Design Feedback:</strong> Capture UI mockups and ask for aesthetic suggestions.</li>
+              <li><strong>Zero Buffer Lag:</strong> High-performance MSS screen capture & OpenCV webcam streaming compressed to optimized 640x480 frames at low latency.</li>
+              <li><strong>Bidirectional Neural Audio:</strong> Spoken conversational back-and-forth powered by Google's native <strong>Zephyr</strong> audio model.</li>
+              <li><strong>25+ In-Stream Tool Calls:</strong> During live vision/audio streams, F.R.I.D.A.Y dynamically adjusts brightness, volume, launches apps, checks battery, or performs web searches without breaking the live call!</li>
             </ul>
           </div>
 
-          <h4 style="color: var(--text-primary); margin-top: 1rem;">How to Use (Voice & CLI)</h4>
+          <h4 style="color: var(--text-primary); margin-top: 1rem;">How to Launch Live Mode</h4>
           <div class="tool-example-box">
-            <span>"Friday, analyze my screen and explain what error is showing in my terminal."</span>
+            <span>python Live_mode.py --mode screen   # Stream desktop screen</span>
             <i class="fa-regular fa-copy tool-copy-icon"></i>
           </div>
           <div class="tool-example-box">
-            <span>"Look at this graph on my screen and summarize the key trends."</span>
+            <span>python Live_mode.py --mode camera   # Stream webcam feed</span>
             <i class="fa-regular fa-copy tool-copy-icon"></i>
           </div>
+        </div>
+      </section>
+
+      <!-- FEATURE: HOLOGRAPHIC CORNER WIDGET -->
+      <section id="feature-widget" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-circle-dot"></i> Holographic HUD</div>
+          <h2 class="section-title">🔮 Floating Screen-Corner AI Widget (<code class="inline-code">friday_widget.py</code>)</h2>
+          <p class="section-subtitle">A sleek, always-accessible desktop companion featuring an Iron Man Arc-Reactor inspired glowing neural orb.</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 0;">
+            <div>
+              <h4 style="color: var(--accent-primary);"><i class="fa-solid fa-atom"></i> Arc-Reactor Neural Orb</h4>
+              <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.3rem;">
+                Dynamic CSS & Canvas particles that pulse with AI thought activity, microphone listening, and speech playback states.
+              </p>
+            </div>
+            <div>
+              <h4 style="color: var(--accent-cyan);"><i class="fa-solid fa-bolt"></i> Global Summon Hotkey</h4>
+              <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.3rem;">
+                Summon or dismiss from anywhere on Windows with <kbd>Ctrl + Space</kbd>. Collapses seamlessly into a discrete corner orb or expands to a full HUD chat.
+              </p>
+            </div>
+          </div>
+
+          <h4 style="color: var(--text-primary); margin-top: 1.25rem;">How to Launch Widget</h4>
+          <div class="tool-example-box">
+            <span>python friday_widget.py   # Or double-click scripts\run_widget.bat</span>
+            <i class="fa-regular fa-copy tool-copy-icon"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURE: INSTANT INTERRUPTION -->
+      <section id="feature-interruption" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-hand"></i> Zero-Latency Control</div>
+          <h2 class="section-title">⏹️ Real-Time Speech Interruption (&lt;30ms)</h2>
+          <p class="section-subtitle">Instant cut-off control when you need to redirect the conversation without listening to long responses.</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="tool-usecase-box">
+            <div class="tool-usecase-title">Interruption Architecture</div>
+            <ul style="padding-left: 1.2rem; margin-top: 0.3rem; line-height: 1.6;">
+              <li><strong>Immediate Playback Halt:</strong> Pressing <kbd>Ctrl + D</kbd>, <kbd>Esc</kbd>, or <kbd>q</kbd> stops PyGame audio mixer in less than 30 milliseconds.</li>
+              <li><strong>TTS Thread Cancellation:</strong> Automatically kills active background audio generation threads and purges audio queues.</li>
+              <li><strong>Instant Cursor Return:</strong> Flushes keystroke buffers and restores immediate focus to the input line for your next prompt.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURE: MULTI-MODEL ROUTER -->
+      <section id="feature-router" class="doc-section">
+        <div class="section-header">
+          <div class="section-tag"><i class="fa-solid fa-shuffle"></i> 100% Resilience</div>
+          <h2 class="section-title">🔀 Multi-Model Quota Failover Router (<code class="inline-code">core/llm_router.py</code>)</h2>
+          <p class="section-subtitle">Never get stopped by rate limits or HTTP 429 quota exhaustion errors again.</p>
+        </div>
+
+        <div class="glass-card">
+          <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.7;">
+            F.R.I.D.A.Y connects to your primary configured model (OpenAI, Groq, Gemini, Ollama). If that provider runs out of credits or encounters an HTTP 429 rate limit, the router immediately cycles through a verified fallback list of <strong>25+ high-tier models</strong> on OpenRouter (including Llama 3.3 70B, Qwen 3 Coder, Gemma, DeepSeek R1, Nemotron, Mistral) with automatic cooldown tracking.
+          </p>
         </div>
       </section>
 
@@ -621,23 +872,24 @@ python index.py</pre>
         </div>
       </section>
 
-      <!-- SECTION 6: COMPLETE 40+ TOOLS CATALOG -->
+      <!-- SECTION 6: COMPLETE 60+ TOOLS CATALOG -->
       <section id="tools-catalog" class="doc-section">
         <div class="section-header">
           <div class="section-tag"><i class="fa-solid fa-toolbox"></i> Complete Reference Manual</div>
-          <h2 class="section-title">🛠️ Complete 40+ Tool Catalog</h2>
-          <p class="section-subtitle">Filter by category to explore every native tool, its function, use cases, and exact triggers.</p>
+          <h2 class="section-title">🛠️ Complete 60+ Tool Arsenal</h2>
+          <p class="section-subtitle">Filter by category to explore all 60+ native system tools, their parameters, use cases, and spoken triggers.</p>
         </div>
 
         <!-- Filter Category Tabs -->
         <div class="tool-filter-bar">
-          <button class="filter-btn active" data-category="all">All Tools (40+)</button>
+          <button class="filter-btn active" data-category="all">All Tools (60+)</button>
           <button class="filter-btn" data-category="vision-code">Vision & Code</button>
           <button class="filter-btn" data-category="subagents">Sub-Agents & Research</button>
-          <button class="filter-btn" data-category="system">System & Hardware</button>
+          <button class="filter-btn" data-category="system">System & Power</button>
+          <button class="filter-btn" data-category="media-window">Media & Windows</button>
           <button class="filter-btn" data-category="mobile">Mobile ADB Automation</button>
           <button class="filter-btn" data-category="email-tasks">Emails & Tasks</button>
-          <button class="filter-btn" data-category="files">Files & Utilities</button>
+          <button class="filter-btn" data-category="files">Files & Productivity</button>
         </div>
 
         <!-- Tool Cards Grid -->
@@ -943,6 +1195,158 @@ python index.py</pre>
             </div>
             <div class="tool-example-box">
               <span>"Create a file named notes.txt with text Hello World"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 17: SYSTEM MEDIA CONTROL -->
+          <div class="tool-card" data-category="media-window">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">system_media_control</span>
+                <span class="origin-badge origin-server">ALL</span>
+              </div>
+              <p class="feature-desc">Controls system media playback: play/pause, next track, previous track, volume adjustments via hardware virtual keys.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Control Spotify, YouTube, or VLC playback hands-free.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Pause media playback" or "Next song"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 18: WINDOW MANAGER -->
+          <div class="tool-card" data-category="media-window">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">focus_window / list_running_apps</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Enumerates active desktop windows and brings any target application directly to the foreground.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Switch to VS Code or Chrome instantly without Alt+Tab.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Focus window Code" or "Show running apps"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 19: TIMERS -->
+          <div class="tool-card" data-category="files">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">set_timer / list_active_timers</span>
+                <span class="origin-badge origin-server">ALL</span>
+              </div>
+              <p class="feature-desc">Spawns async countdown timers with voice announcements and audio alarms upon completion.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Track Pomodoro study blocks or baking intervals.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Set a timer for 15 minutes for Pomodoro"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 20: DOCUMENT READER -->
+          <div class="tool-card" data-category="files">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">read_pdf_or_document</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Parses PDF, DOCX, and TXT files directly, extracts clean text, and feeds it into the AI cognitive context.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Summarize lengthy research papers, contracts, or syllabus PDFs.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Read and summarize syllabus.pdf"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 21: NETWORK HEALTH -->
+          <div class="tool-card" data-category="system">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">check_network_health</span>
+                <span class="origin-badge origin-server">ALL</span>
+              </div>
+              <p class="feature-desc">Tests internet connectivity, ping latency, DNS resolution, and local IP configuration.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Diagnose Wi-Fi dropouts and connection latency issues.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Check network health and ping latency."</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 22: CLIPBOARD TOOL -->
+          <div class="tool-card" data-category="files">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">copy_to_clipboard / get_clipboard</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Reads text currently stored on the Windows clipboard or writes AI-generated code directly to the clipboard.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Explain copied stack traces or copy generated regex patterns.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"What is on my clipboard?" or "Copy this regex"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 23: POWER CONTROL -->
+          <div class="tool-card" data-category="system">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">system_power_control (lock/sleep)</span>
+                <span class="origin-badge origin-server">SERVER</span>
+              </div>
+              <p class="feature-desc">Executes Windows power state management: lock workstation, enter sleep mode, reboot, or scheduled shutdown.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Lock your PC hands-free when stepping away from desk.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Lock my PC" or "Put computer to sleep"</span>
+              <i class="fa-regular fa-copy tool-copy-icon"></i>
+            </div>
+          </div>
+
+          <!-- CARD 24: TASK MANAGEMENT -->
+          <div class="tool-card" data-category="email-tasks">
+            <div>
+              <div class="tool-card-header">
+                <span class="tool-card-title">add_task / list_tasks / complete_task</span>
+                <span class="origin-badge origin-server">ALL</span>
+              </div>
+              <p class="feature-desc">Persistent to-do list manager with state tracking (pending, completed, archived) saved in local JSON.</p>
+              <div class="tool-usecase-box">
+                <div class="tool-usecase-title">Use Case</div>
+                Maintain project task lists across sessions.
+              </div>
+            </div>
+            <div class="tool-example-box">
+              <span>"Add task: Finish documentation" or "List my tasks"</span>
               <i class="fa-regular fa-copy tool-copy-icon"></i>
             </div>
           </div>
