@@ -18,39 +18,13 @@ from enum import Enum
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from core.llm_router import chat_complete
-
+from config.planner_prompt import ERROR_ANALYST_PROMPT # type: ignore
 
 class ErrorDecision(Enum):
     RETRY  = "retry"
     SKIP   = "skip"
     REPLAN = "replan"
     ABORT  = "abort"
-
-
-ERROR_ANALYST_PROMPT = """You are the Error Diagnostics Engine of F.R.I.D.A.Y 2.0, Shubham sir's loyal personal AI secretary.
-A step in an autonomous plan has encountered an issue or verification failed.
-Analyze the failed step and determine the most intelligent course of recovery.
-
-DECISION OPTIONS:
-- retry   : Transient glitch (network timeout, temporary file lock). Retrying can work.
-- skip    : Non-critical step (e.g. optional notification or status peek). Goal can succeed without it.
-- replan  : The approach or tool was not optimal. A different tool or revised route must be taken.
-- abort   : Fatal security or logical impossibility. Cannot safely continue.
-
-Provide:
-1. decision (retry | skip | replan | abort)
-2. reason (short technical reason)
-3. fix_suggestion (what to adjust)
-4. user_message (A calm, natural, executive sentence that a human personal secretary would briefly say, <= 10 words, e.g. 'Adjusting the approach for this step, Sir.')
-
-OUTPUT FORMAT (STRICT JSON ONLY):
-{
-  "decision": "retry|skip|replan|abort",
-  "reason": "why it failed",
-  "fix_suggestion": "what to change",
-  "user_message": "Calm, natural secretary update"
-}
-"""
 
 
 def analyze_error(

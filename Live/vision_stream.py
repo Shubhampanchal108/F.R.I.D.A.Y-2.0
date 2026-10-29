@@ -192,7 +192,8 @@ class VisionStreamer:
                 err_msg = str(e).lower()
                 if "closed" in err_msg or "no close frame" in err_msg or "1006" in err_msg:
                     stop_event.set()
-                break
+                    break
+                await asyncio.sleep(0.5)
 
     async def stream_camera(self, session, send_lock, stop_event, interval=1.0):
         """Continuously captures and streams webcam frames."""
@@ -230,8 +231,7 @@ class VisionStreamer:
                     if "closed" in err_msg or "no close frame" in err_msg or "1006" in err_msg:
                         stop_event.set()
                         break
-                    if stop_event.is_set():
-                        break
+                    await asyncio.sleep(0.5)
         finally:
             with self._cam_lock:
                 if self.cap:

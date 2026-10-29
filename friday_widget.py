@@ -829,16 +829,19 @@ class FridayWidgetApi:
 
             env = os.environ.copy()
             env["PYTHONIOENCODING"] = "utf-8"
+            env["PYTHONUNBUFFERED"] = "1"
             env["ANONYMIZED_TELEMETRY"] = "False"
 
             self.live_process = subprocess.Popen(
-                [py_exe, live_script, "--mode", video_mode],
+                [py_exe, "-u", live_script, "--mode", video_mode],
                 creationflags=creationflags,
                 env=env,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 bufsize=1
             )
 
@@ -854,7 +857,7 @@ class FridayWidgetApi:
                         if not line_str:
                             continue
                         if "[LIVE_FEED_REPLY]" in line_str:
-                            reply = line_str.replace("[LIVE_FEED_REPLY]", "").strip()
+                            reply = line_str.replace("[LIVE_FEED_REPLY]", "").lstrip(":").strip()
                             if self.window:
                                 self.safe_eval_js(f"window.fridayOnLiveMessage && window.fridayOnLiveMessage({json.dumps(reply)});")
                         elif "[LIVE_USER_QUERY]" in line_str:
@@ -862,15 +865,30 @@ class FridayWidgetApi:
                             if self.window:
                                 self.safe_eval_js(f"window.fridayOnLiveUserMessage && window.fridayOnLiveUserMessage({json.dumps(u_query)});")
                         elif "[LIVE_ALERT]" in line_str:
-                            alert_msg = line_str.replace("[LIVE_ALERT]", "").strip()
+                            alert_msg = line_str.replace("[LIVE_ALERT]", "").lstrip(":").strip()
                             if self.window:
                                 self.safe_eval_js(f"window.fridayOnLiveAlert && window.fridayOnLiveAlert({json.dumps(alert_msg)});")
                         elif "[LIVE_STATUS]" in line_str:
-                            status_val = line_str.replace("[LIVE_STATUS]", "").strip()
+                            status_val = line_str.replace("[LIVE_STATUS]", "").lstrip(":").strip()
                             if self.window:
                                 self.safe_eval_js(f"window.fridayOnLiveStatus && window.fridayOnLiveStatus({json.dumps(status_val)});")
-                except Exception:
-                    pass
+                        else:
+                            # Forward child debug / info output to console so nothing is silently lost
+                            print(f"[LIVE MODE] {line_str}", flush=True)
+                except Exception as e:
+                    print(f"[LIVE STREAM ERROR] {e}", flush=True)
+                finally:
+                    try:
+                        if proc.stdout:
+                            proc.stdout.close()
+                    except Exception:
+                        pass
+                    # If this was the active live process, restore state and reset UI buttons
+                    if getattr(self, "live_process", None) == proc:
+                        self.live_process = None
+                        self.current_mode = "core"
+                    if self.window:
+                        self.safe_eval_js("window.fridayOnLiveStatus && window.fridayOnLiveStatus('DISCONNECTED');")
 
             threading.Thread(target=_stream_live_output, args=(self.live_process,), daemon=True).start()
 

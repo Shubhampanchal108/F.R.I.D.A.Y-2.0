@@ -1642,13 +1642,16 @@ window.fridayOnLiveAlert = function(alertMsg) {
 };
 
 window.fridayOnLiveStatus = function(statusStr) {
+  if (!statusStr) return;
+  const cleanStr = String(statusStr).replace(/^:\s*/, '').trim();
+  const upper = cleanStr.toUpperCase();
   const statusBadge = document.getElementById('live-stream-status-badge');
   if (statusBadge) {
-    statusBadge.textContent = statusStr;
+    statusBadge.textContent = cleanStr;
   }
-  if (statusStr === 'DISCONNECTED' || statusStr.includes('STOPPED')) {
+  if (upper === 'DISCONNECTED' || upper.includes('DISCONNECT') || upper.includes('STOPPED') || upper.includes('STANDBY') || upper.includes('ERROR') || upper.includes('EXIT')) {
     setLiveStreamButtons(false);
-  } else if (statusStr === 'CONNECTED' || statusStr.includes('ONLINE') || statusStr.includes('LIVE')) {
+  } else if (upper === 'CONNECTED' || upper.includes('ONLINE') || upper.includes('LIVE')) {
     setLiveStreamButtons(true);
   }
 };

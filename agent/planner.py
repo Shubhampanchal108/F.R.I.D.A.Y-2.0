@@ -17,91 +17,12 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from core.llm_router import chat_complete
+from config.planner_prompt import PLANNER_AGENT_PROMPT
 
 
 def _get_planner_prompt() -> str:
     """Builds the planner prompt with available super-agent tools."""
-    return f"""You are the Autonomous Planning Engine of F.R.I.D.A.Y 2.0, Shubham sir's AI Super-Agent.
-Your job: Analyze any user goal and decompose it into an efficient, logical sequence of actionable steps using ONLY the available tools.
-If the user's input is a general conversation, greeting, explanation question, or does NOT require computer tools, mark "is_conversational": true.
-
-ABSOLUTE OPERATIONAL RULES:
-1. Return ONLY valid JSON. Absolutely no markdown fences, no conversational banter, no commentary.
-2. Use ONLY the available tools listed below.
-3. Every step must be atomic and clear. Use minimum steps necessary (1 to 5 steps max).
-4. If a step produces content that subsequent steps need (e.g. web search output -> save to file), the execution engine will automatically pipe the result context forward.
-5. If the goal can be accomplished with a single direct tool, generate a 1-step plan.
-6. Provide an intuitive description and specify `critical: true` for essential steps.
-7. Include `verification_type` ("content", "file_exists", "status_ok", "none") so the executor can verify actual success.
-
-AVAILABLE TOOLS AND PARAMETERS:
-
-- google_search
-    query: string (required) - focused search query
-- extract_webpage_content
-    url: string (required) - URL to scrape and extract text
-- deep_research_agent
-    topic: string (required) - comprehensive multi-source research topic
-- read_pdf_or_document
-    filepath: string (required) - path to PDF or document file to read
-- create_and_open_file
-    filename: string (required) - filename (e.g. 'ai_report.txt')
-    content: string (required) - initial text content or placeholder
-- update_file
-    filename: string (required)
-    new_content: string (required)
-- read_file
-    filename: string (required)
-- list_files
-- run_python_code
-    code: string (required) - complete executable Python script
-- code_reviewer_agent
-    code_or_filename: string (required) - code snippet or filename
-- open_app
-    app: string (required) - application name (e.g. 'chrome', 'notepad', 'spotify')
-- close_app
-    app: string (optional)
-- focus_window
-    app_name: string (required)
-- copy_to_clipboard
-    text: string (required)
-- get_clipboard_content
-- add_task
-    task_text: string (required)
-- list_tasks
-- add_reminder
-    reminder_text: string (required)
-    remind_at: string (required) - e.g. 'tomorrow at 9 AM', 'in 30 minutes'
-- send_email
-    to: string (required)
-    subject: string (required)
-    body: string (required)
-- open_website
-    url: string (required) - valid https URL
-- get_weather
-    city: string (required)
-- check_battery
-- check_cpu
-- capture_screenshot
-- analyze_screen
-    prompt: string (required)
-
-OUTPUT JSON FORMAT (STRICT):
-{{
-  "goal": "string",
-  "is_conversational": false,
-  "steps": [
-    {{
-      "step": 1,
-      "tool": "tool_name",
-      "description": "brief description of what this step does",
-      "parameters": {{}},
-      "verification_type": "content|file_exists|status_ok|none",
-      "critical": true
-    }}
-  ]
-}}
-"""
+    return PLANNER_AGENT_PROMPT
 
 
 def _clean_json_text(text: str) -> str:
@@ -252,3 +173,8 @@ def _create_fallback_plan(goal: str) -> dict:
             }
         ]
     }
+
+
+if __name__ == "__main__":
+    str = input("Enter you prompt: ")
+    print(PLANNER_AGENT_PROMPT)
