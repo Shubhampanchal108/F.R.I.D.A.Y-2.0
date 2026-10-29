@@ -167,6 +167,7 @@ Task:
 Formulate your natural response to Shubham sir.
 - If task succeeded: explain findings, file names, or accomplishments concisely and politely.
 - If an obstacle occurred: explain what happened and suggest or take an alternative.
+- Language Rule: Match the language of user's objective. If Hindi, respond in simple conversational Hindi (replace heavy/technical terms with everyday English words). If English, respond in fluent English. Do not use archaic pure Hindi or broken Romanized Hinglish.
 - STRICT RULE: Speak naturally as the AI. Do NOT output robotic templates. Output ONLY the response."""
 
         messages = [{"role": "user", "content": prompt}]

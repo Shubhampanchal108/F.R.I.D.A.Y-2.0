@@ -104,7 +104,7 @@ class FridayWidgetApi:
     """Python API exposed directly to JavaScript inside the WebView."""
 
     def __init__(self):
-        self.window = None
+        self._window = None
         self.is_collapsed = False
         self.is_expanded = False
         self.is_visible = True
@@ -133,7 +133,7 @@ class FridayWidgetApi:
             pass
 
     def set_window(self, window, work_w, work_h, sw=1366, sh=768):
-        self.window = window
+        self._window = window
         self.work_width = work_w
         self.work_height = work_h
         self.screen_width = sw
@@ -141,11 +141,11 @@ class FridayWidgetApi:
 
     def safe_eval_js(self, js_code: str):
         """Asynchronously executes JS in WebView2 without blocking Python caller or deadlocking IPC."""
-        if not self.window:
+        if not self._window:
             return
         def _exec():
             try:
-                self.window.evaluate_js(js_code)
+                self._window.evaluate_js(js_code)
             except Exception:
                 pass
         threading.Thread(target=_exec, daemon=True).start()
@@ -198,7 +198,7 @@ class FridayWidgetApi:
             briefing_text += "All background sentinels are operational. How may I assist you today?"
 
             # Push to UI chat history
-            if self.window:
+            if self._window:
                 js_code = f"window.fridayOnStartupBriefing && window.fridayOnStartupBriefing({json.dumps(briefing_text)});"
                 self.safe_eval_js(js_code)
 
@@ -313,7 +313,7 @@ class FridayWidgetApi:
         # 2. Tool callback to update UI in real-time
         def on_tool_call(tool_name, args):
             try:
-                if self.window:
+                if self._window:
                     clean_args = {}
                     if isinstance(args, dict):
                         for k, v in args.items():
@@ -333,7 +333,7 @@ class FridayWidgetApi:
 
         # Clean tool execution ticker in UI
         try:
-            if self.window:
+            if self._window:
                 self.safe_eval_js("window.fridayOnToolEnd && window.fridayOnToolEnd();")
         except Exception:
             pass
@@ -408,7 +408,7 @@ class FridayWidgetApi:
 
     def minimize_to_orb(self):
         """Collapses window down to a pure floating glowing neural orb in the corner."""
-        if not self.window:
+        if not self._window:
             return
         self.was_expanded = getattr(self, 'is_expanded', False)
         self.is_collapsed = True
@@ -420,15 +420,13 @@ class FridayWidgetApi:
 
         orb_x = work_w - ORB_WIDTH - MARGIN_X
         orb_y = work_h - ORB_HEIGHT - MARGIN_Y
-        self.window.resize(ORB_WIDTH, ORB_HEIGHT)
-        self.window.move(orb_x, orb_y)
+        self._window.resize(ORB_WIDTH, ORB_HEIGHT)
+        self._window.move(orb_x, orb_y)
 
         # Win32 Circular Clipping: Physically cuts away all square corners
         try:
             user32 = ctypes.windll.user32
             hwnd = user32.FindWindowW(None, "F.R.I.D.A.Y // Neural Assistant")
-            if not hwnd and self.window and hasattr(self.window, "native") and self.window.native:
-                hwnd = self.window.native.Handle.ToInt32()
             if hwnd:
                 hrgn = user32.CreateEllipticRgn(0, 0, ORB_WIDTH, ORB_HEIGHT)
                 user32.SetWindowRgn(hwnd, hrgn, True)
@@ -439,7 +437,7 @@ class FridayWidgetApi:
 
     def expand_to_full(self):
         """Expands window back up to full interactive HUD panel."""
-        if not self.window:
+        if not self._window:
             return
         self.is_collapsed = False
         self.is_expanded = getattr(self, 'was_expanded', False)
@@ -453,8 +451,6 @@ class FridayWidgetApi:
         try:
             user32 = ctypes.windll.user32
             hwnd = user32.FindWindowW(None, "F.R.I.D.A.Y // Neural Assistant")
-            if not hwnd and self.window and hasattr(self.window, "native") and self.window.native:
-                hwnd = self.window.native.Handle.ToInt32()
             if hwnd:
                 user32.SetWindowRgn(hwnd, 0, True)
         except Exception:
@@ -465,19 +461,19 @@ class FridayWidgetApi:
             exp_h = min(660, work_h - 40)
             exp_x = work_w - exp_w - MARGIN_X
             exp_y = work_h - exp_h - MARGIN_Y
-            self.window.resize(exp_w, exp_h)
-            self.window.move(exp_x, exp_y)
+            self._window.resize(exp_w, exp_h)
+            self._window.move(exp_x, exp_y)
             return {"mode": "expanded"}
         else:
             full_x = work_w - FULL_WIDTH - MARGIN_X
             full_y = work_h - FULL_HEIGHT - MARGIN_Y
-            self.window.resize(FULL_WIDTH, FULL_HEIGHT)
-            self.window.move(full_x, full_y)
+            self._window.resize(FULL_WIDTH, FULL_HEIGHT)
+            self._window.move(full_x, full_y)
             return {"mode": "full"}
 
     def toggle_expand_window(self):
         """Toggles between compact corner HUD (380x570) and enlarged HUD (780x660)."""
-        if not self.window:
+        if not self._window:
             return {"expanded": False}
 
         self.is_collapsed = False
@@ -492,8 +488,6 @@ class FridayWidgetApi:
         try:
             user32 = ctypes.windll.user32
             hwnd = user32.FindWindowW(None, "F.R.I.D.A.Y // Neural Assistant")
-            if not hwnd and self.window and hasattr(self.window, "native") and self.window.native:
-                hwnd = self.window.native.Handle.ToInt32()
             if hwnd:
                 user32.SetWindowRgn(hwnd, 0, True)
         except Exception:
@@ -504,28 +498,28 @@ class FridayWidgetApi:
             exp_h = min(660, work_h - 40)
             exp_x = work_w - exp_w - MARGIN_X
             exp_y = work_h - exp_h - MARGIN_Y
-            self.window.resize(exp_w, exp_h)
-            self.window.move(exp_x, exp_y)
+            self._window.resize(exp_w, exp_h)
+            self._window.move(exp_x, exp_y)
             return {"expanded": True, "width": exp_w, "height": exp_h}
         else:
             norm_x = work_w - FULL_WIDTH - MARGIN_X
             norm_y = work_h - FULL_HEIGHT - MARGIN_Y
-            self.window.resize(FULL_WIDTH, FULL_HEIGHT)
-            self.window.move(norm_x, norm_y)
+            self._window.resize(FULL_WIDTH, FULL_HEIGHT)
+            self._window.move(norm_x, norm_y)
             return {"expanded": False, "width": FULL_WIDTH, "height": FULL_HEIGHT}
 
     def hide_window(self):
         """Hides the widget window."""
-        if self.window:
-            self.window.hide()
+        if self._window:
+            self._window.hide()
             self.is_visible = False
         return {"visible": False}
 
     def show_window(self):
         """Restores and brings the widget to the foreground."""
-        if self.window:
-            self.window.show()
-            self.window.restore()
+        if self._window:
+            self._window.show()
+            self._window.restore()
             self.is_visible = True
         return {"visible": True}
 
@@ -557,11 +551,14 @@ class FridayWidgetApi:
         def shutdown():
             time.sleep(0.1)
             try:
-                if self.window:
-                    self.window.destroy()
+                if self._window:
+                    self._window.destroy()
             except Exception:
                 pass
             os._exit(0)
+
+        threading.Thread(target=shutdown, daemon=True).start()
+        return {"status": "closing"}
 
         threading.Thread(target=shutdown, daemon=True).start()
         return {"status": "closing"}
@@ -766,9 +763,16 @@ class FridayWidgetApi:
 
         def on_wake(phrase, command=None):
             print(f"⚡ [F.R.I.D.A.Y] Wake word detected: {phrase} (Command: {command})", flush=True)
+            # 1. Immediately interrupt any previous speech so Friday listens cleanly
             try:
-                # Do not summon or pop up window automatically on wake word; summon is reserved strictly for Ctrl + Space
-                if self.window:
+                from voice.speak import interrupt_speech
+                interrupt_speech()
+            except Exception:
+                pass
+
+            # 2. Dispatch to JavaScript UI
+            try:
+                if self._window:
                     payload = {"raw": str(phrase), "command": str(command) if command else None}
                     self.safe_eval_js(f"window.fridayOnWakeWord && window.fridayOnWakeWord({json.dumps(payload)});\n")
             except Exception:
@@ -858,19 +862,19 @@ class FridayWidgetApi:
                             continue
                         if "[LIVE_FEED_REPLY]" in line_str:
                             reply = line_str.replace("[LIVE_FEED_REPLY]", "").lstrip(":").strip()
-                            if self.window:
+                            if self._window:
                                 self.safe_eval_js(f"window.fridayOnLiveMessage && window.fridayOnLiveMessage({json.dumps(reply)});")
                         elif "[LIVE_USER_QUERY]" in line_str:
                             u_query = line_str.replace("[LIVE_USER_QUERY]", "").lstrip(":").strip()
-                            if self.window:
+                            if self._window:
                                 self.safe_eval_js(f"window.fridayOnLiveUserMessage && window.fridayOnLiveUserMessage({json.dumps(u_query)});")
                         elif "[LIVE_ALERT]" in line_str:
                             alert_msg = line_str.replace("[LIVE_ALERT]", "").lstrip(":").strip()
-                            if self.window:
+                            if self._window:
                                 self.safe_eval_js(f"window.fridayOnLiveAlert && window.fridayOnLiveAlert({json.dumps(alert_msg)});")
                         elif "[LIVE_STATUS]" in line_str:
                             status_val = line_str.replace("[LIVE_STATUS]", "").lstrip(":").strip()
-                            if self.window:
+                            if self._window:
                                 self.safe_eval_js(f"window.fridayOnLiveStatus && window.fridayOnLiveStatus({json.dumps(status_val)});")
                         else:
                             # Forward child debug / info output to console so nothing is silently lost
@@ -887,7 +891,7 @@ class FridayWidgetApi:
                     if getattr(self, "live_process", None) == proc:
                         self.live_process = None
                         self.current_mode = "core"
-                    if self.window:
+                    if self._window:
                         self.safe_eval_js("window.fridayOnLiveStatus && window.fridayOnLiveStatus('DISCONNECTED');")
 
             threading.Thread(target=_stream_live_output, args=(self.live_process,), daemon=True).start()
@@ -932,7 +936,7 @@ class FridayWidgetApi:
                     pass
             self.live_process = None
         self.current_mode = "core"
-        if self.window:
+        if self._window:
             try:
                 self.safe_eval_js("window.fridayOnLiveStatus && window.fridayOnLiveStatus('DISCONNECTED');")
             except Exception:
@@ -1226,7 +1230,7 @@ def run_widget_app():
     # Register real-time Speech Start / Speech End callbacks to drive crazy HUD visualizer
     def _on_speech_start(text):
         try:
-            if api.window:
+            if api._window:
                 preview = (text or "")[:80]
                 api.safe_eval_js(f"window.fridayOnSpeechStart && window.fridayOnSpeechStart({json.dumps(preview)});")
         except Exception:
@@ -1234,7 +1238,7 @@ def run_widget_app():
 
     def _on_speech_end(interrupted=False):
         try:
-            if api.window:
+            if api._window:
                 api.safe_eval_js(f"window.fridayOnSpeechEnd && window.fridayOnSpeechEnd({json.dumps(bool(interrupted))});")
         except Exception:
             pass

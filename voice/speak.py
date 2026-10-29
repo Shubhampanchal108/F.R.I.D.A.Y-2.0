@@ -309,7 +309,9 @@ def audio_producer(text, session_id, audio_q, stop_event):
             try:
                 filename = os.path.join(AUDIO_FOLDER, f"voice_{session_id}_{index}.mp3")
 
-                tts = gTTS(text=chunk)
+                # Auto-detect language: Use Hindi voice for Devanagari text, English voice otherwise
+                is_hindi = any(0x0900 <= ord(c) <= 0x097F for c in chunk)
+                tts = gTTS(text=chunk, lang='hi' if is_hindi else 'en', slow=False)
                 if stop_event.is_set():
                     break
 

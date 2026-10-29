@@ -103,6 +103,16 @@ class FridayBridge:
         except Exception:
             pass
 
+        # 5. Pull User Profile & Known Contacts (Mummy's number, email, personal facts)
+        profile_facts_str = "None"
+        try:
+            from memory.memory_manager import get_user_profile_summary
+            p_summary = get_user_profile_summary()
+            if p_summary:
+                profile_facts_str = p_summary
+        except Exception:
+            pass
+
         if video_mode == "camera":
             vision_mode_desc = (
                 "CURRENT VISION SOURCE: 📷 LIVE WEBCAM CAMERA STREAM.\n"
@@ -128,6 +138,10 @@ class FridayBridge:
             "Background sentinel monitoring and routine system alerts are handled independently by Core Friday. "
             "In Live mode, focus on direct multimodal perception, answering Sir's questions, and executing requested tools on demand.\n"
             "\n"
+            "--- PERMANENT USER PROFILE & KNOWN CONTACTS ---\n"
+            f"{profile_facts_str}\n"
+            "-----------------------------------------------\n"
+            "\n"
             "--- RECENT CORE FRIDAY CONTEXT ---\n"
             f"Recent Conversation History with Sir:\n{context_str}\n"
             f"Active To-Do Tasks: {task_str}\n"
@@ -138,7 +152,7 @@ class FridayBridge:
             f"1. Always address the user politely and respectfully as 'Sir' or '{creator_name}'.\n"
             "2. If asked about what is on screen or in front of the camera, describe it accurately, pointing out code, UI elements, errors, or objects.\n"
             "3. Keep spoken replies prompt, natural, crisp, and executive (1-2 sentences). Do not hesitate or add conversational fluff.\n"
-            "4. Support both English and natural Hindi (Hinglish) seamlessly based on the user's language.\n"
+            "4. Language matching: If Sir speaks in Hindi, respond in natural spoken Hindi. Do NOT use heavy/archaic pure Hindi words; use everyday English words for heavy/tech terms (e.g. mobile number, email, computer, process, memory, battery). If Sir speaks in English, reply in clean, fluent English. No broken Romanized Hinglish.\n"
             "5. Do NOT output raw JSON or code tags in spoken audio.\n"
             "6. You have DIRECT access to ALL live system tools (adjusting volume, brightness, power control like lock screen, sleep, shutdown, restart, battery check, launching apps, closing apps, focusing windows, taking screenshots, search, weather, news, media playback, timers, clipboard, tasks, reminders, email, files, mobile, network diagnostics). When the user asks you to perform an action or check system information, CALL the corresponding tool immediately, and after receiving the result, inform the user concisely in natural voice.\n"
             "7. REAL-TIME DYNAMIC VISION: Visual frames are continuously streamed to you. ALWAYS observe and describe the CURRENT / MOST RECENT frame you received. Screens and camera scenes change dynamically — never assume an older screen or application is still active if the current frame shows a different window or scene.\n"
@@ -148,20 +162,31 @@ class FridayBridge:
         return instruction
 
     def record_user_turn(self, query: str):
-        """Processes a live user directive without writing to Core conversation history."""
+        """Processes a live user directive."""
         if not query or not query.strip():
             return
         clean_q = query.strip()
-        # Emit structured token for UI widget listener (does not touch core history)
+        self._last_user_query = clean_q
+        # Emit structured token for UI widget listener
         print(f"\n[LIVE_USER_QUERY]: {clean_q}\n", flush=True)
 
     def record_assistant_turn(self, reply: str):
-        """Processes a live Friday response without writing to Core conversation history."""
+        """Processes a live Friday response and persists any extracted facts into long term memory."""
         if not reply or not reply.strip():
             return
         clean_r = reply.strip()
-        # Emit structured token for UI widget listener (does not touch core history)
+        # Emit structured token for UI widget listener
         print(f"\n[LIVE_FEED_REPLY]: {clean_r}\n", flush=True)
+
+        # Automatically extract and save contacts, facts, and memories from Live conversations
+        try:
+            last_q = getattr(self, "_last_user_query", "")
+            if last_q:
+                import threading
+                from memory.memory_manager import auto_extract_memories
+                threading.Thread(target=auto_extract_memories, args=(last_q, clean_r), daemon=True).start()
+        except Exception:
+            pass
 
     def emit_status(self, status_msg: str):
         """Emits a live status notification token."""

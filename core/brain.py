@@ -96,4 +96,12 @@ def Brain(prompt: str, origin: str = 'server', source: str = None, tool_callback
     except Exception:
         pass
 
+    # Automatically extract and save facts, contacts, and memories in background
+    try:
+        import threading
+        from memory.memory_manager import auto_extract_memories
+        threading.Thread(target=auto_extract_memories, args=(prompt, response), daemon=True).start()
+    except Exception:
+        pass
+
     return response

@@ -286,7 +286,11 @@ def _adb_keepalive_worker(interval=35):
                 # Disconnected state: attempt background auto-reconnect if cache exists
                 cache = load_device_cache()
                 if cache and cache.get("ip"):
-                    ensure_mobile_connected(auto_reconnect=True)
+                    reconnected, _ = ensure_mobile_connected(auto_reconnect=True)
+                    if not reconnected:
+                        # Back off interval to 180s when device is unreachable to avoid terminal noise
+                        _keepalive_stop_event.wait(180)
+                        continue
 
         except Exception as e:
             # Resilient daemon worker, never crash

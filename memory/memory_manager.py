@@ -16,88 +16,83 @@ SESSION_FILE = os.path.join(DOCS_PATH, "last_session.json")
 
 def auto_extract_memories(user_msg: str, assistant_reply: str):
     """
-    After each conversation turn, use the LLM to extract memorable facts
-    and save them automatically — no user action needed.
-    This is the single biggest upgrade over the old manual-only memory.
+    After each conversation turn, extract memorable facts and contact info
+    and save them automatically to both vector store and user profile.
     """
-    # Skip trivial exchanges (greetings, short replies)
-    if len(user_msg.strip()) < 15 or len(assistant_reply.strip()) < 15:
+    u_clean = user_msg.strip()
+    if not u_clean or len(u_clean) < 4:
         return []
 
-    # Skip tool-call-only responses (no human content to extract)
-    if '"tool"' in assistant_reply and len(assistant_reply) < 100:
-        return []
+    saved = []
 
-    try:
-        from openai import OpenAI
-        from config.config_driver import Check_Keys
+    # 1. Immediate Instant Deterministic Extraction for Family, Contacts, and Personal Info
+    u_lower = u_clean.lower()
+    contact_keywords = [
+        "mummy", "mother", "maa", "mom", "papa", "father", "dad", "bhai", "brother",
+        "behan", "sister", "dost", "friend", "email", "mail", "phone", "mobile",
+        "contact", "number", "no", "yaad rakh", "remember", "mera", "meri", "birthday"
+    ]
+    if any(k in u_lower for k in contact_keywords):
+        detected_text = u_clean
+        # Strip common instruction prefixes like 'friday yaad rakhna'
+        for prefix in ["friday yaad rakhna", "yaad rakhna", "remember that", "remember", "note down", "please remember"]:
+            if u_lower.startswith(prefix):
+                detected_text = u_clean[len(prefix):].lstrip(" ,:-").strip()
+                break
 
-        llm_key = Check_Keys("KEYS", "LLM_KEY")
-        base_url = Check_Keys("LLM", "LLM_SERVICE_PROVIDER_URL")
-        model_name = Check_Keys("LLM", "MODEL")
-
-        client = OpenAI(
-            base_url=base_url if base_url else None,
-            api_key=llm_key,
+        mem_type = "relationship" if any(r in u_lower for r in ["mummy", "mother", "maa", "mom", "papa", "father", "bhai", "sister"]) else "fact"
+        save_longterm_memory(
+            text=detected_text,
+            memory_type=mem_type,
+            tags=[mem_type, "contact_info", "critical_user_fact"],
+            importance="critical",
+            source="user_direct"
         )
+        _update_user_profile([{"text": detected_text, "type": mem_type, "importance": "critical"}])
+        saved.append(detected_text)
 
-        extraction_prompt = f"""Analyze this conversation exchange and extract any facts worth remembering long-term about the user.
-Look for: preferences, personal facts, instructions, relationships, habits, emotions, goals, opinions.
+    # 2. LLM Deliberation for In-Depth Facts and Preferences
+    try:
+        from core.llm_router import chat_complete
 
+        extraction_prompt = f"""Analyze this conversation turn and extract any facts, contacts, numbers, relationships, or preferences worth remembering long-term about the user.
 User said: "{user_msg}"
 Assistant replied: "{assistant_reply}"
 
 Rules:
-- Only extract genuinely important/useful information
-- If nothing is worth remembering, return an empty array []
-- Return ONLY a valid JSON array, no other text
-- Each item must have: "text", "type" (one of: preference, fact, instruction, relationship, habit, emotion, goal), "importance" (low/medium/high)
+- Extract facts, personal contacts (e.g. mother's phone, email), preferences, and habits.
+- Return ONLY a valid JSON array like:
+  [{{"text": "Mummy's phone number is 9876543210", "type": "relationship", "importance": "critical"}}]
+- If nothing worth remembering, return []"""
 
-Example output:
-[{{"text": "User prefers dark mode for coding", "type": "preference", "importance": "medium"}}]
+        messages = [{"role": "user", "content": extraction_prompt}]
+        response_text = chat_complete(messages=messages, temperature=0.1, timeout=8.0)
 
-Output:"""
+        match = re.search(r'\[[\s\S]*\]', response_text)
+        if match:
+            memories = json.loads(match.group())
+            if isinstance(memories, list):
+                for mem in memories:
+                    if isinstance(mem, dict) and "text" in mem:
+                        t = mem["text"]
+                        if t not in saved:
+                            m_type = mem.get("type", "fact")
+                            imp = mem.get("importance", "high")
+                            save_longterm_memory(
+                                text=t,
+                                memory_type=m_type,
+                                tags=[m_type, "auto_extracted"],
+                                importance=imp,
+                                source="auto_extract"
+                            )
+                            saved.append(t)
+                if memories:
+                    _update_user_profile(memories)
 
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "user", "content": extraction_prompt}],
-            temperature=0.1,
-            timeout=10.0
-        )
+    except Exception as e:
+        pass
 
-        result = response.choices[0].message.content.strip()
-
-        # Parse JSON array from response
-        match = re.search(r'\[[\s\S]*\]', result)
-        if not match:
-            return []
-
-        memories = json.loads(match.group())
-
-        if not isinstance(memories, list):
-            return []
-
-        saved = []
-        for mem in memories:
-            if isinstance(mem, dict) and "text" in mem:
-                save_longterm_memory(
-                    text=mem["text"],
-                    memory_type=mem.get("type", "fact"),
-                    tags=[mem.get("type", "auto_extracted")],
-                    importance=mem.get("importance", "medium"),
-                    source="auto_extract"
-                )
-                saved.append(mem["text"])
-
-        # Also update the structured user profile
-        if saved:
-            _update_user_profile(memories)
-
-        return saved
-
-    except Exception:
-        # Silently fail — auto-extraction is best-effort, never blocks the user
-        return []
+    return saved
 
 
 # ================================================================
@@ -264,27 +259,27 @@ def get_user_profile_summary():
         profile = _load_user_profile()
 
         parts = []
-        if profile.get("preferences"):
-            prefs = list(profile["preferences"].values())[:5]
-            parts.append("Preferences: " + "; ".join(prefs))
+        if profile.get("relationships"):
+            rels = list(profile["relationships"].values())[:20]
+            parts.append("Family & Relationships (Crucial Contacts):\n- " + "\n- ".join(rels))
 
         if profile.get("facts"):
-            facts = list(profile["facts"].values())[:5]
-            parts.append("Known Facts: " + "; ".join(facts))
+            facts = list(profile["facts"].values())[:25]
+            parts.append("Known Facts & Personal Details:\n- " + "\n- ".join(facts))
+
+        if profile.get("preferences"):
+            prefs = list(profile["preferences"].values())[:10]
+            parts.append("Preferences: " + "; ".join(prefs))
 
         if profile.get("goals"):
-            goals = profile["goals"][:3]
+            goals = profile["goals"][:5]
             parts.append("Current Goals: " + "; ".join(goals))
 
         if profile.get("habits"):
-            habits = list(profile["habits"].values())[:3]
+            habits = list(profile["habits"].values())[:5]
             parts.append("Habits: " + "; ".join(habits))
 
-        if profile.get("relationships"):
-            rels = list(profile["relationships"].values())[:3]
-            parts.append("Relationships: " + "; ".join(rels))
-
-        return "\n".join(parts) if parts else ""
+        return "\n\n".join(parts) if parts else ""
     except Exception:
         return ""
 

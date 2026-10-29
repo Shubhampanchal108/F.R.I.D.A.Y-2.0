@@ -157,21 +157,16 @@ def search_vector_memory(query: str, top_k: int = 5, collections_to_search=None,
 
             for i in range(len(results["documents"][0])):
                 distance = results["distances"][0][i]
-
-                # Apply relevance threshold — skip irrelevant memories
-                if apply_threshold and distance > RELEVANCE_THRESHOLD:
-                    continue
-
-                metadata = results["metadatas"][0][i]
+                metadata = results["metadatas"][0][i] or {}
 
                 # Temporal recency scoring — boost recent memories
                 recency_boost = _calculate_recency_boost(metadata.get("timestamp", ""))
 
-                # Importance boost — critical memories surface more easily
+                # Importance boost — critical memories surface much more easily
                 importance = metadata.get("importance", "medium")
                 importance_multiplier = {
-                    "critical": 0.5,
-                    "high": 0.7,
+                    "critical": 0.4,
+                    "high": 0.6,
                     "medium": 1.0,
                     "low": 1.3
                 }.get(importance, 1.0)
@@ -180,7 +175,17 @@ def search_vector_memory(query: str, top_k: int = 5, collections_to_search=None,
                 access_count = int(metadata.get("access_count", 0))
                 access_boost = max(0.8, 1.0 - (access_count * 0.02))
 
-                adjusted_distance = distance * recency_boost * importance_multiplier * access_boost
+                # Keyword exact match boost (e.g. 'mummy', 'number', 'email', 'phone')
+                doc_text = str(results["documents"][0][i]).lower()
+                q_words = [w.strip(".,!?\"'") for w in query.lower().split() if len(w) > 2]
+                kw_hits = sum(1 for w in q_words if w in doc_text)
+                kw_boost = 0.5 if kw_hits >= 2 else (0.75 if kw_hits == 1 else 1.0)
+
+                adjusted_distance = distance * recency_boost * importance_multiplier * access_boost * kw_boost
+
+                # Apply relevance threshold on adjusted distance — never discard critical memories
+                if apply_threshold and importance not in ("critical", "high") and adjusted_distance > 1.4:
+                    continue
 
                 all_memories.append({
                     "id": results["ids"][0][i],
