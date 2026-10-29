@@ -1,4 +1,5 @@
 import os
+import re
 import queue
 import threading
 import time
@@ -249,46 +250,79 @@ def flush_terminal_input():
 
 
 # ===============================
-# Split text into chunks
+# Split text into chunks (Approach 1: Smart Lookaround Regex)
 # ===============================
+SENTENCE_SPLIT_REGEX = re.compile(
+    r'(?<!\b(?:Dr|Mr|Ms|vs)\.)'
+    r'(?<!\b(?:Mrs|etc)\.)'
+    r'(?<!\b(?:Prof)\.)'
+    r'(?<!\be\.g\.)'
+    r'(?<!\bi\.e\.)'
+    r'(?<!\s[A-Za-z]\.)'
+    r'(?<=[.!?।\n])\s+'
+)
+
+
 def split_text(text, max_len=100):
+    """
+    Splits text into smart sentence chunks for low-latency streaming TTS.
+    Uses regex lookaround to avoid breaking decimals (e.g. 20.2), acronyms (e.g. F.R.I.D.A.Y),
+    and common abbreviations (Dr., Mr., etc.), while splitting naturally on sentence ends (. ! ? ।).
+    Long sentences (> max_len) are split at natural clause pauses (, ; : -) to keep streaming latency low.
+    """
     try:
-        if not text:
+        if not text or not str(text).strip():
             return []
 
+        text = str(text).strip()
+
+        # Pre-clean: Normalize 'F.R.I.D.A.Y' so TTS engine pronounces it smoothly as 'Friday'
+        text = re.sub(r'\bF\.R\.I\.D\.A\.Y\b', 'Friday', text, flags=re.IGNORECASE)
+        # Collapse multiple dots (e.g. ....) to standard ellipsis
+        text = re.sub(r'\.{4,}', '...', text)
+
+        # Split on sentence boundaries using regex lookaround
+        raw_sentences = [s.strip() for s in SENTENCE_SPLIT_REGEX.split(text) if s.strip()]
+
         chunks = []
-        start = 0
-        i = 0
-        text_len = len(text)
+        for sentence in raw_sentences:
+            if len(sentence) <= max_len:
+                chunks.append(sentence)
+            else:
+                # Sub-chunk long sentence at clause delimiters (, ; : -) or spaces
+                start = 0
+                sent_len = len(sentence)
+                while start < sent_len:
+                    remaining = sentence[start:]
+                    if len(remaining) <= max_len:
+                        chunks.append(remaining.strip())
+                        break
 
-        while i < text_len:
-            if text[i] == ".":
-                chunk = text[start:i].strip()
-                if chunk:
-                    chunks.append(chunk)
-                start = i + 1
+                    window = remaining[:max_len]
+                    cut_pos = -1
+                    for delim in [',', ';', ':', '—', '-']:
+                        pos = window.rfind(delim)
+                        if pos > cut_pos:
+                            cut_pos = pos
 
-            if i - start + 1 >= max_len:
-                window = text[start:i + 1]
-                cut = window.rfind(" ")
-                end = start + (cut if cut != -1 else len(window))
-                chunk = text[start:end].strip()
-                if chunk:
-                    chunks.append(chunk)
-                start = end
-                while start < text_len and text[start] in [" ", "."]:
-                    start += 1
-                i = start - 1
+                    if cut_pos > 15:
+                        chunk = remaining[:cut_pos + 1].strip()
+                        start += cut_pos + 1
+                    else:
+                        space_pos = window.rfind(' ')
+                        if space_pos > 15:
+                            chunk = remaining[:space_pos].strip()
+                            start += space_pos + 1
+                        else:
+                            chunk = window.strip()
+                            start += max_len
 
-            i += 1
-
-        tail = text[start:].strip()
-        if tail:
-            chunks.append(tail)
+                    if chunk:
+                        chunks.append(chunk)
 
         return chunks
-    except Exception as e:
-        return []
+    except Exception:
+        return [text] if text else []
 
 
 # ===============================
