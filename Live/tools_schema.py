@@ -719,6 +719,13 @@ LIVE_TOOLS = [
 ]
 
 
-def get_live_tools():
+def get_live_tools(video_mode: str = "screen"):
     """Return function calling declarations formatted for Gemini Live."""
+    if video_mode == "screen":
+        try:
+            from Live.computer_use.schemas import COMPUTER_USE_SCHEMAS
+            declarations = list(LIVE_TOOLS[0]["function_declarations"]) + COMPUTER_USE_SCHEMAS
+            return [{"function_declarations": declarations}]
+        except Exception:
+            return LIVE_TOOLS
     return LIVE_TOOLS

@@ -69,9 +69,12 @@ class VisionStreamer:
                 return None
 
         try:
-            img.thumbnail(self.target_size)
+            # Preserve crisp high-definition resolution for desktop UI computer use
+            if img.width > 1600:
+                img.thumbnail((1600, 900))
             image_io = io.BytesIO()
-            img.save(image_io, format="JPEG", quality=self.quality)
+            # Quality 80 ensures sharp button outlines and clear text readability
+            img.save(image_io, format="JPEG", quality=80)
             return types.Blob(data=image_io.getvalue(), mime_type="image/jpeg")
         except Exception:
             return None

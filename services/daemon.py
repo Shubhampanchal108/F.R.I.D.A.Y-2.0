@@ -3,6 +3,7 @@ import time
 from datetime import datetime
 import os
 import sys
+import json
 
 # Ensure UTF-8 output encoding for Windows terminal compatibility
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
@@ -138,17 +139,87 @@ class FridayDaemon:
         """Returns the most recent proactive alerts and notifications for LLM awareness."""
         return self.notification_history[-limit:] if self.notification_history else []
 
-    def _proactive_announce(self, title: str, desktop_text: str, voice_text: str = None, is_private: bool = True, priority: int = 3):
-        """Sends desktop notification, announces through voice reliably, and logs into conversation memory."""
-        spoken_msg = voice_text or desktop_text
+    def _generate_dynamic_alert(self, title: str, fallback_msg: str, event_type: str = None, details: dict = None) -> str:
+        """
+        Synthesizes a fresh, natural, witty and caring spoken remark for Shubham sir
+        using the Core LLM, completely eliminating static robotic templates.
+        """
+        try:
+            from core.llm_router import chat_complete
+            event_name = event_type or title
+            details_dict = details or {"alert": fallback_msg}
+
+            sys_prompt = (
+                "You are F.R.I.D.A.Y, Shubham sir's loyal, witty, and deeply caring AI companion. "
+                "You speak to Shubham sir with genuine warmth, personal affection ('apnapan'), and clever lighthearted humor (thoda mazaak). "
+                "Output ONLY a single raw spoken sentence (10-25 words) to be read out loud. "
+                "No quotes, no emojis, no asterisks, no markdown formatting, no explanations."
+            )
+
+            user_prompt = (
+                f"Proactive Sentinel Event: {event_name}\n"
+                f"Event Details: {json.dumps(details_dict, ensure_ascii=False)}\n"
+                f"Reference context: {fallback_msg}\n\n"
+                f"Generate a brand new, unique spoken sentence to announce this to Shubham sir. "
+                f"Directives:\n"
+                f"- Speak in natural, everyday conversational language (Hindi or English matching context).\n"
+                f"- Make it warm, caring (apnapan) or witty/playful (mazaak) instead of a robotic warning.\n"
+                f"- Address him as 'Sir' or 'Shubham sir'.\n"
+                f"- Never repeat the exact same static words every time.\n"
+                f"- Return ONLY the spoken words."
+            )
+
+            messages = [
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": user_prompt}
+            ]
+
+            res = chat_complete(messages, temperature=0.75, max_tokens=250, timeout=8.0)
+            if res and isinstance(res, str):
+                import re
+                clean = re.sub(r'[*_#`]', '', res).strip().strip('"\'')
+                if len(clean) > 8 and not clean.startswith("{"):
+                    return clean
+        except Exception as e:
+            self._log_event('Dynamic Alert LLM', f'Falling back to static: {e}', level='WARNING')
+
+        return fallback_msg
+
+    def _proactive_announce(self, title: str, desktop_text: str, voice_text: str = None, is_private: bool = True, priority: int = 3, event_type: str = None, details: dict = None):
+        """Sends desktop notification, announces through dynamic voice or Live mode, and logs into conversation memory."""
+        raw_msg = voice_text or desktop_text
 
         # Gate private notifications if user is not authenticated yet
         if is_private and not self.is_authenticated:
-            # Mask or hold private info until authentication
             self._log_event(f"🔒 {title} (Pending Auth)", "Protected notification held until user authenticates.")
             return
 
-        self.send_desktop_notification(title, spoken_msg)
+        self.send_desktop_notification(title, raw_msg)
+
+        # 1. LIVE MODE ROUTING: If Live Mode is active, relay alert to Gemini Live (DO NOT use Core TTS)
+        live_active = False
+        try:
+            from Live.bridge import is_live_mode_active, push_live_alert
+            live_active = is_live_mode_active()
+        except Exception:
+            live_active = False
+
+        if live_active:
+            try:
+                alert_payload = f"{title}: {raw_msg}"
+                push_live_alert(alert_payload, metadata={"title": title, "event_type": event_type, "details": details})
+                self._log_event(f"⚡ Live Sentinel Relay: {title}", raw_msg)
+            except Exception as e:
+                self._log_event("Live Relay Error", str(e), level="ERROR")
+            return
+
+        # 2. CORE MODE ROUTING: Dynamically synthesize witty/caring speech via Core LLM
+        spoken_msg = self._generate_dynamic_alert(
+            title=title,
+            fallback_msg=raw_msg,
+            event_type=event_type,
+            details=details
+        )
 
         try:
             from rich.console import Console
@@ -165,7 +236,6 @@ class FridayDaemon:
 
         if self.notify_voice and not self._stop_event.is_set():
             try:
-                # Enqueue into centralized sequential speech manager with privacy tag
                 speak(spoken_msg, allow_interrupt=True, priority=priority, block=False, is_private=is_private)
             except Exception as e:
                 self._log_event("Speech Error", str(e), level="ERROR")
@@ -193,7 +263,9 @@ class FridayDaemon:
                     self._proactive_announce(
                         "Power Connected",
                         f"Charger connected. Current level: {pct}%.",
-                        f"Power source connected, Sir. Charging initialized at {pct} percent."
+                        f"Power source connected, Sir. Charging initialized at {pct} percent.",
+                        event_type="power_connected",
+                        details={"percentage": pct, "charging": True}
                     )
                 else:
                     # Charger unplugged
@@ -202,7 +274,9 @@ class FridayDaemon:
                         self._proactive_announce(
                             "Charger Disconnected",
                             f"Charger disconnected. Battery at {pct}%.",
-                            f"Sir, charger has been disconnected and battery is currently at {pct} percent."
+                            f"Sir, charger has been disconnected and battery is currently at {pct} percent.",
+                            event_type="charger_disconnected",
+                            details={"percentage": pct, "charging": False}
                         )
 
             # --- Battery Level Checks (when running on battery) ---
@@ -218,7 +292,9 @@ class FridayDaemon:
                         self._proactive_announce(
                             "Critical Battery Warning",
                             f"Battery at {pct}%! Plug in charger immediately. Screen brightness dimmed to save power.",
-                            f"Warning Sir! Battery is critically low at {pct} percent. I have proactively reduced screen brightness to conserve power. Please connect your charger immediately."
+                            f"Warning Sir! Battery is critically low at {pct} percent. I have proactively reduced screen brightness to conserve power. Please connect your charger immediately.",
+                            event_type="battery_critical",
+                            details={"percentage": pct, "charging": False, "brightness_dimmed": True}
                         )
                 elif pct <= 20:
                     if self._battery_alert_state not in ["low", "critical"]:
@@ -226,7 +302,9 @@ class FridayDaemon:
                         self._proactive_announce(
                             "Low Battery Alert",
                             f"Battery level is at {pct}%. Consider charging.",
-                            f"Sir, your battery level is down to {pct} percent. Please consider plugging in your charger so your workflow is not interrupted."
+                            f"Sir, your battery level is down to {pct} percent. Please consider plugging in your charger so your workflow is not interrupted.",
+                            event_type="battery_low",
+                            details={"percentage": pct, "charging": False}
                         )
                 else:
                     # Battery recovered above 20%
@@ -240,7 +318,9 @@ class FridayDaemon:
                         self._proactive_announce(
                             "Battery Fully Charged",
                             f"Battery is charged to {pct}%. You can unplug the charger.",
-                            f"Sir, your battery is fully charged at {pct} percent. You can disconnect the charger now to preserve battery health."
+                            f"Sir, your battery is fully charged at {pct} percent. You can disconnect the charger now to preserve battery health.",
+                            event_type="battery_fully_charged",
+                            details={"percentage": pct, "charging": True}
                         )
                 elif pct < 95:
                     self._full_battery_alerted = False
@@ -277,7 +357,9 @@ class FridayDaemon:
                     self._proactive_announce(
                         "High CPU Utilization",
                         f"CPU usage at {int(cpu_usage)}% (Top: {top_procs})",
-                        msg
+                        msg,
+                        event_type="high_cpu_utilization",
+                        details={"cpu_usage": int(cpu_usage), "top_processes": top_procs}
                     )
             else:
                 self._high_cpu_count = 0
@@ -290,7 +372,9 @@ class FridayDaemon:
                     self._proactive_announce(
                         "High RAM Utilization",
                         f"Memory usage at {int(ram.percent)}%.",
-                        f"Sir, system RAM utilization is at {int(ram.percent)} percent. Available memory is running low."
+                        f"Sir, system RAM utilization is at {int(ram.percent)} percent. Available memory is running low.",
+                        event_type="high_ram_utilization",
+                        details={"ram_percent": int(ram.percent)}
                     )
             except Exception:
                 pass
@@ -322,7 +406,7 @@ class FridayDaemon:
                     desktop_text = f"From: {sender}\nSubject: {subject}"
                     voice_text = f"Sir, you have received a new email from {sender}. The subject is: {subject}."
                     
-                    self._proactive_announce("New Email Alert", desktop_text, voice_text)
+                    self._proactive_announce("New Email Alert", desktop_text, voice_text, event_type="incoming_email", details={"sender": sender, "subject": subject})
         except Exception as e:
             self._log_event("Email Check Error", str(e), level="ERROR")
 
@@ -342,16 +426,28 @@ class FridayDaemon:
             if current_hour >= 23 or current_hour <= 4:
                 # Late night care
                 msg = "Sir, it is getting quite late into the night. Remember that adequate rest is essential. I will keep watch over all system tasks if you wish to sleep."
+                self._proactive_announce(
+                    "Secretary Care Check-in",
+                    msg,
+                    msg,
+                    event_type="late_night_care",
+                    details={"hour": current_hour, "context": "Late night working session"}
+                )
             else:
                 care_prompts = [
                     "Sir, you have been working steadily for a while now. A quick glass of water and taking a moment to relax your eyes would be great.",
-                    "Sir, just a gentle reminder from your secretary: check your posture and take a brief stretch to stay refreshed.",
+                    "Sir, just a gentle reminder: check your posture and take a brief stretch to stay refreshed.",
                     "Sir, just checking in to let you know all system operations and notifications are clear. I am standing by if you need anything."
                 ]
                 msg = care_prompts[self._care_prompt_index % len(care_prompts)]
                 self._care_prompt_index += 1
-
-            self._proactive_announce("Secretary Check-in", msg, msg)
+                self._proactive_announce(
+                    "Secretary Care Check-in",
+                    msg,
+                    msg,
+                    event_type="health_and_posture_care",
+                    details={"context": "Continuous working session check-in"}
+                )
 
     # ================================================================
     # 5. REMINDERS & MEMORIES
@@ -363,7 +459,7 @@ class FridayDaemon:
                 for reminder in due:
                     title = "Reminder Alert"
                     msg = f"Sir, you asked me to remind you: '{reminder}'"
-                    self._proactive_announce(title, msg, msg)
+                    self._proactive_announce(title, msg, msg, event_type="reminder_due", details={"reminder": reminder})
         except Exception as e:
             self._log_event("Reminder Check Error", str(e), level="ERROR")
 
@@ -459,7 +555,7 @@ class FridayDaemon:
                 title = "Code Error Detected in Clipboard"
                 desktop_msg = f"Observed traceback: {err_type[:60]}\nSay: 'Friday, fix clipboard error' to solve."
                 voice_msg = f"Sir, I noticed a code traceback in your clipboard: {err_type[:50]}. You can say 'Friday, fix clipboard error' and I will diagnose it for you."
-                self._proactive_announce(title, desktop_msg, voice_msg)
+                self._proactive_announce(title, desktop_msg, voice_msg, event_type="clipboard_code_traceback", details={"error_summary": err_type[:60]})
         except Exception:
             pass
 

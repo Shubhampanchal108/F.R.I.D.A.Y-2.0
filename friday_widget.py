@@ -132,6 +132,18 @@ class FridayWidgetApi:
         except Exception:
             pass
 
+        try:
+            d = get_daemon()
+            if d:
+                def _widget_daemon_event_relay(event):
+                    if getattr(self, "current_mode", "core") == "live" and getattr(self, "live_process", None):
+                        t = event.get("title", "")
+                        m = event.get("message", "")
+                        self.send_live_text(f"[SYSTEM_ALERT] {t}: {m}")
+                d.on_event_callback = _widget_daemon_event_relay
+        except Exception:
+            pass
+
     def set_window(self, window, work_w, work_h, sw=1366, sh=768):
         self._window = window
         self.work_width = work_w

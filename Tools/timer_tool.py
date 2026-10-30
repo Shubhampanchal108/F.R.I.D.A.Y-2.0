@@ -43,10 +43,25 @@ def _timer_worker(timer_id: str, total_seconds: float, label: str):
     except Exception:
         pass
 
-    # 3. Spoken Announcement via Central Speech Manager
+    # 3. Spoken Announcement via Dynamic Voice or Live Mode Relay
     try:
-        from voice.speak import speak
-        speak(f"Sir, your timer for {label} has finished.", priority=1, allow_interrupt=True, block=False)
+        from Live.bridge import is_live_mode_active, push_live_alert
+        if is_live_mode_active():
+            push_live_alert(f"Timer finished: {label}")
+        else:
+            from voice.speak import speak
+            try:
+                from services.daemon import get_daemon
+                d = get_daemon()
+                msg = d._generate_dynamic_alert(
+                    title="Timer Finished",
+                    fallback_msg=f"Sir, your timer for {label} has finished.",
+                    event_type="timer_complete",
+                    details={"label": label}
+                )
+            except Exception:
+                msg = f"Sir, your timer for {label} has finished."
+            speak(msg, priority=1, allow_interrupt=True, block=False)
     except Exception:
         pass
 

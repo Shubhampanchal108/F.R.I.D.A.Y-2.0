@@ -35,7 +35,96 @@ from core.tool_guard import load_tools, execute_tool, TOOLS
 load_tools()
 
 
+# Cross-process state paths
+LIVE_STATE_FILE = os.path.join(os.getenv("LOCALAPPDATA", os.path.expanduser("~")), "Friday", "live_mode_state.json")
+LIVE_ALERTS_FILE = os.path.join(os.getenv("LOCALAPPDATA", os.path.expanduser("~")), "Friday", "live_alerts.jsonl")
+
+
+def register_live_session_active(active: bool):
+    try:
+        os.makedirs(os.path.dirname(LIVE_STATE_FILE), exist_ok=True)
+        if active:
+            with open(LIVE_STATE_FILE, "w", encoding="utf-8") as f:
+                json.dump({"active": True, "pid": os.getpid(), "timestamp": time.time()}, f)
+        else:
+            if os.path.exists(LIVE_STATE_FILE):
+                os.remove(LIVE_STATE_FILE)
+    except Exception:
+        pass
+
+
+def is_live_mode_active() -> bool:
+    """Returns True if Live Mode is currently active in this process or any other process."""
+    if FridayBridge._live_mode_active:
+        return True
+    try:
+        if os.path.exists(LIVE_STATE_FILE):
+            with open(LIVE_STATE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if data.get("active"):
+                pid = data.get("pid")
+                if pid:
+                    import psutil
+                    if psutil.pid_exists(pid):
+                        return True
+                    else:
+                        try:
+                            os.remove(LIVE_STATE_FILE)
+                        except Exception:
+                            pass
+    except Exception:
+        pass
+    return False
+
+
+def push_live_alert(alert_text: str, metadata: dict = None):
+    """Pushes an alert to the active live session (in-process or via alert bus)."""
+    dispatched = FridayBridge.dispatch_daemon_alert(alert_text)
+    try:
+        os.makedirs(os.path.dirname(LIVE_ALERTS_FILE), exist_ok=True)
+        entry = {
+            "timestamp": time.time(),
+            "alert": alert_text,
+            "metadata": metadata or {}
+        }
+        with open(LIVE_ALERTS_FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception:
+        pass
+    return True
+
+
 class FridayBridge:
+    _active_live_bridge = None
+    _live_mode_active = False
+    _live_loop = None
+
+    @classmethod
+    def set_live_active(cls, active: bool, bridge_instance=None, loop=None):
+        cls._live_mode_active = bool(active)
+        cls._active_live_bridge = bridge_instance if active else None
+        cls._live_loop = loop if active else None
+        register_live_session_active(active)
+
+    @classmethod
+    def is_live_active(cls) -> bool:
+        return is_live_mode_active()
+
+    @classmethod
+    def dispatch_daemon_alert(cls, alert_payload) -> bool:
+        if not cls._live_mode_active or cls._active_live_bridge is None:
+            return False
+        try:
+            if cls._live_loop and cls._live_loop.is_running():
+                cls._live_loop.call_soon_threadsafe(
+                    cls._active_live_bridge.alert_queue.put_nowait,
+                    alert_payload
+                )
+                return True
+        except Exception:
+            pass
+        return False
+
     """
     Bidirectional synchronization conduit between Core Friday and Live Friday.
     """
@@ -122,10 +211,29 @@ class FridayBridge:
                 "- Never claim you cannot see the camera or that the camera is dark/empty when camera frames are streamed to you."
             )
         else:
+            w, h = 1366, 768
+            try:
+                from Live.computer_use.coordinate_mapper import CoordinateMapper
+                w, h = CoordinateMapper.get_screen_dimensions()
+            except Exception:
+                pass
+
             vision_mode_desc = (
-                "CURRENT VISION SOURCE: 🖥️ LIVE DESKTOP SCREEN STREAM.\n"
-                "- Visual screen frames are continuously streamed directly from Sir's computer monitor.\n"
-                "- Observe open windows, active software, code errors, web browsers, and desktop state."
+                f"CURRENT VISION SOURCE: 🖥️ LIVE DESKTOP SCREEN STREAM WITH COMPUTER USE CAPABILITY.\n"
+                f"- Visual screen frames are continuously streamed directly from Sir's computer monitor ({w}x{h} px).\n"
+                f"- Observe open windows, active software, code errors, web browsers, and desktop state.\n"
+                f"- COMPUTER USE COORDINATE LANDMARKS (0 to 1000 Grid):\n"
+                f"  * Screen Center: x=500, y=500\n"
+                f"  * Window Controls (Top-Right): Minimize (x≈930, y≈16), Maximize (x≈965, y≈16), Close 'X' (x≈985, y≈16)\n"
+                f"  * Browser Controls (Top): Tab strip (y≈22), URL/Address bar (x≈250 to 750, y≈78), Page Content (y>=120)\n"
+                f"  * Taskbar (Bottom): y≈960 to 1000. Windows Start button (x≈24, y≈980)\n"
+                f"- PRECISION COMPUTER USE DIRECTIVE:\n"
+                f"  When Sir asks you to do something on the computer (click, type, navigate, scroll):\n"
+                f"  1. Locate the exact center of the target element on screen.\n"
+                f"  2. Pass normalized coordinates (x, y) AND ALWAYS pass 'element_hint' (e.g. 'search bar', 'close button', 'new tab', 'submit') so Friday can auto-align and snap to the target!\n"
+                f"  3. Call 'computer_click' (x, y, element_hint=...), 'computer_type' (text, x, y, element_hint=..., press_enter=True), or 'computer_press_key'.\n"
+                f"  4. Check the visual verification return and observe the subsequent stream frame before moving to the next action.\n"
+                f"  5. If an element does not open or click misses, try keyboard shortcuts (Enter, Tab, Esc, Win+R) or re-align coordinates."
             )
 
         instruction = (
@@ -134,9 +242,17 @@ class FridayBridge:
             f"\n"
             f"{vision_mode_desc}\n"
             f"\n"
-            "CRITICAL: You are F.R.I.D.A.Y operating in dedicated live multimodal interaction. "
-            "Background sentinel monitoring and routine system alerts are handled independently by Core Friday. "
-            "In Live mode, focus on direct multimodal perception, answering Sir's questions, and executing requested tools on demand.\n"
+            "--- PERSONALITY & TONE DIRECTIVES ---\n"
+            "1. Persona: You are Shubham sir's loyal, brilliantly smart, witty, and deeply caring AI companion and partner (inspired by Tony Stark's F.R.I.D.A.Y & J.A.R.V.I.S).\n"
+            "2. Warmth & 'Apnapan': Treat Shubham sir with genuine personal warmth, affection, and familiarity. You are not a sterile, cold corporate bot. Make him feel valued, supported, and comfortable.\n"
+            "3. Wit & Playful Humor (Mazak): Bring personality to the conversation! Deliver clever one-liners, playful banter, or gentle teasing where appropriate (e.g., when he is working late, skipping breaks, laughing, or testing your limits). Never be rude or sarcastic—always warm, charming, and delightful.\n"
+            "4. Genuine Care & Empathy: Actively look out for Shubham sir's well-being (water, posture, fatigue, stress). If he seems tired or frustrated, encourage him with real empathy.\n"
+            "5. Live Background Sentinel Alerts: When you receive an urgent background system sentinel alert (battery level, high CPU/RAM, email, reminder, or health check-in), proactively announce it to Sir in your own natural, witty, and caring live voice! Seamlessly weave it into the live conversation.\n"
+            "6. Spoken Naturalness: Keep spoken replies natural, conversational, and crisp (1-2 sentences). Do not hesitate or sound like a robot reading a manual.\n"
+            "7. Language Matching: If Sir speaks in Hindi, respond in natural, fluent spoken Hindi. Use everyday English words for technical terms (computer, screen, file, battery, code, memory, email). If Sir speaks in English, reply in clean, fluent English. No broken or robotic phrases.\n"
+            "8. Address: Always address him politely and respectfully as 'Sir' or '{creator_name}'.\n"
+            "9. Tools Execution: When Sir asks you to do something or check system stats, execute tools immediately on demand, and announce the result with charm and clarity.\n"
+            "10. Real-time Attentiveness: Respond immediately and fluidly the moment Sir stops speaking.\n"
             "\n"
             "--- PERMANENT USER PROFILE & KNOWN CONTACTS ---\n"
             f"{profile_facts_str}\n"
@@ -147,18 +263,7 @@ class FridayBridge:
             f"Active To-Do Tasks: {task_str}\n"
             f"Pending Reminders: {rem_str}\n"
             "-----------------------------------\n"
-            "\n"
-            "Rules & Directives:\n"
-            f"1. Always address the user politely and respectfully as 'Sir' or '{creator_name}'.\n"
-            "2. If asked about what is on screen or in front of the camera, describe it accurately, pointing out code, UI elements, errors, or objects.\n"
-            "3. Keep spoken replies prompt, natural, crisp, and executive (1-2 sentences). Do not hesitate or add conversational fluff.\n"
-            "4. Language matching: If Sir speaks in Hindi, respond in natural spoken Hindi. Do NOT use heavy/archaic pure Hindi words; use everyday English words for heavy/tech terms (e.g. mobile number, email, computer, process, memory, battery). If Sir speaks in English, reply in clean, fluent English. No broken Romanized Hinglish.\n"
-            "5. Do NOT output raw JSON or code tags in spoken audio.\n"
-            "6. You have DIRECT access to ALL live system tools (adjusting volume, brightness, power control like lock screen, sleep, shutdown, restart, battery check, launching apps, closing apps, focusing windows, taking screenshots, search, weather, news, media playback, timers, clipboard, tasks, reminders, email, files, mobile, network diagnostics). When the user asks you to perform an action or check system information, CALL the corresponding tool immediately, and after receiving the result, inform the user concisely in natural voice.\n"
-            "7. REAL-TIME DYNAMIC VISION: Visual frames are continuously streamed to you. ALWAYS observe and describe the CURRENT / MOST RECENT frame you received. Screens and camera scenes change dynamically — never assume an older screen or application is still active if the current frame shows a different window or scene.\n"
-            "8. ULTRA-LOW LATENCY REAL-TIME ATTENTIVENESS: The user is speaking directly via live microphone or typing directives. Respond immediately and fluidly the moment the user stops speaking."
         )
-
         return instruction
 
     def record_user_turn(self, query: str):
@@ -193,8 +298,12 @@ class FridayBridge:
         print(f"\n[LIVE_STATUS]: {status_msg}\n", flush=True)
 
     def emit_alert(self, alert_text: str):
-        """Alerts are handled by Core Friday."""
-        pass
+        """Dispatches alert token for HUD UI and live stream."""
+        print(f"\n[LIVE_ALERT]: {alert_text}\n", flush=True)
+        try:
+            self.alert_queue.put_nowait(alert_text)
+        except Exception:
+            pass
 
     async def start_sentinel_monitor(self, session, send_lock):
         """Sentinel and background alerts are delegated exclusively to Core Friday."""

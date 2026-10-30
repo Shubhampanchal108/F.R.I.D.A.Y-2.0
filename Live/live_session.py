@@ -94,6 +94,62 @@ class LiveSession:
         self.send_lock = asyncio.Lock()
         self.stop_event = asyncio.Event()
 
+    async def sentinel_alert_loop(self):
+        """
+        Monitors background alerts from Core daemons and forwards them directly
+        to Gemini Live so Live Friday speaks them dynamically in her natural live voice.
+        """
+        last_file_check = 0
+        read_alert_ids = set()
+
+        while not self.stop_event.is_set():
+            try:
+                alert_item = None
+                try:
+                    alert_item = await asyncio.wait_for(self.bridge.alert_queue.get(), timeout=0.8)
+                except asyncio.TimeoutError:
+                    pass
+
+                if not alert_item and time.time() - last_file_check > 2.0:
+                    last_file_check = time.time()
+                    try:
+                        from Live.bridge import LIVE_ALERTS_FILE
+                        if os.path.exists(LIVE_ALERTS_FILE):
+                            with open(LIVE_ALERTS_FILE, "r", encoding="utf-8") as f:
+                                lines = f.readlines()
+                            for line in lines[-5:]:
+                                if line.strip():
+                                    data = json.loads(line)
+                                    ts = data.get("timestamp")
+                                    if ts and ts not in read_alert_ids and time.time() - ts < 30.0:
+                                        read_alert_ids.add(ts)
+                                        alert_item = data.get("alert")
+                                        break
+                    except Exception:
+                        pass
+
+                if alert_item and self.session:
+                    clean_alert = str(alert_item).strip()
+                    console.print(f"\n[bold magenta]⚡ Live Sentinel Injected:[/bold magenta] [white]{clean_alert}[/white]\n")
+                    self.bridge.emit_alert(clean_alert)
+
+                    prompt_text = (
+                        f"[URGENT BACKGROUND SYSTEM ALERT: {clean_alert}. "
+                        f"Announce this proactively to Shubham sir right now in your natural, witty, and caring live voice. "
+                        f"Keep it 1 concise sentence.]"
+                    )
+
+                    async with self.send_lock:
+                        await self.session.send_client_content(
+                            turns=[types.Content(role="user", parts=[types.Part(text=prompt_text)])],
+                            turn_complete=True
+                        )
+                    await asyncio.sleep(1.0)
+            except (asyncio.CancelledError, KeyboardInterrupt):
+                break
+            except Exception as e:
+                await asyncio.sleep(0.5)
+
     async def send_text_loop(self):
         """
         Listens for text directives either from stdin (interactive CLI / IPC piped from UI)
@@ -116,6 +172,20 @@ class LiveSession:
                     console.print("\n[bold yellow]🛑 Stopping Live Session...[/bold yellow]")
                     self.stop_event.set()
                     break
+
+                if text.startswith("[SYSTEM_ALERT]") or text.startswith("[ALERT]"):
+                    clean_alert = text.replace("[SYSTEM_ALERT]", "").replace("[ALERT]", "").strip()
+                    prompt_text = (
+                        f"[URGENT BACKGROUND SYSTEM ALERT: {clean_alert}. "
+                        f"Announce this proactively to Shubham sir right now in your natural, witty, and caring live voice. "
+                        f"Keep it 1 concise sentence.]"
+                    )
+                    async with self.send_lock:
+                        await self.session.send_client_content(
+                            turns=[types.Content(role="user", parts=[types.Part(text=prompt_text)])],
+                            turn_complete=True
+                        )
+                    continue
 
                 # Record in shared Core Friday conversation memory & UI
                 self.bridge.record_user_turn(text)
@@ -262,7 +332,11 @@ class LiveSession:
 
                             console.print(f"\n[bold cyan]⚡ Live Tool Executing:[/bold cyan] [bold yellow]{tool_name}[/bold yellow] [dim]({tool_args if tool_args else ''})[/dim]")
                             try:
-                                res = await asyncio.to_thread(execute_tool, tool_name, "server", **tool_args)
+                                from Live.computer_use import is_computer_use_tool, execute_computer_action
+                                if is_computer_use_tool(tool_name):
+                                    res = await asyncio.to_thread(execute_computer_action, tool_name, **tool_args)
+                                else:
+                                    res = await asyncio.to_thread(execute_tool, tool_name, "server", **tool_args)
                             except Exception as e:
                                 res = {"error": str(e)}
 
@@ -330,12 +404,12 @@ class LiveSession:
         )
 
         system_instruction = self.bridge.get_unified_system_instruction(video_mode=self.video_mode)
-        tools = get_live_tools()
+        tools = get_live_tools(video_mode=self.video_mode)
 
         config = types.LiveConnectConfig(
             system_instruction=types.Content(parts=[types.Part(text=system_instruction)]),
             response_modalities=["AUDIO"],
-            media_resolution="MEDIA_RESOLUTION_LOW",
+            media_resolution="MEDIA_RESOLUTION_HIGH" if self.video_mode == "screen" else "MEDIA_RESOLUTION_LOW",
             input_audio_transcription=types.AudioTranscriptionConfig(),
             generation_config=types.GenerationConfig(
                 thinking_config=types.ThinkingConfig(thinking_budget=0),
@@ -353,6 +427,8 @@ class LiveSession:
             ),
         )
 
+        loop = asyncio.get_running_loop()
+        FridayBridge.set_live_active(True, bridge_instance=self.bridge, loop=loop)
         connected = False
         for current_model in LIVE_MODELS:
             try:
@@ -378,6 +454,7 @@ class LiveSession:
 
                     tg.create_task(self.receive_loop())
                     tg.create_task(self.audio.play_audio_loop(self.stop_event))
+                    tg.create_task(self.sentinel_alert_loop())
 
                     # Keep live session running continuously until stop_event is triggered
                     await self.stop_event.wait()
@@ -407,6 +484,7 @@ class LiveSession:
                 console.print("[bold red]❌ Unable to connect to Gemini Live models. Please check your network and GEMINI_KEY.[/bold red]")
 
         self.stop_event.set()
+        FridayBridge.set_live_active(False)
         self.bridge.stop()
         self.bridge.emit_status("DISCONNECTED")
         self.audio.close()
