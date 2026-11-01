@@ -19,11 +19,115 @@ from Live.computer_use.safety_guard import safety_guard
 class MouseController:
     """
     Simulates physical mouse interactions on the desktop interface.
+    Tracks cursor position history to enable instant undo/restore and fine micro-alignments.
     """
 
     def __init__(self, smooth_move: bool = True, default_duration: float = 0.2):
         self.smooth_move = smooth_move
         self.default_duration = default_duration
+        self._cursor_history = []  # Stack of (px, py, timestamp)
+
+    def _save_cursor_position(self):
+        """Saves current cursor coordinates onto history stack before any movement."""
+        try:
+            cur_x, cur_y = pyautogui.position()
+            if not self._cursor_history or self._cursor_history[-1][:2] != (cur_x, cur_y):
+                self._cursor_history.append((cur_x, cur_y, time.time()))
+                if len(self._cursor_history) > 30:
+                    self._cursor_history.pop(0)
+        except Exception:
+            pass
+
+    def restore_cursor(self) -> Dict[str, Any]:
+        """
+        Reverts the mouse cursor back to its previous original position before the last Friday action.
+        """
+        if safety_guard.is_stopped():
+            return {"status": "error", "message": "Emergency stop is active."}
+
+        if not self._cursor_history:
+            return {"status": "error", "message": "No previous cursor position recorded in history."}
+
+        cur_x, cur_y = pyautogui.position()
+        orig_x, orig_y, _ = self._cursor_history.pop()
+
+        # If current position matches popped top, pop one deeper to get the true previous spot
+        if (cur_x, cur_y) == (orig_x, orig_y) and self._cursor_history:
+            orig_x, orig_y, _ = self._cursor_history.pop()
+
+        try:
+            w, h = CoordinateMapper.get_screen_dimensions()
+            orig_x, orig_y = safety_guard.validate_coordinates(orig_x, orig_y, w, h)
+            pyautogui.moveTo(orig_x, orig_y, duration=0.2, tween=pyautogui.easeOutQuad)
+            norm_x, norm_y = CoordinateMapper.pixel_to_normalized(orig_x, orig_y)
+            return {
+                "status": "success",
+                "action": "restore_cursor",
+                "restored_pixel": {"x": orig_x, "y": orig_y},
+                "restored_normalized": {"norm_x": norm_x, "norm_y": norm_y},
+                "message": f"Mouse cursor successfully restored to original position ({orig_x}, {orig_y})."
+            }
+        except pyautogui.FailSafeException:
+            safety_guard.request_emergency_stop()
+            return {"status": "aborted", "message": "PyAutoGUI FailSafe triggered."}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def align_cursor(
+        self,
+        dx: float = 0,
+        dy: float = 0,
+        click_after: bool = False,
+        button: str = "left",
+        double_click: bool = False,
+        element_hint: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Nudges the mouse cursor by relative pixel offsets (dx, dy).
+        dx: + right, - left. dy: + down, - up.
+        If click_after=True, automatically clicks once aligned.
+        """
+        if safety_guard.is_stopped():
+            return {"status": "error", "message": "Emergency stop is active."}
+
+        try:
+            self._save_cursor_position()
+            cur_x, cur_y = pyautogui.position()
+            w, h = CoordinateMapper.get_screen_dimensions()
+            new_x = max(0, min(cur_x + int(round(dx)), w - 1))
+            new_y = max(0, min(cur_y + int(round(dy)), h - 1))
+            new_x, new_y = safety_guard.validate_coordinates(new_x, new_y, w, h)
+
+            # Smoothly move to the aligned pixel position
+            pyautogui.moveTo(new_x, new_y, duration=0.15, tween=pyautogui.easeOutQuad)
+            norm_x, norm_y = CoordinateMapper.pixel_to_normalized(new_x, new_y)
+
+            clicked = False
+            if click_after:
+                time.sleep(0.05)
+                clicks = 2 if double_click else 1
+                pyautogui.click(x=new_x, y=new_y, clicks=clicks, interval=0.08, button=button)
+                clicked = True
+
+            action_desc = f"{button}_click" if clicked else "align_cursor"
+            return {
+                "status": "success",
+                "action": action_desc,
+                "delta": {"dx": dx, "dy": dy},
+                "new_pixel": {"x": new_x, "y": new_y},
+                "new_normalized": {"norm_x": norm_x, "norm_y": norm_y},
+                "clicked_after": clicked,
+                "element_hint": element_hint,
+                "message": (
+                    f"Mouse cursor aligned by ({dx}, {dy}) to ({new_x}, {new_y})"
+                    + (f" and {action_desc} executed." if clicked else ".")
+                )
+            }
+        except pyautogui.FailSafeException:
+            safety_guard.request_emergency_stop()
+            return {"status": "aborted", "message": "PyAutoGUI FailSafe triggered."}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
 
     def move_to(
         self,
@@ -37,6 +141,9 @@ class MouseController:
         """
         if safety_guard.is_stopped():
             return {"status": "error", "message": "Emergency stop is active."}
+
+        # Save cursor position before moving so user or Friday can revert anytime
+        self._save_cursor_position()
 
         px, py = CoordinateMapper.resolve_target_pixel(norm_x, norm_y, element_hint=element_hint)
         w, h = CoordinateMapper.get_screen_dimensions()

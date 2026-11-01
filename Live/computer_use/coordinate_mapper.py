@@ -78,38 +78,20 @@ class CoordinateMapper:
         px = max(0, min(px, width - 1))
         py = max(0, min(py, height - 1))
 
-        # ---- SMART UI LANDMARK SNAPPING ----
-        if element_hint:
-            hint = str(element_hint).lower().strip()
-
-            # 1. Windows Window Controls (top-right of active/maximized window)
-            if any(k in hint for k in ["close", "exit", "quit", "band karo"]):
-                if px > width * 0.85 and py < height * 0.15:
-                    px, py = width - 22, 16  # Center of [X] close button
-            elif any(k in hint for k in ["maximize", "bada karo", "fullscreen"]):
-                if px > width * 0.80 and py < height * 0.15:
-                    px, py = width - 68, 16  # Center of [square] maximize button
-            elif any(k in hint for k in ["minimize", "chota karo", "hide"]):
-                if px > width * 0.75 and py < height * 0.15:
-                    px, py = width - 110, 16 # Center of [-] minimize button
-
-            # 2. Windows Taskbar & Start Menu
-            elif any(k in hint for k in ["start", "start menu", "windows menu"]):
-                if py > height * 0.85:
-                    px, py = 24, height - 20 # Center of Windows Start icon
-
-            # 3. Web Browser URL / Search Bar
-            elif any(k in hint for k in ["url", "address", "search bar", "address bar"]):
-                if py < height * 0.22:
-                    py = 78  # Exact vertical center of standard Chrome/Edge URL bar
-                    px = max(int(width * 0.25), min(px, int(width * 0.75)))
-
-            # 4. Web Browser New Tab (+) Button
-            elif any(k in hint for k in ["new tab", "naya tab", "add tab"]):
-                if py < height * 0.12:
-                    py = 24  # Standard browser tab strip vertical center
-
+        # Direct, precise visual mapping without arbitrary landmark hijacking
         return px, py
+
+    @classmethod
+    def get_current_cursor_info(cls) -> Dict[str, Any]:
+        """Returns the current mouse cursor position in both physical pixels and 0-1000 normalized grid."""
+        cur_x, cur_y = pyautogui.position()
+        norm_x, norm_y = cls.pixel_to_normalized(cur_x, cur_y)
+        w, h = cls.get_screen_dimensions()
+        return {
+            "pixel": {"x": cur_x, "y": cur_y},
+            "normalized": {"x": norm_x, "y": norm_y},
+            "screen": {"width": w, "height": h}
+        }
 
     @classmethod
     def normalized_to_pixel(cls, norm_x: float, norm_y: float) -> Tuple[int, int]:

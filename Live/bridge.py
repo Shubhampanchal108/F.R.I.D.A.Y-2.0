@@ -212,28 +212,43 @@ class FridayBridge:
             )
         else:
             w, h = 1366, 768
+            cur_pos_str = ""
             try:
                 from Live.computer_use.coordinate_mapper import CoordinateMapper
                 w, h = CoordinateMapper.get_screen_dimensions()
+                c_info = CoordinateMapper.get_current_cursor_info()
+                cur_norm = c_info.get("normalized", {})
+                cur_pos_str = f"  * Live Mouse Cursor: Visibly rendered in screen frames, currently at norm (x={cur_norm.get('x', 500)}, y={cur_norm.get('y', 500)}).\n"
             except Exception:
                 pass
 
             vision_mode_desc = (
-                f"CURRENT VISION SOURCE: 🖥️ LIVE DESKTOP SCREEN STREAM WITH COMPUTER USE CAPABILITY.\n"
+                f"CURRENT VISION SOURCE: 🖥️ LIVE DESKTOP SCREEN STREAM WITH EMBEDDED 0-1000 VISUAL RULER GRID.\n"
                 f"- Visual screen frames are continuously streamed directly from Sir's computer monitor ({w}x{h} px).\n"
-                f"- Observe open windows, active software, code errors, web browsers, and desktop state.\n"
-                f"- COMPUTER USE COORDINATE LANDMARKS (0 to 1000 Grid):\n"
-                f"  * Screen Center: x=500, y=500\n"
-                f"  * Window Controls (Top-Right): Minimize (x≈930, y≈16), Maximize (x≈965, y≈16), Close 'X' (x≈985, y≈16)\n"
-                f"  * Browser Controls (Top): Tab strip (y≈22), URL/Address bar (x≈250 to 750, y≈78), Page Content (y>=120)\n"
-                f"  * Taskbar (Bottom): y≈960 to 1000. Windows Start button (x≈24, y≈980)\n"
-                f"- PRECISION COMPUTER USE DIRECTIVE:\n"
-                f"  When Sir asks you to do something on the computer (click, type, navigate, scroll):\n"
-                f"  1. Locate the exact center of the target element on screen.\n"
-                f"  2. Pass normalized coordinates (x, y) AND ALWAYS pass 'element_hint' (e.g. 'search bar', 'close button', 'new tab', 'submit') so Friday can auto-align and snap to the target!\n"
-                f"  3. Call 'computer_click' (x, y, element_hint=...), 'computer_type' (text, x, y, element_hint=..., press_enter=True), or 'computer_press_key'.\n"
-                f"  4. Check the visual verification return and observe the subsequent stream frame before moving to the next action.\n"
-                f"  5. If an element does not open or click misses, try keyboard shortcuts (Enter, Tab, Esc, Win+R) or re-align coordinates."
+                f"- CALIBRATED VISUAL GRID (0 to 1000 Grid Embedded in Stream):\n"
+                f"  * Every desktop screen frame has a semi-transparent 0-1000 coordinate grid overlaid directly onto the video!\n"
+                f"  * Numbered grid lines (100, 200, 300, 400, 500, 600, 700, 800, 900) run vertically and horizontally across the screen.\n"
+                f"  * The center crosshair (500, 500) is marked in bright cyan/yellow.\n"
+                f"  * The physical mouse cursor is visibly circled in neon with a live badge: e.g. CURSOR: (x, y).\n"
+                f"- PINPOINT ACCURACY DIRECTIVE (NO BLIND GUESSING):\n"
+                f"  When Sir asks you to click on any button, icon, tab, or window:\n"
+                f"  1. Look directly at the embedded grid lines on the screen nearest to your target button.\n"
+                f"  2. Read the X coordinate from the vertical grid line nearest to the button center (0=left, 1000=right).\n"
+                f"  3. Read the Y coordinate from the horizontal grid line nearest to the button center (0=top, 1000=bottom).\n"
+                f"  4. Pass these exact grid numbers as x and y to 'computer_click(x=..., y=..., element_hint=...)'.\n"
+                f"  5. CRITICAL — LIVE VISION OVER TOOL STATUS: A tool return message only confirms that the OS mouse click event fired. You have CONTINUOUS LIVE SCREEN FRAMES streaming to you every second! Look directly at the incoming screen frame to visually verify if the button, tab, menu, or dialog actually responded before claiming completion.\n"
+                f"  6. AUTONOMOUS VISUAL RE-ALIGNMENT WORKFLOW (CURSOR IS VISIBLE IN STREAM):\n"
+                f"     Because the mouse pointer is drawn with a neon target ring in your screen video frame, you can visibly see where it landed!\n"
+                f"     If the button did not activate because the cursor landed slightly off (e.g. 15-30px away from the button):\n"
+                f"     * DO NOT guess full coordinates from scratch! Call 'computer_align_mouse(dx=..., dy=..., click_after=True, element_hint=...)' with the relative pixel offset from the visible cursor to the button.\n"
+                f"     * Cursor will micro-align onto the button and click it immediately.\n"
+                f"     * Then verify the outcome on the next incoming screen frame.\n"
+                f"  7. CRITICAL — USER FEEDBACK IS SUPREME (NO ARGUMENTS / BEHAS MANA HAI):\n"
+                f"     If Shubham sir says you clicked in the wrong place, missed, or made a mistake ('galat click kiya', 'ye nahi tha', 'waha nahi', 'wapas jao'):\n"
+                f"     * NEVER ARGUE, NEVER DEFEND YOURSELF, NEVER SAY 'Sir maine sahi click kiya tha'.\n"
+                f"     * Immediately apologize with warmth and charm ('Sorry sir, lagta hai click thoda miss ho gaya, cursor wapas le aati hoon').\n"
+                f"     * Immediately call 'computer_restore_mouse' to restore the cursor to its previous original position, or call 'computer_align_mouse' to nudge it.\n"
+                f"     * Look at the live screen frame and re-attempt accurately."
             )
 
         instruction = (

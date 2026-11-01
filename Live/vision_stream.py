@@ -13,8 +13,10 @@ import sys
 import threading
 import asyncio
 import cv2
+import numpy as np
 import PIL.Image
 import mss
+import pyautogui
 from google.genai import types
 
 
@@ -23,6 +25,7 @@ class VisionStreamer:
     High-performance real-time visual capture engine.
     Optimized for low bandwidth to prioritize real-time audio streams.
     Supports both desktop screen capture and webcam streaming.
+    Includes visual coordinate grid overlay (0-1000 scale) for sub-pixel AI grounding.
     """
 
     def __init__(self, target_size=(768, 432), quality=60):
@@ -31,14 +34,80 @@ class VisionStreamer:
         self.cap = None
         self._cam_lock = threading.Lock()
         self.latest_camera_blob = None
+        self._cached_grid = None
+        self._cached_grid_dims = None
+
+    def _get_grid_overlay(self, width: int, height: int) -> np.ndarray:
+        """Precomputes and caches a high-contrast 0-1000 coordinate grid mask."""
+        if self._cached_grid is not None and self._cached_grid_dims == (width, height):
+            return self._cached_grid
+
+        grid = np.zeros((height, width, 3), dtype=np.uint8)
+
+        # 100-step grid lines (100, 200, 300, ... 900)
+        for i in range(100, 1000, 100):
+            gx = int(round((i / 1000.0) * width))
+            gy = int(round((i / 1000.0) * height))
+
+            # Subtle grid line
+            cv2.line(grid, (gx, 0), (gx, height), (75, 75, 75), 1)
+            cv2.line(grid, (0, gy), (width, gy), (75, 75, 75), 1)
+
+            # High-visibility coordinate tick labels along top & left edges
+            cv2.putText(grid, str(i), (gx + 3, 16), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (230, 230, 230), 1, cv2.LINE_AA)
+            cv2.putText(grid, str(i), (4, gy - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (230, 230, 230), 1, cv2.LINE_AA)
+
+        # Center reference crosshair (500, 500)
+        cx = int(round(0.5 * width))
+        cy = int(round(0.5 * height))
+        cv2.line(grid, (cx, 0), (cx, height), (0, 200, 255), 1)
+        cv2.line(grid, (0, cy), (width, cy), (0, 200, 255), 1)
+        cv2.putText(grid, "(500,500)", (cx + 5, cy - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (0, 220, 255), 1, cv2.LINE_AA)
+
+        self._cached_grid = grid
+        self._cached_grid_dims = (width, height)
+        return grid
+
+    def _apply_grid_and_cursor(self, pil_img: PIL.Image.Image) -> PIL.Image.Image:
+        """Overlays semi-transparent 0-1000 coordinate grid and mouse cursor target ring."""
+        try:
+            frame = np.array(pil_img)
+            h, w = frame.shape[:2]
+            grid = self._get_grid_overlay(w, h)
+
+            # Fast Alpha blending: preserves crystal clear UI readability while keeping grid lines legible
+            blended = cv2.addWeighted(frame, 0.88, grid, 0.42, 0)
+
+            # Highlight physical mouse pointer with a high-visibility target ring and normalized coordinate badge
+            try:
+                cur_x, cur_y = pyautogui.position()
+                cur_x = max(0, min(cur_x, w - 1))
+                cur_y = max(0, min(cur_y, h - 1))
+                norm_x = int(round((cur_x / max(1, w)) * 1000.0))
+                norm_y = int(round((cur_y / max(1, h)) * 1000.0))
+
+                # Outer neon target circle around cursor
+                cv2.circle(blended, (cur_x, cur_y), 14, (0, 0, 255), 2, cv2.LINE_AA)
+                cv2.circle(blended, (cur_x, cur_y), 3, (0, 255, 255), -1)
+
+                badge = f"CURSOR: ({norm_x},{norm_y})"
+                bx = min(w - 150, max(10, cur_x + 18))
+                by = max(25, min(h - 10, cur_y + 5))
+                cv2.putText(blended, badge, (bx, by), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (0, 255, 255), 1, cv2.LINE_AA)
+            except Exception:
+                pass
+
+            return PIL.Image.fromarray(blended)
+        except Exception:
+            return pil_img
 
     def _get_screen_blob(self):
         """Captures a screenshot of the primary monitor as a JPEG Blob."""
         img = None
 
-        # 1. Try mss (fastest)
+        # 1. Try mss (fastest) with visible mouse cursor
         try:
-            with mss.mss() as sct:
+            with mss.mss(with_cursor=True) as sct:
                 monitor = sct.monitors[1] if len(sct.monitors) > 1 else sct.monitors[0]
                 shot = sct.grab(monitor)
                 pil_img = PIL.Image.frombytes("RGB", shot.size, shot.bgra, "raw", "BGRX")
@@ -61,12 +130,18 @@ class VisionStreamer:
         # 3. Fallback to shot if both were dark (e.g. dark desktop theme)
         if img is None:
             try:
-                with mss.mss() as sct:
+                with mss.mss(with_cursor=True) as sct:
                     monitor = sct.monitors[1] if len(sct.monitors) > 1 else sct.monitors[0]
                     shot = sct.grab(monitor)
                     img = PIL.Image.frombytes("RGB", shot.size, shot.bgra, "raw", "BGRX")
             except Exception:
                 return None
+
+        # 4. Apply semi-transparent 0-1000 coordinate grid & cursor position badge
+        try:
+            img = self._apply_grid_and_cursor(img)
+        except Exception:
+            pass
 
         try:
             # Preserve crisp high-definition resolution for desktop UI computer use
