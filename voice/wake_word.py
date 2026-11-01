@@ -50,8 +50,8 @@ class WakeWordListener:
         if not self._running:
             return
         try:
-            # Fast Google Speech Recognition check
-            text = recognizer.recognize_google(audio).lower().strip()
+            # Fast Google Speech Recognition check with Indian accent & Hinglish support
+            text = recognizer.recognize_google(audio, language="en-IN").lower().strip()
             if self._matches_keyword(text):
                 has_wake, command = self.extract_command(text)
                 self.last_detected_text = text
@@ -118,7 +118,8 @@ class WakeWordListener:
             self.recognizer.dynamic_energy_threshold = True
             self.recognizer.dynamic_energy_adjustment_damping = 0.15
             self.recognizer.dynamic_energy_ratio = 1.5
-            self.recognizer.pause_threshold = 0.5
+            self.recognizer.pause_threshold = 1.2
+            self.recognizer.non_speaking_duration = 0.8
             self.recognizer.operation_timeout = None
 
             self.mic = sr.Microphone()
@@ -130,7 +131,7 @@ class WakeWordListener:
             self._stop_listening = self.recognizer.listen_in_background(
                 self.mic,
                 self._audio_callback,
-                phrase_time_limit=7.0
+                phrase_time_limit=20.0
             )
             return True
         except Exception:

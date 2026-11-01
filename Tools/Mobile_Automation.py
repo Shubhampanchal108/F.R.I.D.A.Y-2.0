@@ -30,45 +30,26 @@ _keepalive_lock = threading.Lock()
 _consecutive_ping_failures = 0
 
 
-# ---------------- Persistent Device Cache ----------------
+# ---------------- Persistent Device Cache (Disabled) ----------------
+def clear_device_cache():
+    """Removes cached device file if present."""
+    with _cache_lock:
+        try:
+            if os.path.exists(DEVICE_CACHE_FILE):
+                os.remove(DEVICE_CACHE_FILE)
+        except Exception:
+            pass
+
+
 def load_device_cache():
-    """Reads cached wireless ADB device info from disk."""
-    with _cache_lock:
-        if not os.path.exists(DEVICE_CACHE_FILE):
-            return None
-        try:
-            with open(DEVICE_CACHE_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if isinstance(data, dict) and data.get("ip"):
-                    return data
-        except Exception as e:
-            print(f"[CACHE ERROR] Failed reading device cache: {e}")
-        return None
+    """Device caching is permanently disabled per user configuration."""
+    return None
 
 
-def save_device_cache(ip, port="5555", pairing_port=None, extra=None):
-    """Persists last successfully connected device endpoint to disk."""
-    with _cache_lock:
-        try:
-            os.makedirs(os.path.dirname(DEVICE_CACHE_FILE), exist_ok=True)
-            clean_ip = str(ip).strip()
-            clean_port = str(port or ADB_PORT).strip()
-            cache_data = {
-                "ip": clean_ip,
-                "port": clean_port,
-                "pairing_port": str(pairing_port).strip() if pairing_port else None,
-                "endpoint": f"{clean_ip}:{clean_port}",
-                "last_connected": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }
-            if extra and isinstance(extra, dict):
-                cache_data.update(extra)
-            with open(DEVICE_CACHE_FILE, "w", encoding="utf-8") as f:
-                json.dump(cache_data, f, indent=4)
-            print(f"💾 [DEVICE CACHE] Saved wireless device: {cache_data['endpoint']}")
-            return True
-        except Exception as e:
-            print(f"[CACHE ERROR] Failed saving device cache: {e}")
-            return False
+def save_device_cache(ip=None, port="5555", pairing_port=None, extra=None):
+    """Device caching is permanently disabled per user configuration."""
+    clear_device_cache()
+    return True
 
 
 # ---------------- Mobile Connection & Device Resolution ----------------
@@ -99,49 +80,16 @@ def is_mobile_connected():
         return False, []
 
 
-def ensure_mobile_connected(auto_reconnect=True):
+def ensure_mobile_connected(auto_reconnect=False):
     """
-    Ensures that a mobile device is connected.
-    If disconnected, attempts to auto-reconnect using cached credentials.
+    Checks if a mobile device is connected.
+    Auto-reconnect is disabled unless user explicitly requests a connection.
     Returns (connected_bool, device_list).
     """
     global ACTIVE_DEVICE
     connected, devices = is_mobile_connected()
     if connected:
         return True, devices
-
-    if not auto_reconnect:
-        return False, []
-
-    # Attempt recovery from persistent cache
-    cache = load_device_cache()
-    if not cache or not cache.get("ip"):
-        return False, []
-
-    cached_ip = cache.get("ip")
-    cached_port = cache.get("port", ADB_PORT)
-    endpoint = f"{cached_ip}:{cached_port}"
-
-    print(f"🔄 [AUTO-RECONNECT] Attempting reconnection to cached device {endpoint}...")
-    try:
-        # Use low-level subprocess to guarantee zero recursive calls to get_target_device
-        creation_flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-        subprocess.run(
-            [ADB_PATH, "connect", endpoint],
-            capture_output=True,
-            text=True,
-            timeout=5,
-            creationflags=creation_flags
-        )
-        time.sleep(0.3)
-        connected, devices = is_mobile_connected()
-        if (endpoint in devices) or (connected and any(cached_ip in d for d in devices)):
-            ACTIVE_DEVICE = endpoint if endpoint in devices else devices[0]
-            print(f"✅ [AUTO-RECONNECT] Successfully reconnected to {ACTIVE_DEVICE}!")
-            return True, devices
-    except Exception as e:
-        print(f"⚠️ [AUTO-RECONNECT] Reconnect failed: {e}")
-
     return False, []
 
 
@@ -278,19 +226,8 @@ def _adb_keepalive_worker(interval=35):
                     _consecutive_ping_failures = 0
                 else:
                     _consecutive_ping_failures += 1
-                    # If ping failed or timed out, socket dropped in Doze mode
-                    if _consecutive_ping_failures >= 2:
-                        print(f"⚠️ [Mobile Keep-Alive] Ping dropped ({ping_res or 'timeout'}). Initiating auto-reconnect...")
-                        ensure_mobile_connected(auto_reconnect=True)
             else:
-                # Disconnected state: attempt background auto-reconnect if cache exists
-                cache = load_device_cache()
-                if cache and cache.get("ip"):
-                    reconnected, _ = ensure_mobile_connected(auto_reconnect=True)
-                    if not reconnected:
-                        # Back off interval to 180s when device is unreachable to avoid terminal noise
-                        _keepalive_stop_event.wait(180)
-                        continue
+                _consecutive_ping_failures = 0
 
         except Exception as e:
             # Resilient daemon worker, never crash

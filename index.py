@@ -202,7 +202,7 @@ def main():
                             speak("Yes Sir?")
 
                         with cli.spinner_task("F.R.I.D.A.Y Listening to Voice Command..."):
-                            query = SpeechRecognition(timeout=6, phrase_time_limit=10)
+                            query = SpeechRecognition(timeout=7, phrase_time_limit=25)
 
                         if query:
                             cli.render_user_prompt(f"(Voice) {query}")
@@ -214,7 +214,7 @@ def main():
                 console.print("\n[bold cyan]🎙️ Listening...[/bold cyan]")
                 try:
                     with cli.spinner_task("F.R.I.D.A.Y Listening..."):
-                        query = SpeechRecognition(timeout=6, phrase_time_limit=10)
+                        query = SpeechRecognition(timeout=7, phrase_time_limit=25)
                     if query:
                         cli.render_user_prompt(f"(Voice) {query}")
                 except Exception as e:
