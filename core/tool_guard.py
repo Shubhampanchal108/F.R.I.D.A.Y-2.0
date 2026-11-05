@@ -39,6 +39,20 @@ from Tools.document_reader import read_pdf_or_document
 from Tools.network_tool import check_network_health
 from Tools.window_manager import focus_window, list_running_apps
 
+# ---- Google Calendar Integration Tools ----
+from integrations.calender import (
+    list_calendar_events,
+    get_today_calendar_events,
+    quick_add_calendar_event,
+    create_calendar_event,
+    update_calendar_event,
+    delete_calendar_event,
+    check_calendar_conflicts,
+    create_recurring_calendar_event,
+    list_user_calendars,
+    get_calendar_metadata
+)
+
 
 # ================================
 # Access Control Lists
@@ -74,7 +88,17 @@ MOBILE_ALLOWED = {
     "shutdown_pc",
     "restart_pc",
     "cancel_shutdown",
-    "autonomous_goal_planner"
+    "autonomous_goal_planner",
+    "list_calendar_events",
+    "get_today_calendar_events",
+    "quick_add_calendar_event",
+    "create_calendar_event",
+    "update_calendar_event",
+    "delete_calendar_event",
+    "check_calendar_conflicts",
+    "create_recurring_calendar_event",
+    "list_user_calendars",
+    "get_calendar_metadata"
 }
 
 WEB_ALLOWED = {
@@ -106,7 +130,17 @@ WEB_ALLOWED = {
     "shutdown_pc",
     "restart_pc",
     "cancel_shutdown",
-    "autonomous_goal_planner"
+    "autonomous_goal_planner",
+    "list_calendar_events",
+    "get_today_calendar_events",
+    "quick_add_calendar_event",
+    "create_calendar_event",
+    "update_calendar_event",
+    "delete_calendar_event",
+    "check_calendar_conflicts",
+    "create_recurring_calendar_event",
+    "list_user_calendars",
+    "get_calendar_metadata"
 }
 
 
@@ -126,8 +160,8 @@ class ToolRegistry:
 
     def is_allowed(self, tool_name, origin):
 
-        # Server, Widget, Desktop, and UI get full access
-        if origin.lower() in ["server", "widget", "desktop", "ui", "cli"]:
+        # Server, Widget, Desktop, Code Interpreter, and UI get full access
+        if origin.lower() in ["server", "widget", "desktop", "ui", "cli", "code"]:
             return True
 
         if origin.lower() == "mobile":
@@ -163,6 +197,18 @@ TOOLS = {
         "readmail_Full_body": readmail_Full_body,
         "save_longterm_memory": save_longterm_memory,
         "check_new_mail": check_new_mail,
+
+        # ---- Google Calendar Integrations ----
+        "list_calendar_events": list_calendar_events,
+        "get_today_calendar_events": get_today_calendar_events,
+        "quick_add_calendar_event": quick_add_calendar_event,
+        "create_calendar_event": create_calendar_event,
+        "update_calendar_event": update_calendar_event,
+        "delete_calendar_event": delete_calendar_event,
+        "check_calendar_conflicts": check_calendar_conflicts,
+        "create_recurring_calendar_event": create_recurring_calendar_event,
+        "list_user_calendars": list_user_calendars,
+        "get_calendar_metadata": get_calendar_metadata,
 
         # ---- V4.0 Advanced Agent Tools ----
         "analyze_screen": analyze_screen,

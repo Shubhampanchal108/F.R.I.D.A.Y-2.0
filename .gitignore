@@ -6,3 +6,8 @@ __pycache__/
 *.pyd
 config.json
 Database/
+token.json
+credentials.json
+integrations/calender/token.json
+integrations/calender/credentials.json
+calendar_token.json

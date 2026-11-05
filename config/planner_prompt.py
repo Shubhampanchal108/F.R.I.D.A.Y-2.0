@@ -56,6 +56,15 @@ AVAILABLE TOOLS AND PARAMETERS:
 - read_latest_emails(n=5) -> read my emails
 - send_email(to, subject, body) -> send emails
 - check_new_mail-> check new mails
+- list_calendar_events(time_min=None, time_max=None, max_results=10, query=None) -> list upcoming or date-filtered calendar events
+- get_today_calendar_events() -> get today's calendar schedule and events
+- quick_add_calendar_event(text) -> quickly create calendar event using natural language (e.g. 'Meeting tomorrow at 4pm')
+- create_calendar_event(summary, start_time, end_time=None, duration_minutes=60, description='', location='', attendees=None) -> schedule a new calendar event with full details
+- update_calendar_event(event_id, summary=None, start_time=None, end_time=None, description=None, location=None) -> update or reschedule calendar event
+- delete_calendar_event(event_id=None, summary_query=None) -> delete or cancel a calendar event by ID or event name
+- check_calendar_conflicts(start_time, end_time=None, duration_minutes=60) -> check if user is free or has scheduling conflicts
+- create_recurring_calendar_event(summary, start_time, duration_minutes=60, freq='WEEKLY', count=10, description='', location='') -> create recurring event
+- list_user_calendars() -> list all user's Google calendars
 - volume_up(step=10) -> increase volume
 - volume_down(step=10) -> decrease volume 
 - brightness_up(step=10) -> brightness increase

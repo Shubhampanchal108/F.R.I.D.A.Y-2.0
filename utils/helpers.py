@@ -155,7 +155,10 @@ Default_Data = {
       "NEWS_API_KEY": "",
       "MONGODB_URL": "mongodb://localhost:27017/",
       "GEMINI_KEY": "",
-      "OPENROUTER_API_KEY": ""
+      "OPENROUTER_API_KEY": "",
+      "GOOGLE_CALENDAR_CLIENT_ID": "",
+      "GOOGLE_CALENDAR_CLIENT_SECRET": "",
+      "GOOGLE_CALENDAR_ID": "primary"
     },
 
   "LLM" :

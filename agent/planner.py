@@ -140,6 +140,16 @@ def _create_fallback_plan(goal: str) -> dict:
     elif any(k in g_lower for k in ["write code", "calculate", "math", "script"]):
         tool = "run_python_code"
         params = {"code": f"# Task: {goal}\nprint('Executing task')"}
+    elif any(k in g_lower for k in ["calendar", "schedule", "meeting", "events"]):
+        if any(w in g_lower for w in ["add", "create", "new", "set", "book"]):
+            tool = "quick_add_calendar_event"
+            params = {"text": goal}
+        elif any(w in g_lower for w in ["conflict", "busy", "free"]):
+            tool = "check_calendar_conflicts"
+            params = {"start_time": "today"}
+        else:
+            tool = "get_today_calendar_events"
+            params = {}
     elif any(k in g_lower for k in ["email", "mail", "send_email"]):
         tool = "send_email"
         params = {"to": "", "subject": "Update", "body": goal}

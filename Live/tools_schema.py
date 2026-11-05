@@ -713,6 +713,118 @@ LIVE_TOOLS = [
                     },
                     "required": ["ip", "pairing_port", "pairing_code"]
                 }
+            },
+            {
+                "name": "list_calendar_events",
+                "description": "Lists upcoming or date-filtered events from Google Calendar. Shows summary, start/end time, location.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "time_min": {"type": "STRING", "description": "Start datetime or relative reference ('today', 'tomorrow', '2026-11-05')."},
+                        "time_max": {"type": "STRING", "description": "End datetime or relative reference."},
+                        "max_results": {"type": "INTEGER", "description": "Maximum number of events to fetch (default 10)."},
+                        "query": {"type": "STRING", "description": "Optional search term to filter events."}
+                    }
+                }
+            },
+            {
+                "name": "get_today_calendar_events",
+                "description": "Fetches all schedule and events for today from Google Calendar.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {}
+                }
+            },
+            {
+                "name": "quick_add_calendar_event",
+                "description": "Quickly creates a Google Calendar event from natural text (e.g. 'Meeting with Rahul tomorrow 3pm').",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "text": {"type": "STRING", "description": "Natural language event string with title, date, and time."}
+                    },
+                    "required": ["text"]
+                }
+            },
+            {
+                "name": "create_calendar_event",
+                "description": "Creates a structured Google Calendar event with title, timing, description, location, and attendees.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "summary": {"type": "STRING", "description": "Event title/summary."},
+                        "start_time": {"type": "STRING", "description": "Start datetime (e.g. '2026-11-05 14:00', ISO, or 'tomorrow 10am')."},
+                        "end_time": {"type": "STRING", "description": "Optional end datetime."},
+                        "duration_minutes": {"type": "INTEGER", "description": "Event duration in minutes if end_time not provided (default 60)."},
+                        "description": {"type": "STRING", "description": "Event details/agenda."},
+                        "location": {"type": "STRING", "description": "Event location or Google Meet link."},
+                        "attendees": {"type": "STRING", "description": "Comma-separated attendee email addresses."}
+                    },
+                    "required": ["summary", "start_time"]
+                }
+            },
+            {
+                "name": "update_calendar_event",
+                "description": "Updates an existing Google Calendar event's summary, timing, location or description.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "event_id": {"type": "STRING", "description": "The unique Google Calendar event ID."},
+                        "summary": {"type": "STRING", "description": "New event title."},
+                        "start_time": {"type": "STRING", "description": "New start datetime."},
+                        "end_time": {"type": "STRING", "description": "New end datetime."},
+                        "description": {"type": "STRING", "description": "New description."},
+                        "location": {"type": "STRING", "description": "New location."}
+                    },
+                    "required": ["event_id"]
+                }
+            },
+            {
+                "name": "delete_calendar_event",
+                "description": "Deletes or cancels a Google Calendar event by event_id or by searching summary_query.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "event_id": {"type": "STRING", "description": "Unique Google Calendar event ID."},
+                        "summary_query": {"type": "STRING", "description": "Event title/query to search and delete if ID is unknown."}
+                    }
+                }
+            },
+            {
+                "name": "check_calendar_conflicts",
+                "description": "Checks Google Calendar FreeBusy to detect schedule conflicts or check if user is free in a time slot.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "start_time": {"type": "STRING", "description": "Start datetime to check."},
+                        "end_time": {"type": "STRING", "description": "End datetime to check."},
+                        "duration_minutes": {"type": "INTEGER", "description": "Duration in minutes if end_time omitted."}
+                    },
+                    "required": ["start_time"]
+                }
+            },
+            {
+                "name": "create_recurring_calendar_event",
+                "description": "Schedules a recurring Google Calendar event (daily, weekly, monthly).",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "summary": {"type": "STRING", "description": "Event title."},
+                        "start_time": {"type": "STRING", "description": "First occurrence start datetime."},
+                        "duration_minutes": {"type": "INTEGER", "description": "Duration in minutes."},
+                        "freq": {"type": "STRING", "description": "Frequency: DAILY, WEEKLY, or MONTHLY."},
+                        "count": {"type": "INTEGER", "description": "Number of occurrences."}
+                    },
+                    "required": ["summary", "start_time"]
+                }
+            },
+            {
+                "name": "list_user_calendars",
+                "description": "Lists all Google Calendars in user's Google account.",
+                "parameters": {
+                    "type": "OBJECT",
+                    "properties": {}
+                }
             }
         ]
     }

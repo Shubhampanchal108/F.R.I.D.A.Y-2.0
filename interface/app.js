@@ -938,7 +938,12 @@ function setupSettingsHandlers() {
           WEATHER_KEY: document.getElementById('cfg-weather-key')?.value.trim() || '',
           TAVILY_API_KEY: document.getElementById('cfg-tavily-key')?.value.trim() || '',
           NEWS_API_KEY: document.getElementById('cfg-news-key')?.value.trim() || '',
-          AGENT_PASSWORD: document.getElementById('cfg-agent-pass')?.value.trim() || ''
+          AGENT_PASSWORD: document.getElementById('cfg-agent-pass')?.value.trim() || '',
+          EMAIL: document.getElementById('cfg-email')?.value.trim() || '',
+          PASSWORD: document.getElementById('cfg-email-pass')?.value.trim() || '',
+          GOOGLE_CALENDAR_CLIENT_ID: document.getElementById('cfg-gcal-client-id')?.value.trim() || '',
+          GOOGLE_CALENDAR_CLIENT_SECRET: document.getElementById('cfg-gcal-client-secret')?.value.trim() || '',
+          GOOGLE_CALENDAR_ID: document.getElementById('cfg-gcal-calendar-id')?.value.trim() || 'primary'
         },
         llm: {
           LLM_SERVICE_PROVIDER_URL: document.getElementById('cfg-llm-url')?.value.trim() || '',
@@ -1068,6 +1073,11 @@ async function loadApiKeysConfig() {
         if (keys.TAVILY_API_KEY) document.getElementById('cfg-tavily-key').value = keys.TAVILY_API_KEY;
         if (keys.NEWS_API_KEY) document.getElementById('cfg-news-key').value = keys.NEWS_API_KEY;
         if (keys.AGENT_PASSWORD) document.getElementById('cfg-agent-pass').value = keys.AGENT_PASSWORD;
+        if (keys.EMAIL) document.getElementById('cfg-email').value = keys.EMAIL;
+        if (keys.PASSWORD) document.getElementById('cfg-email-pass').value = keys.PASSWORD;
+        if (keys.GOOGLE_CALENDAR_CLIENT_ID) document.getElementById('cfg-gcal-client-id').value = keys.GOOGLE_CALENDAR_CLIENT_ID;
+        if (keys.GOOGLE_CALENDAR_CLIENT_SECRET) document.getElementById('cfg-gcal-client-secret').value = keys.GOOGLE_CALENDAR_CLIENT_SECRET;
+        if (keys.GOOGLE_CALENDAR_ID) document.getElementById('cfg-gcal-calendar-id').value = keys.GOOGLE_CALENDAR_ID;
 
         if (llm.LLM_SERVICE_PROVIDER_URL) document.getElementById('cfg-llm-url').value = llm.LLM_SERVICE_PROVIDER_URL;
         if (llm.MODEL) document.getElementById('cfg-llm-model').value = llm.MODEL;

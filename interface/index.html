@@ -771,6 +771,39 @@
                 <label for="cfg-agent-pass">Agent Security Password</label>
                 <input type="password" id="cfg-agent-pass" class="hud-text-input" placeholder="Optional Auth Password">
               </div>
+
+              <!-- GMAIL CREDENTIALS -->
+              <div class="config-field">
+                <label for="cfg-email">Gmail Address</label>
+                <input type="email" id="cfg-email" class="hud-text-input" placeholder="e.g. user@gmail.com">
+              </div>
+
+              <div class="config-field">
+                <label for="cfg-email-pass">Gmail App Password (16-Digit)</label>
+                <div class="input-with-toggle">
+                  <input type="password" id="cfg-email-pass" class="hud-text-input" placeholder="16-character App Password">
+                  <button type="button" class="eye-toggle-btn" data-target="cfg-email-pass">👁️</button>
+                </div>
+              </div>
+
+              <!-- GOOGLE CALENDAR CREDENTIALS -->
+              <div class="config-field">
+                <label for="cfg-gcal-client-id">Google Calendar Client ID</label>
+                <input type="text" id="cfg-gcal-client-id" class="hud-text-input" placeholder="Google OAuth 2.0 Client ID">
+              </div>
+
+              <div class="config-field">
+                <label for="cfg-gcal-client-secret">Google Calendar Client Secret</label>
+                <div class="input-with-toggle">
+                  <input type="password" id="cfg-gcal-client-secret" class="hud-text-input" placeholder="Google OAuth 2.0 Client Secret">
+                  <button type="button" class="eye-toggle-btn" data-target="cfg-gcal-client-secret">👁️</button>
+                </div>
+              </div>
+
+              <div class="config-field">
+                <label for="cfg-gcal-calendar-id">Google Calendar ID</label>
+                <input type="text" id="cfg-gcal-calendar-id" class="hud-text-input" placeholder="primary (default)">
+              </div>
             </div>
 
             <button class="settings-btn primary full-w" id="btn-save-api-config">Save & Synchronize API Credentials</button>
