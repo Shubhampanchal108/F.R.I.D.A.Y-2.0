@@ -132,15 +132,10 @@ Return ONLY valid JSON matching the strict format."""
 
 
 def _create_fallback_plan(goal: str) -> dict:
-    """Direct single-step fallback plan."""
+    """Direct single-step fallback plan for explicit physical actions only."""
     g_lower = goal.lower()
-    if any(k in g_lower for k in ["search", "who is", "what is", "news", "price", "tell me about"]):
-        tool = "google_search"
-        params = {"query": goal}
-    elif any(k in g_lower for k in ["write code", "calculate", "math", "script"]):
-        tool = "run_python_code"
-        params = {"code": f"# Task: {goal}\nprint('Executing task')"}
-    elif any(k in g_lower for k in ["calendar", "schedule", "meeting", "events"]):
+
+    if any(k in g_lower for k in ["calendar", "schedule", "meeting", "events"]):
         if any(w in g_lower for w in ["add", "create", "new", "set", "book"]):
             tool = "quick_add_calendar_event"
             params = {"text": goal}
@@ -150,19 +145,33 @@ def _create_fallback_plan(goal: str) -> dict:
         else:
             tool = "get_today_calendar_events"
             params = {}
-    elif any(k in g_lower for k in ["email", "mail", "send_email"]):
+    elif any(k in g_lower for k in ["send email", "send an email", "send mail", "compose email"]):
         tool = "send_email"
         params = {"to": "", "subject": "Update", "body": goal}
-    elif any(k in g_lower for k in ["battery", "charge", "power"]):
+    elif any(k in g_lower for k in ["check battery", "battery status", "battery level", "charge percentage"]):
         tool = "check_battery"
         params = {}
-    elif any(k in g_lower for k in ["cpu", "ram", "memory"]):
+    elif any(k in g_lower for k in ["check cpu", "cpu usage", "ram usage", "memory usage"]):
         tool = "check_cpu"
         params = {}
-    elif any(k in g_lower for k in ["weather", "temperature", "forecast"]):
+    elif any(k in g_lower for k in ["check weather", "weather in", "today's weather"]):
         tool = "get_weather"
         params = {"city": "Delhi"}
+    elif any(k in g_lower for k in ["search google for", "google search", "search the web", "search online"]):
+        tool = "google_search"
+        clean_q = re.sub(r"^(search google for|google search for|google search|search the web for|search online for)\s*", "", g_lower).strip()
+        params = {"query": clean_q or goal}
+    elif any(k in g_lower for k in ["run python", "execute script", "execute python"]):
+        tool = "run_python_code"
+        params = {"code": goal}
+    elif any(k in g_lower for k in ["lock pc", "lock screen", "lock laptop"]):
+        tool = "lock_pc"
+        params = {}
+    elif any(k in g_lower for k in ["shutdown pc", "shut down pc", "turn off laptop"]):
+        tool = "shutdown_pc"
+        params = {"delay": 5}
     else:
+        # Default for any conceptual, knowledge, educational, or chit-chat queries
         return {
             "goal": goal,
             "is_conversational": True,
@@ -186,5 +195,5 @@ def _create_fallback_plan(goal: str) -> dict:
 
 
 if __name__ == "__main__":
-    str = input("Enter you prompt: ")
+    prompt_in = input("Enter your prompt: ")
     print(PLANNER_AGENT_PROMPT)

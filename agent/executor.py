@@ -217,18 +217,13 @@ class FridayAgentExecutor:
 
         # 2. Check if purely conversational or direct single/multi tool deliberation
         if plan.get("is_conversational", False) or not plan.get("steps"):
-            messages = build_system_messages(goal)
+            messages = build_system_messages(goal, is_conversational=True)
             messages.append({"role": "user", "content": goal})
 
-            conversational_reply = ""
-            for _turn in range(3):
-                conversational_reply = chat_complete(messages=messages, temperature=0.3, timeout=25.0)
-                tool_call = parse_tool_call(conversational_reply)
+            conversational_reply = chat_complete(messages=messages, temperature=0.3, timeout=25.0)
+            tool_call = parse_tool_call(conversational_reply)
 
-                if not tool_call:
-                    # Pure natural speech reply without any tool call
-                    break
-
+            if tool_call:
                 tool_name = tool_call.get("tool")
                 tool_args = tool_call.get("args", {})
                 if not isinstance(tool_args, dict):
@@ -255,6 +250,7 @@ class FridayAgentExecutor:
                         f"STRICT RULE: Do NOT output raw JSON or code tags. Speak naturally as his AI secretary."
                     )
                 })
+                conversational_reply = chat_complete(messages=messages, temperature=0.3, timeout=25.0)
 
             # If for any reason raw JSON remains, synthesize a dynamic response
             if parse_tool_call(conversational_reply):

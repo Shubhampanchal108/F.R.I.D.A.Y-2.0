@@ -13,17 +13,19 @@ from typing import List, Dict
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from config.settings import Friday_Instruction
+from config.settings import Friday_Instruction, Friday_Conversational_Instruction
 from utils.helpers import load_memory, normalize_role
 from memory.rag import search_vector_memory
 from memory.memory_manager import get_last_session_context, get_user_profile_summary
 
 
-def build_system_messages(prompt: str) -> List[Dict[str, str]]:
+def build_system_messages(prompt: str, is_conversational: bool = False) -> List[Dict[str, str]]:
     """
     Constructs the base system context and message history for any LLM deliberation.
+    If is_conversational is True, uses pure conversational instructions with zero tool baggage.
     """
-    messages = [{"role": "system", "content": Friday_Instruction}]
+    base_instruction = Friday_Conversational_Instruction if is_conversational else Friday_Instruction
+    messages = [{"role": "system", "content": base_instruction}]
 
     # 1. Previous conversation history
     try:
