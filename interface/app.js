@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 7. Setup Settings Page Handlers (Audio, API Keys, Persona)
   setupSettingsHandlers();
+  setupNeuralKeysHandlers();
 
   // 8. Setup Profile & Reminders Handlers
   setupProfileHandlers();
@@ -152,6 +153,7 @@ function onPywebviewReady() {
   loadAssistantSettings();
   loadUserProfile();
   loadApiKeysConfig();
+  loadNeuralKeys();
   loadRemindersAndTasks();
   syncOperatingMode();
 }
@@ -211,6 +213,8 @@ function switchView(viewName) {
     } else if (viewName === 'settings') {
       loadAssistantSettings();
       loadApiKeysConfig();
+  loadNeuralKeys();
+      loadNeuralKeys();
     } else if (viewName === 'profile') {
       loadUserProfile();
       loadRemindersAndTasks();
@@ -926,15 +930,12 @@ function setupSettingsHandlers() {
     });
   }
 
-  // Save Full API Configuration (CLI replacement)
+  // Save External Tools & Credentials Configuration
   if (btnSaveApi) {
     btnSaveApi.addEventListener('click', async () => {
       playSfx('ping');
       const apiConfig = {
         keys: {
-          LLM_KEY: document.getElementById('cfg-llm-key')?.value.trim() || '',
-          OPENROUTER_API_KEY: document.getElementById('cfg-openrouter-key')?.value.trim() || '',
-          GEMINI_KEY: document.getElementById('cfg-gemini-key')?.value.trim() || '',
           WEATHER_KEY: document.getElementById('cfg-weather-key')?.value.trim() || '',
           TAVILY_API_KEY: document.getElementById('cfg-tavily-key')?.value.trim() || '',
           NEWS_API_KEY: document.getElementById('cfg-news-key')?.value.trim() || '',
@@ -944,10 +945,6 @@ function setupSettingsHandlers() {
           GOOGLE_CALENDAR_CLIENT_ID: document.getElementById('cfg-gcal-client-id')?.value.trim() || '',
           GOOGLE_CALENDAR_CLIENT_SECRET: document.getElementById('cfg-gcal-client-secret')?.value.trim() || '',
           GOOGLE_CALENDAR_ID: document.getElementById('cfg-gcal-calendar-id')?.value.trim() || 'primary'
-        },
-        llm: {
-          LLM_SERVICE_PROVIDER_URL: document.getElementById('cfg-llm-url')?.value.trim() || '',
-          MODEL: document.getElementById('cfg-llm-model')?.value.trim() || ''
         }
       };
 
@@ -1065,10 +1062,6 @@ async function loadApiKeysConfig() {
       const cfg = await window.pywebview.api.get_api_keys_config();
       if (cfg) {
         const keys = cfg.keys || {};
-        const llm = cfg.llm || {};
-        if (keys.LLM_KEY) document.getElementById('cfg-llm-key').value = keys.LLM_KEY;
-        if (keys.OPENROUTER_API_KEY) document.getElementById('cfg-openrouter-key').value = keys.OPENROUTER_API_KEY;
-        if (keys.GEMINI_KEY) document.getElementById('cfg-gemini-key').value = keys.GEMINI_KEY;
         if (keys.WEATHER_KEY) document.getElementById('cfg-weather-key').value = keys.WEATHER_KEY;
         if (keys.TAVILY_API_KEY) document.getElementById('cfg-tavily-key').value = keys.TAVILY_API_KEY;
         if (keys.NEWS_API_KEY) document.getElementById('cfg-news-key').value = keys.NEWS_API_KEY;
@@ -1078,14 +1071,160 @@ async function loadApiKeysConfig() {
         if (keys.GOOGLE_CALENDAR_CLIENT_ID) document.getElementById('cfg-gcal-client-id').value = keys.GOOGLE_CALENDAR_CLIENT_ID;
         if (keys.GOOGLE_CALENDAR_CLIENT_SECRET) document.getElementById('cfg-gcal-client-secret').value = keys.GOOGLE_CALENDAR_CLIENT_SECRET;
         if (keys.GOOGLE_CALENDAR_ID) document.getElementById('cfg-gcal-calendar-id').value = keys.GOOGLE_CALENDAR_ID;
-
-        if (llm.LLM_SERVICE_PROVIDER_URL) document.getElementById('cfg-llm-url').value = llm.LLM_SERVICE_PROVIDER_URL;
-        if (llm.MODEL) document.getElementById('cfg-llm-model').value = llm.MODEL;
       }
     } catch (e) {
       console.warn('loadApiKeysConfig error:', e);
     }
   }
+}
+
+// ==========================================================================
+// AUTONOMOUS MULTI-TIER NEURAL KEYS CRUD HANDLERS
+// ==========================================================================
+let currentNeuralKeysState = {
+  GEMINI: [],
+  HUGGINGFACE: [],
+  GROQ: [],
+  OPENROUTER: []
+};
+
+function setupNeuralKeysHandlers() {
+  const addButtons = document.querySelectorAll('.btn-add-neural-key');
+  addButtons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const provider = btn.getAttribute('data-provider');
+      const inputEl = document.getElementById(`input-key-${provider}`);
+      if (!inputEl) return;
+      const keyVal = inputEl.value.trim();
+      if (!keyVal) {
+        alert('Please enter a valid API key string.');
+        return;
+      }
+
+      playSfx('ping');
+      if (window.pywebview && window.pywebview.api) {
+        try {
+          const res = await window.pywebview.api.add_neural_key(provider, keyVal);
+          if (res && res.neural_keys) {
+            currentNeuralKeysState = res.neural_keys;
+            renderAllNeuralKeys(currentNeuralKeysState);
+            inputEl.value = '';
+            showNeuralKeysToast(`✓ Added ${provider} API Key Successfully`);
+          }
+        } catch (e) {
+          console.error('Error adding neural key:', e);
+        }
+      }
+    });
+  });
+}
+
+function showNeuralKeysToast(msg) {
+  const toast = document.getElementById('neural-keys-toast');
+  if (toast) {
+    if (msg) toast.textContent = msg;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 2500);
+  }
+}
+
+async function loadNeuralKeys() {
+  if (window.pywebview && window.pywebview.api) {
+    try {
+      const res = await window.pywebview.api.get_neural_keys();
+      if (res && res.neural_keys) {
+        currentNeuralKeysState = res.neural_keys;
+        renderAllNeuralKeys(currentNeuralKeysState);
+      }
+    } catch (e) {
+      console.warn('loadNeuralKeys error:', e);
+    }
+  }
+}
+
+function renderAllNeuralKeys(neuralKeys) {
+  ['GROQ', 'GEMINI', 'HUGGINGFACE', 'OPENROUTER'].forEach(p => {
+    renderProviderKeys(p, neuralKeys[p] || []);
+  });
+}
+
+function renderProviderKeys(provider, keysList) {
+  const listEl = document.getElementById(`list-keys-${provider}`);
+  const countBadge = document.getElementById(`count-${provider}`);
+  if (!listEl) return;
+
+  const count = keysList.length;
+  if (countBadge) {
+    countBadge.textContent = `${count} Key${count === 1 ? '' : 's'}`;
+    if (count > 0) {
+      countBadge.classList.add('has-keys');
+    } else {
+      countBadge.classList.remove('has-keys');
+    }
+  }
+
+  if (count === 0) {
+    listEl.innerHTML = `<div class="no-keys-hint">No ${provider} keys added yet. Add a key above for failover.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = '';
+  keysList.forEach((fullKey, idx) => {
+    const item = document.createElement('div');
+    item.className = 'neural-key-item';
+
+    // Mask key (e.g. AIzaSy•••••••••••X4)
+    const masked = fullKey.length > 10 
+      ? fullKey.substring(0, 6) + '••••••••' + fullKey.substring(fullKey.length - 4)
+      : '••••••••••••';
+
+    item.innerHTML = `
+      <span class="key-masked-text" id="key-text-${provider}-${idx}" data-full="${escapeHtml(fullKey)}" data-masked="${escapeHtml(masked)}">
+        [#${idx + 1}] ${escapeHtml(masked)}
+      </span>
+      <div class="key-actions">
+        <button type="button" class="key-btn btn-toggle-mask" data-provider="${provider}" data-index="${idx}" title="Reveal / Hide Key">👁️</button>
+        <button type="button" class="key-btn delete-key" data-provider="${provider}" data-index="${idx}" title="Delete Key">🗑️</button>
+      </div>
+    `;
+
+    // Toggle Mask Listener
+    const btnToggle = item.querySelector('.btn-toggle-mask');
+    const textSpan = item.querySelector('.key-masked-text');
+    let isRevealed = false;
+    btnToggle.addEventListener('click', () => {
+      isRevealed = !isRevealed;
+      textSpan.textContent = isRevealed 
+        ? `[#${idx + 1}] ${textSpan.getAttribute('data-full')}`
+        : `[#${idx + 1}] ${textSpan.getAttribute('data-masked')}`;
+    });
+
+    // Delete Key Listener
+    const btnDel = item.querySelector('.delete-key');
+    btnDel.addEventListener('click', async () => {
+      if (!confirm(`Delete key #${idx + 1} from ${provider}?`)) return;
+      playSfx('click');
+      if (window.pywebview && window.pywebview.api) {
+        try {
+          const res = await window.pywebview.api.delete_neural_key(provider, idx);
+          if (res && res.neural_keys) {
+            currentNeuralKeysState = res.neural_keys;
+            renderAllNeuralKeys(currentNeuralKeysState);
+            showNeuralKeysToast(`✓ Deleted ${provider} Key #${idx + 1}`);
+          }
+        } catch (e) {
+          console.error('Error deleting key:', e);
+        }
+      }
+    });
+
+    listEl.appendChild(item);
+  });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // ==========================================================================

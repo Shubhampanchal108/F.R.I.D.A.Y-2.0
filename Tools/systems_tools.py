@@ -135,40 +135,40 @@ def empty_recycle_bin():
 
 
 def open_application(app: str):
+    """
+    Opens any Windows application using Start Menu search automation with PyAutoGUI:
+    1. Presses Windows key
+    2. Types target application name
+    3. Waits 2 seconds for Windows Search to index and highlight the top match
+    4. Presses Enter to launch
+    """
     try:
-        from AppOpener import open as appopen
-        appopen(
-            app,
-            match_closest=False,
-            output=False,
-            throw_error=True
-        )
+        if not app:
+            return {"status": "error", "message": "No application name provided."}
+
+        clean_app = str(app).replace(".exe", "").strip()
+
+        # 1. Press Windows button to open Start Menu Search
+        pyautogui.press('win')
+        time.sleep(0.5)
+
+        # 2. Type target app name
+        pyautogui.write(clean_app, interval=0.03)
+
+        # 3. Wait 2 seconds for search results to settle
+        time.sleep(2.0)
+
+        # 4. Press Enter to launch application
+        pyautogui.press('enter')
 
         return {
             "status": "success",
-            "app": app,
-            "method": "appopener"
+            "app": clean_app,
+            "method": "pyautogui_windows_search",
+            "message": f"Successfully launched {clean_app}"
         }
-
-    except Exception:
-        try:
-            pyautogui.press('win')
-            time.sleep(1)
-
-            clean_app = app.replace(".", "").lower().strip()
-            pyautogui.typewrite(clean_app)
-            time.sleep(1)
-
-            pyautogui.press('enter')
-
-            return {
-                "status": "success",
-                "app": app,
-                "method": "windows_search"
-            }
-
-        except Exception as e:
-            return {"error": str(e)}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
     
 def close_app(app: str = None):
     try:
@@ -661,4 +661,4 @@ def system_power_control(action: str, delay: int = 5):
         return {
             "status": "error",
             "message": f"Unknown power action '{action}'. Supported actions: 'lock', 'sleep', 'shutdown', 'restart', 'cancel'."
-        }
+        }

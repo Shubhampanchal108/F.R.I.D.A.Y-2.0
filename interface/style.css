@@ -3177,3 +3177,183 @@ body.mode-expanded .profile-scroll-container {
   box-shadow: 0 0 10px #ff0055;
   animation: dot-pulse 1s infinite ease-in-out;
 }
+
+
+/* =============================================================================
+   AUTONOMOUS MULTI-TIER NEURAL CORE CASCADE & MULTI-KEY MANAGER
+   ============================================================================= */
+.neural-cascade-card {
+  border-color: rgba(56, 189, 248, 0.25) !important;
+}
+
+.neural-providers-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.neural-provider-block {
+  background: rgba(10, 20, 38, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.neural-provider-block:hover {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(10, 25, 48, 0.65);
+}
+
+.provider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.provider-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.provider-badge {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.provider-badge.p1 {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.provider-badge.p2 {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.provider-badge.p3 {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.provider-badge.p4 {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.provider-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.provider-tag {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.keys-count-badge {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 7px;
+  border-radius: 10px;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.keys-count-badge.has-keys {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.key-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.key-input-row input {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 6px 10px;
+}
+
+.btn-add-neural-key {
+  padding: 6px 12px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.neural-keys-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.neural-key-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.key-masked-text {
+  color: #cbd5e1;
+  letter-spacing: 0.5px;
+}
+
+.key-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.key-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 10px;
+  transition: all 0.2s;
+}
+
+.key-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.key-btn.delete-key:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.no-keys-hint {
+  font-size: 9px;
+  color: #64748b;
+  font-style: italic;
+  padding: 2px 4px;
+}

@@ -9,9 +9,12 @@ dispatches tool executions, and relays multimodal streams.
 
 import os
 import sys
+import re
+import time
 import asyncio
 import warnings
 import logging
+from collections import deque
 from dotenv import dotenv_values
 from rich.console import Console
 
@@ -93,6 +96,40 @@ class LiveSession:
         self.session = None
         self.send_lock = asyncio.Lock()
         self.stop_event = asyncio.Event()
+        self.recent_assistant_responses = deque(maxlen=8)
+
+    def is_self_echo(self, text: str) -> bool:
+        """
+        Detects if the microphone captured Friday's own speaker output.
+        Uses substring matching, word overlap, and common echo artifacts.
+        """
+        if not text:
+            return True
+
+        clean_heard = re.sub(r"[^\w\s]", "", text.lower()).strip()
+        heard_words = set(clean_heard.split())
+        if not heard_words:
+            return True
+
+        # Check against recent assistant responses
+        for past_resp in list(self.recent_assistant_responses):
+            clean_resp = re.sub(r"[^\w\s]", "", past_resp.lower()).strip()
+            resp_words = set(clean_resp.split())
+
+            # 1. Exact or partial substring match for phrases (>6 chars)
+            if len(clean_heard) >= 6 and (clean_heard in clean_resp or clean_resp in clean_heard):
+                return True
+
+            # 2. Significant lexical overlap
+            if resp_words:
+                overlap = len(heard_words.intersection(resp_words))
+                ratio = overlap / len(heard_words)
+                if len(heard_words) >= 3 and ratio >= 0.45:
+                    return True
+                elif len(heard_words) < 3 and overlap == len(heard_words):
+                    return True
+
+        return False
 
     async def sentinel_alert_loop(self):
         """
@@ -215,25 +252,33 @@ class LiveSession:
 
     async def stt_voice_input_loop(self):
         """
-        Continuous robust voice listener:
-        - Listens to full sentences without mid-sentence cutoffs using generous pause threshold.
-        - Automatically pauses while Friday is speaking to prevent self-echo.
-        - Sends full, clean text turns to Gemini Live WebSocket.
+        Continuous robust voice listener with Multi-Stage Acoustic Echo Cancellation:
+        1. Never listens while Friday is speaking or during acoustic reverb cooldown.
+        2. Discards any input if Friday began speaking during the listening window.
+        3. Lexically filters self-echo before forwarding to Gemini Live.
         """
         from voice.voice_input import SpeechRecognition
-        console.print("[bold green]🎙️ Robust Voice Recognition Active: Speak naturally, full sentences supported.[/bold green]")
+        console.print("[bold green]🎙️ Robust Voice Recognition Active: Acoustic Echo Cancellation Engaged.[/bold green]")
 
         while not self.stop_event.is_set():
             try:
-                # Wait if Friday is currently speaking through the speakers
-                while self.audio.is_playing.is_set() and not self.stop_event.is_set():
-                    await asyncio.sleep(0.1)
+                # 1. Wait until Friday has completely stopped speaking + reverb cooldown (1.2s)
+                while self.audio.is_speaker_busy(cooldown_seconds=1.2) and not self.stop_event.is_set():
+                    await asyncio.sleep(0.15)
 
                 if self.stop_event.is_set():
                     break
 
-                # Run robust SpeechRecognition in background worker thread
-                text = await asyncio.to_thread(SpeechRecognition, input_language="en", timeout=8, phrase_time_limit=20)
+                # 2. Mark the exact timestamp before microphone opens
+                listen_start_time = time.time()
+
+                # 3. Listen to microphone in background worker thread
+                text = await asyncio.to_thread(SpeechRecognition, input_language="en", timeout=5, phrase_time_limit=15)
+
+                # 4. If Friday spoke AT ANY POINT during or after recording began -> DISCARD IMMEDIATELY
+                if self.audio.last_audio_playback_time >= listen_start_time or self.audio.is_speaker_busy(cooldown_seconds=0.8):
+                    continue
+
                 if not text or not str(text).strip():
                     await asyncio.sleep(0.05)
                     continue
@@ -241,6 +286,11 @@ class LiveSession:
                 clean_text = str(text).strip()
                 if self.stop_event.is_set():
                     break
+
+                # 5. Semantic / Lexical Self-Echo Filter
+                if self.is_self_echo(clean_text):
+                    console.print(f"[dim yellow]🔇 [Echo Filter] Blocked speaker self-echo: '{clean_text}'[/dim yellow]")
+                    continue
 
                 console.print(f"\n[bold green]👤 You (Spoken):[/bold green] {clean_text}", highlight=False)
                 self.bridge.record_user_turn(clean_text)
@@ -373,6 +423,7 @@ class LiveSession:
                 if turn_text_buffer:
                     full_reply = "".join(turn_text_buffer).strip()
                     if full_reply:
+                        self.recent_assistant_responses.append(full_reply)
                         # Record response in shared Core Friday memory & emit token for UI
                         self.bridge.record_assistant_turn(full_reply)
                     turn_text_buffer = []
@@ -445,7 +496,7 @@ class LiveSession:
 
                     # Launch concurrent multimodal tasks
                     send_text_task = tg.create_task(self.send_text_loop())
-                    tg.create_task(self.stt_voice_input_loop())
+                    tg.create_task(self.audio.listen_audio_loop(session, self.send_lock, self.stop_event))
 
                     if self.video_mode == "camera":
                         tg.create_task(self.vision.stream_camera(session, self.send_lock, self.stop_event))

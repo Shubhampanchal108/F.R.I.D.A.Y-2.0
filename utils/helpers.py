@@ -144,10 +144,17 @@ def parse_tool_call(msg: str):
 # ---------------- CONFIGS ---------------- #
 
 Default_Data = {
+  "NEURAL_KEYS":
+    {
+      "GEMINI": [],
+      "HUGGINGFACE": [],
+      "GROQ": [],
+      "OPENROUTER": []
+    },
+
   "KEYS": 
     {
       "WEATHER_KEY": "",
-      "LLM_KEY": "",
       "EMAIL": "",
       "PASSWORD": "",
       "AGENT_PASSWORD": "",
@@ -156,15 +163,11 @@ Default_Data = {
       "MONGODB_URL": "mongodb://localhost:27017/",
       "GEMINI_KEY": "",
       "OPENROUTER_API_KEY": "",
+      "GROQ_API_KEY": "",
+      "HUGGINGFACE_API_KEY": "",
       "GOOGLE_CALENDAR_CLIENT_ID": "",
       "GOOGLE_CALENDAR_CLIENT_SECRET": "",
       "GOOGLE_CALENDAR_ID": "primary"
-    },
-
-  "LLM" :
-    {
-      "LLM_SERVICE_PROVIDER_URL": "",
-      "MODEL": ""
     },
 
   "USER":

@@ -709,49 +709,95 @@
             </div>
           </div>
 
-          <!-- FULL SYSTEM & API KEYS CONFIGURATION (CLI Replacement) -->
+          <!-- MULTI-TIER NEURAL CORE CASCADE (MULTI-KEY MANAGER) -->
+          <div class="settings-section-card neural-cascade-card">
+            <div class="section-title">
+              <span class="sec-icon">⚡</span>
+              <span>Autonomous Neural Core Cascade (Zero-Downtime Multi-Key Engine)</span>
+            </div>
+            <p class="section-subtext">F.R.I.D.A.Y automatically shifts load: <b>Groq (P1) → Google Gemini (P2) → Hugging Face (P3) → OpenRouter (P4)</b> across all model pools. Store multiple keys per provider for infinite quota failover.</p>
+
+            <div class="neural-providers-container">
+              <!-- PROVIDER 1: GROQ -->
+              <div class="neural-provider-block" data-provider="GROQ">
+                <div class="provider-header">
+                  <div class="provider-info">
+                    <span class="provider-badge p1">P1</span>
+                    <span class="provider-title">⚡ Groq Cloud LPUs</span>
+                    <span class="provider-tag">Ultra-High Speed Inference (Llama 3.3, DeepSeek R1, Gemma 2)</span>
+                  </div>
+                  <span class="keys-count-badge" id="count-GROQ">0 Keys</span>
+                </div>
+                <div class="key-input-row">
+                  <input type="password" class="hud-text-input provider-new-key" id="input-key-GROQ" placeholder="Paste Groq API Key (gsk_...)">
+                  <button type="button" class="settings-btn primary btn-add-neural-key" data-provider="GROQ">+ Add Key</button>
+                </div>
+                <div class="neural-keys-list" id="list-keys-GROQ"></div>
+              </div>
+
+              <!-- PROVIDER 2: GEMINI -->
+              <div class="neural-provider-block" data-provider="GEMINI">
+                <div class="provider-header">
+                  <div class="provider-info">
+                    <span class="provider-badge p2">P2</span>
+                    <span class="provider-title">🔷 Google Gemini Official</span>
+                    <span class="provider-tag">All Gemini Models (2.5 Flash, 2.0 Flash) • 1M Context</span>
+                  </div>
+                  <span class="keys-count-badge" id="count-GEMINI">0 Keys</span>
+                </div>
+                <div class="key-input-row">
+                  <input type="password" class="hud-text-input provider-new-key" id="input-key-GEMINI" placeholder="Paste Gemini API Key (AIzaSy...)">
+                  <button type="button" class="settings-btn primary btn-add-neural-key" data-provider="GEMINI">+ Add Key</button>
+                </div>
+                <div class="neural-keys-list" id="list-keys-GEMINI"></div>
+              </div>
+
+              <!-- PROVIDER 3: HUGGING FACE -->
+              <div class="neural-provider-block" data-provider="HUGGINGFACE">
+                <div class="provider-header">
+                  <div class="provider-info">
+                    <span class="provider-badge p3">P3</span>
+                    <span class="provider-title">🤗 Hugging Face Serverless</span>
+                    <span class="provider-tag">30+ Reasoning Models (DeepSeek-R1, Qwen 2.5, Llama 3.3)</span>
+                  </div>
+                  <span class="keys-count-badge" id="count-HUGGINGFACE">0 Keys</span>
+                </div>
+                <div class="key-input-row">
+                  <input type="password" class="hud-text-input provider-new-key" id="input-key-HUGGINGFACE" placeholder="Paste Hugging Face Token (hf_...)">
+                  <button type="button" class="settings-btn primary btn-add-neural-key" data-provider="HUGGINGFACE">+ Add Key</button>
+                </div>
+                <div class="neural-keys-list" id="list-keys-HUGGINGFACE"></div>
+              </div>
+
+              <!-- PROVIDER 4: OPENROUTER -->
+              <div class="neural-provider-block" data-provider="OPENROUTER">
+                <div class="provider-header">
+                  <div class="provider-info">
+                    <span class="provider-badge p4">P4</span>
+                    <span class="provider-title">🌐 OpenRouter Resilient Pool</span>
+                    <span class="provider-tag">26+ Resilient Free Models Backup</span>
+                  </div>
+                  <span class="keys-count-badge" id="count-OPENROUTER">0 Keys</span>
+                </div>
+                <div class="key-input-row">
+                  <input type="password" class="hud-text-input provider-new-key" id="input-key-OPENROUTER" placeholder="Paste OpenRouter API Key (sk-or-v1-...)">
+                  <button type="button" class="settings-btn primary btn-add-neural-key" data-provider="OPENROUTER">+ Add Key</button>
+                </div>
+                <div class="neural-keys-list" id="list-keys-OPENROUTER"></div>
+              </div>
+            </div>
+            <div class="settings-toast hidden" id="neural-keys-toast">✓ Neural Keys Updated Successfully</div>
+          </div>
+
+          <!-- EXTERNAL TOOLS & SYSTEM CREDENTIALS -->
           <div class="settings-section-card">
             <div class="section-title">
-              <span class="sec-icon">🔑</span>
-              <span>API Keys & Neural Core Settings</span>
+              <span class="sec-icon">🛠️</span>
+              <span>External Tools & System Credentials</span>
             </div>
-            <p class="section-subtext">Directly configure all API integrations and credentials previously managed via command line.</p>
+            <p class="section-subtext">Configure search, weather, email, calendar and security credentials.</p>
 
             <div class="api-keys-grid">
-              <div class="config-field">
-                <label for="cfg-llm-url">LLM Provider Service URL</label>
-                <input type="text" id="cfg-llm-url" class="hud-text-input" placeholder="e.g. https://api.openai.com/v1 or Groq/OpenRouter">
-              </div>
-
-              <div class="config-field">
-                <label for="cfg-llm-model">Neural Model Name</label>
-                <input type="text" id="cfg-llm-model" class="hud-text-input" placeholder="e.g. gpt-4o, llama-3.3-70b-versatile">
-              </div>
-
-              <div class="config-field">
-                <label for="cfg-llm-key">Primary LLM API Key</label>
-                <div class="input-with-toggle">
-                  <input type="password" id="cfg-llm-key" class="hud-text-input" placeholder="Enter LLM API Key">
-                  <button type="button" class="eye-toggle-btn" data-target="cfg-llm-key">👁️</button>
-                </div>
-              </div>
-
-              <div class="config-field">
-                <label for="cfg-openrouter-key">OpenRouter API Key (Quota Failover / Multi-Model)</label>
-                <div class="input-with-toggle">
-                  <input type="password" id="cfg-openrouter-key" class="hud-text-input" placeholder="Enter OpenRouter API Key">
-                  <button type="button" class="eye-toggle-btn" data-target="cfg-openrouter-key">👁️</button>
-                </div>
-              </div>
-
-              <div class="config-field">
-                <label for="cfg-gemini-key">Gemini API Key (Live Vision)</label>
-                <div class="input-with-toggle">
-                  <input type="password" id="cfg-gemini-key" class="hud-text-input" placeholder="Enter Google Gemini API Key">
-                  <button type="button" class="eye-toggle-btn" data-target="cfg-gemini-key">👁️</button>
-                </div>
-              </div>
-
               <div class="config-field">
                 <label for="cfg-weather-key">Weather API Key</label>
                 <input type="text" id="cfg-weather-key" class="hud-text-input" placeholder="OpenWeatherMap API Key">
@@ -806,7 +852,7 @@
               </div>
             </div>
 
-            <button class="settings-btn primary full-w" id="btn-save-api-config">Save & Synchronize API Credentials</button>
+            <button class="settings-btn primary full-w" id="btn-save-api-config">Save & Synchronize Tool Credentials</button>
             <div class="settings-toast hidden" id="api-config-toast">✓ Credentials Synchronized with config.json</div>
           </div>
 

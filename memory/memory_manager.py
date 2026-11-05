@@ -108,17 +108,7 @@ def save_session_summary(conversation_history: list):
         return None  # Too short to summarize
 
     try:
-        from openai import OpenAI
-        from config.config_driver import Check_Keys
-
-        llm_key = Check_Keys("KEYS", "LLM_KEY")
-        base_url = Check_Keys("LLM", "LLM_SERVICE_PROVIDER_URL")
-        model_name = Check_Keys("LLM", "MODEL")
-
-        client = OpenAI(
-            base_url=base_url if base_url else None,
-            api_key=llm_key,
-        )
+        from core.llm_router import chat_complete
 
         # Build conversation text from last 30 messages
         conv_text = ""
@@ -136,14 +126,11 @@ Conversation:
 
 Summary:"""
 
-        response = client.chat.completions.create(
-            model=model_name,
+        summary = chat_complete(
             messages=[{"role": "user", "content": summary_prompt}],
             temperature=0.2,
-            timeout=10.0
-        )
-
-        summary = response.choices[0].message.content.strip()
+            timeout=15.0
+        ).strip()
 
         # Save as episodic memory in vector store
         save_longterm_memory(

@@ -36,9 +36,10 @@ def load_data():
                 if category not in data:
                     data[category] = keys
                 else:
-                    for k, v in keys.items():
-                        if k not in data[category]:
-                            data[category][k] = v
+                    if isinstance(keys, dict):
+                        for k, v in keys.items():
+                            if k not in data[category]:
+                                data[category][k] = v
             return data
     except Exception as e:
         console.print(f"[bold red]❌ Config Load Error: {e}. Resetting to default config.[/bold red]")
@@ -93,20 +94,112 @@ def Check_Keys(parKey, childKey):
     return val
 
 
+def get_neural_keys() -> dict:
+    """
+    Returns the dictionary of neural keys for all cascade providers:
+    GEMINI, HUGGINGFACE, GROQ, OPENROUTER.
+    Automatically imports legacy single keys for seamless backward compatibility.
+    """
+    data = load_data()
+    neural_keys = data.setdefault("NEURAL_KEYS", {
+        "GEMINI": [],
+        "HUGGINGFACE": [],
+        "GROQ": [],
+        "OPENROUTER": []
+    })
+
+    for p in ["GEMINI", "HUGGINGFACE", "GROQ", "OPENROUTER"]:
+        if p not in neural_keys or not isinstance(neural_keys[p], list):
+            neural_keys[p] = []
+
+    legacy_keys = data.get("KEYS", {})
+    if not neural_keys["GEMINI"] and legacy_keys.get("GEMINI_KEY"):
+        neural_keys["GEMINI"].append(legacy_keys["GEMINI_KEY"].strip())
+
+    if not neural_keys["OPENROUTER"] and legacy_keys.get("OPENROUTER_API_KEY"):
+        neural_keys["OPENROUTER"].append(legacy_keys["OPENROUTER_API_KEY"].strip())
+
+    if not neural_keys["GROQ"] and legacy_keys.get("GROQ_API_KEY"):
+        neural_keys["GROQ"].append(legacy_keys["GROQ_API_KEY"].strip())
+
+    if not neural_keys["HUGGINGFACE"] and legacy_keys.get("HUGGINGFACE_API_KEY"):
+        neural_keys["HUGGINGFACE"].append(legacy_keys["HUGGINGFACE_API_KEY"].strip())
+
+    return neural_keys
+
+
+def add_neural_key(provider: str, key: str) -> bool:
+    """Adds a new API key to a specific cascade provider."""
+    provider = provider.upper().strip()
+    key = key.strip()
+    if not key or provider not in ["GEMINI", "HUGGINGFACE", "GROQ", "OPENROUTER"]:
+        return False
+
+    data = load_data()
+    neural_keys = data.setdefault("NEURAL_KEYS", {
+        "GEMINI": [],
+        "HUGGINGFACE": [],
+        "GROQ": [],
+        "OPENROUTER": []
+    })
+
+    if provider not in neural_keys or not isinstance(neural_keys[provider], list):
+        neural_keys[provider] = []
+
+    if key not in neural_keys[provider]:
+        neural_keys[provider].append(key)
+        # Sync legacy slot for fallback
+        if provider == "GEMINI" and not data.get("KEYS", {}).get("GEMINI_KEY"):
+            data.setdefault("KEYS", {})["GEMINI_KEY"] = key
+        elif provider == "OPENROUTER" and not data.get("KEYS", {}).get("OPENROUTER_API_KEY"):
+            data.setdefault("KEYS", {})["OPENROUTER_API_KEY"] = key
+        elif provider == "GROQ" and not data.get("KEYS", {}).get("GROQ_API_KEY"):
+            data.setdefault("KEYS", {})["GROQ_API_KEY"] = key
+        elif provider == "HUGGINGFACE" and not data.get("KEYS", {}).get("HUGGINGFACE_API_KEY"):
+            data.setdefault("KEYS", {})["HUGGINGFACE_API_KEY"] = key
+
+        return save_data(data)
+    return True
+
+
+def delete_neural_key(provider: str, index: int) -> bool:
+    """Deletes an API key by index from a specific cascade provider."""
+    provider = provider.upper().strip()
+    data = load_data()
+    neural_keys = data.get("NEURAL_KEYS", {})
+    if provider in neural_keys and isinstance(neural_keys[provider], list):
+        if 0 <= index < len(neural_keys[provider]):
+            removed = neural_keys[provider].pop(index)
+            # If the legacy key matches this deleted key, update it
+            legacy_map = {
+                "GEMINI": "GEMINI_KEY",
+                "OPENROUTER": "OPENROUTER_API_KEY",
+                "GROQ": "GROQ_API_KEY",
+                "HUGGINGFACE": "HUGGINGFACE_API_KEY"
+            }
+            slot = legacy_map.get(provider)
+            if slot and data.get("KEYS", {}).get(slot) == removed:
+                data["KEYS"][slot] = neural_keys[provider][0] if neural_keys[provider] else ""
+
+            return save_data(data)
+    return False
+
+
 def is_agent_configured():
     data = load_data()
-    llm_key = data.get("KEYS", {}).get("LLM_KEY", "")
-    llm_url = data.get("LLM", {}).get("LLM_SERVICE_PROVIDER_URL", "")
     password = data.get("KEYS", {}).get("AGENT_PASSWORD", "")
-    return bool(llm_key and llm_url and password)
+    neural = get_neural_keys()
+    has_neural_key = any(len(keys) > 0 for keys in neural.values())
+    legacy_key = bool(data.get("KEYS", {}).get("LLM_KEY", ""))
+    return bool((has_neural_key or legacy_key) and password)
 
 
 def run_first_time_setup():
     console.clear()
     setup_panel = Panel(
-        "[bold cyan]Welcome to F.R.I.D.A.Y 3.0 Setup Wizard![/bold cyan]\n\n"
+        "[bold cyan]Welcome to F.R.I.D.A.Y Setup Wizard![/bold cyan]\n\n"
         "[white]It looks like this is your first time running F.R.I.D.A.Y on this machine.\n"
-        "Please provide the required configuration keys to activate your AI Agent.[/white]",
+        "Configure your security credentials and at least one Neural Key to activate.[/white]",
         title="[bold yellow]⚙️ FIRST-TIME AGENT CONFIGURATION[/bold yellow]",
         box=DOUBLE,
         border_style="yellow"
@@ -121,25 +214,15 @@ def run_first_time_setup():
     new_pass = Prompt.ask("Set security access password for CLI Agent", default=current_pass or "Friday123")
     data["KEYS"]["AGENT_PASSWORD"] = new_pass.strip()
 
-    # 2. LLM Provider Settings
-    console.print("\n[bold yellow]2. LLM Provider Configuration[/bold yellow]")
-    current_url = data.get("LLM", {}).get("LLM_SERVICE_PROVIDER_URL", "")
-    new_url = Prompt.ask(
-        "LLM Service Provider Base URL",
-        default=current_url or "https://openrouter.ai/api/v1"
-    )
-    data["LLM"]["LLM_SERVICE_PROVIDER_URL"] = new_url.strip()
+    # 2. Primary Neural Key (Gemini / OpenRouter / Groq)
+    console.print("\n[bold yellow]2. Neural Core Key (Google Gemini / OpenRouter / Groq / HuggingFace)[/bold yellow]")
+    gem_key = Prompt.ask("Enter Google Gemini API Key (Recommended Priority 1, leave blank to skip)", password=True, default="")
+    if gem_key.strip():
+        add_neural_key("GEMINI", gem_key.strip())
 
-    current_key = data.get("KEYS", {}).get("LLM_KEY", "")
-    new_key = Prompt.ask("Enter your LLM API Key (OpenAI / OpenRouter / Groq)", password=True, default=current_key)
-    data["KEYS"]["LLM_KEY"] = new_key.strip()
-
-    current_model = data.get("LLM", {}).get("MODEL", "")
-    new_model = Prompt.ask(
-        "Enter Model Name",
-        default=current_model or "openai/gpt-4o-mini"
-    )
-    data["LLM"]["MODEL"] = new_model.strip()
+    or_key = Prompt.ask("Enter OpenRouter API Key (Quota Failover, leave blank to skip)", password=True, default="")
+    if or_key.strip():
+        add_neural_key("OPENROUTER", or_key.strip())
 
     # 3. User Profile
     console.print("\n[bold yellow]3. User Details[/bold yellow]")
@@ -161,25 +244,31 @@ def run_first_time_setup():
 def interactive_config_editor():
     while True:
         data = load_data()
+        neural = get_neural_keys()
 
         table = Table(title="⚙️ Current F.R.I.D.A.Y Configuration", box=ROUNDED)
         table.add_column("Category", style="bold cyan")
-        table.add_column("Key", style="bold yellow")
+        table.add_column("Key / Provider", style="bold yellow")
         table.add_column("Value / Status", style="green")
 
-        # Mask sensitive keys
-        for category, keys in data.items():
-            for k, v in keys.items():
-                if k in ["LLM_KEY", "OPENROUTER_API_KEY", "PASSWORD", "AGENT_PASSWORD", "WEATHER_KEY", "TAVILY_API_KEY", "NEWS_API_KEY", "GEMINI_KEY"]:
-                    display_val = "••••••••" if v else "[dim red]Not Set[/dim red]"
-                else:
-                    display_val = str(v) if v else "[dim red]Not Set[/dim red]"
-                table.add_row(category, k, display_val)
+        # Show Neural Cascade Keys
+        for prov, keys in neural.items():
+            count = len(keys)
+            status_str = f"[bold green]{count} Key(s) Registered[/bold green]" if count else "[dim red]No Keys[/dim red]"
+            table.add_row("NEURAL_CASCADE", prov, status_str)
+
+        # Other keys
+        for k, v in data.get("KEYS", {}).items():
+            if k in ["LLM_KEY", "OPENROUTER_API_KEY", "PASSWORD", "AGENT_PASSWORD", "WEATHER_KEY", "TAVILY_API_KEY", "NEWS_API_KEY", "GEMINI_KEY", "GROQ_API_KEY", "HUGGINGFACE_API_KEY"]:
+                display_val = "••••••••" if v else "[dim red]Not Set[/dim red]"
+            else:
+                display_val = str(v) if v else "[dim red]Not Set[/dim red]"
+            table.add_row("KEYS", k, display_val)
 
         console.print(table)
 
         console.print("\n[bold yellow]Configuration Options:[/bold yellow]")
-        console.print(" 1. Update LLM Provider & Key")
+        console.print(" 1. Add Neural Core Key (Gemini / HuggingFace / Groq / OpenRouter)")
         console.print(" 2. Update Security Password")
         console.print(" 3. Update User Profile")
         console.print(" 4. Update External API Keys (Weather / Tavily / News)")
@@ -188,10 +277,11 @@ def interactive_config_editor():
         choice = Prompt.ask("[bold cyan]Select option (1-5)[/bold cyan]", choices=["1", "2", "3", "4", "5"], default="5")
 
         if choice == "1":
-            data["LLM"]["LLM_SERVICE_PROVIDER_URL"] = Prompt.ask("LLM Provider Base URL", default=data["LLM"].get("LLM_SERVICE_PROVIDER_URL", ""))
-            data["KEYS"]["LLM_KEY"] = Prompt.ask("LLM API Key", password=True, default=data["KEYS"].get("LLM_KEY", ""))
-            data["LLM"]["MODEL"] = Prompt.ask("Model Name", default=data["LLM"].get("MODEL", ""))
-            save_data(data)
+            p_choice = Prompt.ask("Select Provider", choices=["GEMINI", "HUGGINGFACE", "GROQ", "OPENROUTER"])
+            new_k = Prompt.ask(f"Enter {p_choice} API Key", password=True)
+            if new_k.strip():
+                add_neural_key(p_choice, new_k.strip())
+                console.print(f"[bold green]✅ Added key to {p_choice}[/bold green]")
 
         elif choice == "2":
             data["KEYS"]["AGENT_PASSWORD"] = Prompt.ask("New Security Password", password=True)

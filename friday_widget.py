@@ -1086,25 +1086,53 @@ class FridayWidgetApi:
     def get_api_keys_config(self) -> dict:
         """Returns API keys and model configuration from config.json."""
         try:
-            from config.config_driver import load_data
+            from config.config_driver import load_data, get_neural_keys
             data = load_data()
             return {
                 "keys": data.get("KEYS", {}),
-                "llm": data.get("LLM", {}),
+                "neural_keys": get_neural_keys(),
                 "user": data.get("USER", {})
             }
         except Exception as e:
             return {"error": str(e)}
 
+    def get_neural_keys(self) -> dict:
+        """Returns registered multi-tier neural keys."""
+        try:
+            from config.config_driver import get_neural_keys
+            return {"status": "success", "neural_keys": get_neural_keys()}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def add_neural_key(self, provider: str, key: str) -> dict:
+        """Registers a new API key for a cascade provider."""
+        try:
+            from config.config_driver import add_neural_key, get_neural_keys
+            success = add_neural_key(provider, key)
+            if success:
+                return {"status": "success", "neural_keys": get_neural_keys()}
+            return {"status": "error", "message": "Failed to add key"}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def delete_neural_key(self, provider: str, index: int) -> dict:
+        """Deletes an API key for a cascade provider by index."""
+        try:
+            from config.config_driver import delete_neural_key, get_neural_keys
+            success = delete_neural_key(provider, index)
+            if success:
+                return {"status": "success", "neural_keys": get_neural_keys()}
+            return {"status": "error", "message": "Failed to delete key"}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
     def save_api_keys_config(self, new_config: dict) -> dict:
-        """Saves API keys and LLM settings to config.json."""
+        """Saves API keys and settings to config.json."""
         try:
             from config.config_driver import load_data, save_data
             data = load_data()
             if "keys" in new_config and isinstance(new_config["keys"], dict):
                 data.setdefault("KEYS", {}).update(new_config["keys"])
-            if "llm" in new_config and isinstance(new_config["llm"], dict):
-                data.setdefault("LLM", {}).update(new_config["llm"])
             save_data(data)
             return {"status": "success"}
         except Exception as e:

@@ -195,20 +195,15 @@ def query_vision_model(prompt: str, image: Image.Image | None = None) -> str:
     except Exception as e:
         print(f"[Vision Failover] ⚠️ OpenRouter fallback error: {e}")
 
-    # 3. Default Groq/OpenAI text fallback if no image required
+    # 3. Fallback to 4-Tier Neural Core if no image required
     try:
-        from openai import OpenAI
-        llm_key = Check_Keys("KEYS", "LLM_KEY")
-        base_url = Check_Keys("LLM", "LLM_SERVICE_PROVIDER_URL")
-        model = Check_Keys("LLM", "MODEL")
-        if llm_key and not image:
-            std_client = OpenAI(base_url=base_url if base_url else None, api_key=llm_key)
-            std_res = std_client.chat.completions.create(
-                model=model or "llama-3.3-70b-versatile",
+        if not image:
+            from core.llm_router import chat_complete
+            res = chat_complete(
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=500
             )
-            return std_res.choices[0].message.content.strip()
+            return res.strip()
     except Exception:
         pass
 
