@@ -413,21 +413,21 @@ async function shiftOperatingMode(mode) {
     if (liveBanner) liveBanner.classList.add('hidden');
     setOrbState('idle', "STANDBY // SAY 'HEY FRIDAY'");
   } else if (currentOperatingMode === 'live_screen') {
-    badge.textContent = 'SCREEN VISION';
-    info.textContent = 'Streaming desktop screen to Gemini...';
+    badge.textContent = 'LIVE';
+    info.textContent = 'Real-time uplink online';
     if (liveBanner) {
       liveBanner.classList.remove('hidden');
-      liveText.textContent = 'LIVE SCREEN STREAM ACTIVE';
+      liveText.textContent = 'LIVE MODE ACTIVE';
     }
-    setOrbState('thinking', 'LIVE SCREEN MULTIMODAL ACTIVE');
+    setOrbState('thinking', 'LIVE STREAM ACTIVE');
   } else if (currentOperatingMode === 'live_camera') {
-    badge.textContent = 'CAMERA VISION';
-    info.textContent = 'Streaming camera video feed to Gemini...';
+    badge.textContent = 'LIVE';
+    info.textContent = 'Real-time uplink online';
     if (liveBanner) {
       liveBanner.classList.remove('hidden');
-      liveText.textContent = 'LIVE CAMERA STREAM ACTIVE';
+      liveText.textContent = 'LIVE MODE ACTIVE';
     }
-    setOrbState('thinking', 'LIVE CAMERA MULTIMODAL ACTIVE');
+    setOrbState('thinking', 'LIVE STREAM ACTIVE');
   }
 
   // Sync with Python backend

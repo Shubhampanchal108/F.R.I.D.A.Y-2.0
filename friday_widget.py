@@ -113,8 +113,9 @@ class FridayWidgetApi:
         self.screen_width = 1366
         self.screen_height = 768
         self.is_authenticated = False
-        self.current_mode = "core"  # "core" | "live"
+        self.current_mode = "live"  # Default mode is now Live Multimodal
         self.live_process = None
+        self.live_manually_stopped = False
 
         # Load persisted voice output preference
         try:
@@ -135,11 +136,16 @@ class FridayWidgetApi:
         try:
             d = get_daemon()
             if d:
+                d.notify_voice = self.audio_drive
                 def _widget_daemon_event_relay(event):
-                    if getattr(self, "current_mode", "core") == "live" and getattr(self, "live_process", None):
+                    mode = getattr(self, "current_mode", "core")
+                    is_live = mode in ["live", "live_screen", "live_camera"] or str(mode).startswith("live")
+                    if is_live and getattr(self, "live_process", None):
                         t = event.get("title", "")
                         m = event.get("message", "")
-                        self.send_live_text(f"[SYSTEM_ALERT] {t}: {m}")
+                        # Ignore purely internal logs
+                        if not t.startswith("🔒") and "Relay" not in t and "Dynamic Alert" not in t:
+                            self.send_live_text(f"[SYSTEM_ALERT] {t}: {m}")
                 d.on_event_callback = _widget_daemon_event_relay
         except Exception:
             pass
@@ -164,7 +170,7 @@ class FridayWidgetApi:
 
     # ---------------- AUTHENTICATION SYSTEM ---------------- #
     def _on_authenticated(self, user_name: str):
-        """Synchronizes authenticated state across backend and triggers executive startup briefing."""
+        """Synchronizes authenticated state across backend and launches default operating mode."""
         self.is_authenticated = True
         d = get_daemon()
         if d:
@@ -175,8 +181,30 @@ class FridayWidgetApi:
         except Exception:
             pass
 
-        # Trigger authenticated startup executive briefing in background
-        threading.Thread(target=self._trigger_startup_briefing, daemon=True).start()
+        # Check default mode preference (Default is "live")
+        default_mode = "live"
+        try:
+            from config.config_driver import load_data
+            cfg = load_data()
+            default_mode = cfg.get("DEFAULT_MODE", "live").lower()
+        except Exception:
+            default_mode = "live"
+
+        if default_mode == "live":
+            # Launch Live Multimodal Mode directly by default with cool Jarvis intro
+            def _launch_live_default():
+                time.sleep(0.5)
+                res = self.start_live_mode("screen")
+                if res.get("status") == "running":
+                    if self._window:
+                        self.safe_eval_js("window.shiftOperatingMode && window.shiftOperatingMode('live_screen');")
+                else:
+                    # Fallback to core briefing if Live mode couldn't start (e.g. missing Gemini key)
+                    self._trigger_startup_briefing()
+
+            threading.Thread(target=_launch_live_default, daemon=True).start()
+        else:
+            threading.Thread(target=self._trigger_startup_briefing, daemon=True).start()
 
     def _trigger_startup_briefing(self):
         """Generates and speaks startup executive briefing only AFTER authentication."""
@@ -733,12 +761,14 @@ class FridayWidgetApi:
             return {"status": "error", "message": res.get("message", "Microphone or listener unavailable")}
 
         elif mode == "text":
+            self.live_manually_stopped = True
             self.stop_wake_word_listener()
             self.stop_live_mode()
             self.current_mode = "text"
             return {"status": "ok", "mode": "text"}
 
         elif mode == "voice":
+            self.live_manually_stopped = True
             self.stop_wake_word_listener()
             self.stop_live_mode()
             self.current_mode = "voice"
@@ -746,6 +776,7 @@ class FridayWidgetApi:
             return {"status": "ok", "mode": "voice"}
 
         elif mode in ["live_screen", "live_camera"]:
+            self.live_manually_stopped = False
             self.stop_wake_word_listener()
             cam_mode = "screen" if mode == "live_screen" else "camera"
             res = self.start_live_mode(cam_mode)
@@ -753,6 +784,7 @@ class FridayWidgetApi:
             return {"status": "ok", "mode": mode, "live_status": res}
 
         elif mode == "stop_live":
+            self.live_manually_stopped = True
             self.stop_live_mode()
             self.current_mode = "text"
             return {"status": "ok", "mode": "text"}
@@ -815,6 +847,7 @@ class FridayWidgetApi:
         if not self.is_authenticated:
             return {"status": "error", "message": "Authentication required"}
 
+        self.live_manually_stopped = False
         # Mutual exclusivity: interrupt speech & stop wake listener
         try:
             from voice.speak import interrupt_speech

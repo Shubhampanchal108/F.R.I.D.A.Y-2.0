@@ -46,6 +46,12 @@ def register_live_session_active(active: bool):
         if active:
             with open(LIVE_STATE_FILE, "w", encoding="utf-8") as f:
                 json.dump({"active": True, "pid": os.getpid(), "timestamp": time.time()}, f)
+            # Clear stale alerts file so previous session alerts never replay
+            if os.path.exists(LIVE_ALERTS_FILE):
+                try:
+                    os.remove(LIVE_ALERTS_FILE)
+                except Exception:
+                    pass
         else:
             if os.path.exists(LIVE_STATE_FILE):
                 os.remove(LIVE_STATE_FILE)
@@ -313,12 +319,120 @@ class FridayBridge:
         print(f"\n[LIVE_STATUS]: {status_msg}\n", flush=True)
 
     def emit_alert(self, alert_text: str):
-        """Dispatches alert token for HUD UI and live stream."""
+        """Dispatches alert token for HUD UI without self-enqueue recursion."""
         print(f"\n[LIVE_ALERT]: {alert_text}\n", flush=True)
+
+    def build_jarvis_startup_briefing(self, video_mode: str = "screen") -> str:
+        """
+        Gathers live system telemetries, Kaithal weather, agenda and power metrics,
+        and constructs the dynamic Jarvis-style startup directive for Gemini Live.
+        """
+        # 1. User Name & Time Greeting
+        user_name = "Shubham sir"
         try:
-            self.alert_queue.put_nowait(alert_text)
+            from config.config_driver import load_data
+            data = load_data()
+            u_name = data.get("USER", {}).get("Name", "Shubham")
+            user_name = f"{u_name} sir"
         except Exception:
             pass
+
+        greeting = "Good day"
+        try:
+            from Tools.systems_tools import greet
+            greeting = greet()
+        except Exception:
+            from datetime import datetime
+            hr = datetime.now().hour
+            if hr < 12:
+                greeting = "Good morning"
+            elif hr < 17:
+                greeting = "Good afternoon"
+            else:
+                greeting = "Good evening"
+
+        # 2. Real-time Weather for Kaithal
+        weather_text = "pleasant"
+        try:
+            from Tools.weather import get_current_weather
+            w_data = get_current_weather("Kaithal")
+            if isinstance(w_data, dict):
+                temp = w_data.get("temperature_c", "25")
+                desc = w_data.get("description") or w_data.get("weather", "clear")
+                weather_text = f"{desc} at {temp}°C in Kaithal"
+        except Exception:
+            weather_text = "Kaithal weather report nominal"
+
+        # 3. Battery & Power Status
+        battery_text = "optimal"
+        try:
+            from Tools.systems_tools import get_battery_status
+            batt = get_battery_status()
+            if isinstance(batt, dict) and "battery_percentage" in batt:
+                pct = batt.get("battery_percentage", 100)
+                plugged = batt.get("power_plugged", False)
+                state = "charging" if plugged else "on battery power"
+                battery_text = f"{pct}% and {state}"
+        except Exception:
+            battery_text = "battery levels nominal"
+
+        # 4. System Health & CPU/RAM
+        system_text = "all system metrics optimal"
+        try:
+            from Tools.systems_tools import get_cpu_status
+            cpu_data = get_cpu_status()
+            if isinstance(cpu_data, dict):
+                cpu_load = cpu_data.get("cpu_percent", 15)
+                ram_load = cpu_data.get("memory_percent", 50)
+                system_text = f"CPU load at {cpu_load}%, Memory usage at {ram_load}%"
+        except Exception:
+            pass
+
+        # 5. Pending Tasks & Reminders
+        agenda_items = []
+        try:
+            from Tools.Todo import list_tasks
+            t_list = list_tasks()
+            if isinstance(t_list, list) and t_list:
+                agenda_items.append(f"{len(t_list)} pending to-do task{'s' if len(t_list) > 1 else ''}")
+        except Exception:
+            pass
+
+        try:
+            from Tools.reminder import list_reminders
+            r_data = list_reminders()
+            if isinstance(r_data, dict):
+                rems = r_data.get("reminders", [])
+                active_rems = [r for r in rems if not r.get("done") and r.get("enabled", True)]
+                if active_rems:
+                    agenda_items.append(f"{len(active_rems)} scheduled reminder{'s' if len(active_rems) > 1 else ''}")
+        except Exception:
+            pass
+
+        if agenda_items:
+            agenda_text = " and ".join(agenda_items)
+        else:
+            agenda_text = "no pending reminders or tasks on the radar"
+
+        visual_feed = "real-time screen feed" if video_mode == "screen" else "live camera feed"
+
+        directive = (
+            f"[SYSTEM DIRECTIVE: INITIAL EXECUTIVE STARTUP WELCOME FOR {user_name.upper()} // JARVIS & FRIDAY PROTOCOL]\n"
+            f"You have just booted up in LIVE MULTIMODAL MODE with {visual_feed}.\n"
+            f"Deliver a sleek, charismatic, high-tech verbal welcome for {user_name}.\n"
+            f"Incorporate these live diagnostics naturally into your spoken welcome:\n"
+            f" • Greeting: {greeting}, {user_name}!\n"
+            f" • Weather in Kaithal: {weather_text}\n"
+            f" • Battery/Power Status: {battery_text}\n"
+            f" • Hardware Metrics: {system_text}\n"
+            f" • Agenda Status: {agenda_text}\n\n"
+            f"STYLE REQUIREMENTS:\n"
+            f"- Persona: Tony Stark's F.R.I.D.A.Y & J.A.R.V.I.S — warm, sharp, loyal, brilliantly smart, and confident.\n"
+            f"- Seamlessly combine the greeting, weather, battery, and tasks into 2-3 smooth, natural sentences.\n"
+            f"- Conclude with a crisp, cool sign-off: 'All systems are fully operational and visual uplinks are live. Standing by for your instructions, Sir.'\n"
+            f"- Announce this immediately right now in your natural neural voice.]"
+        )
+        return directive
 
     async def start_sentinel_monitor(self, session, send_lock):
         """Sentinel and background alerts are delegated exclusively to Core Friday."""

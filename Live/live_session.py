@@ -10,6 +10,7 @@ dispatches tool executions, and relays multimodal streams.
 import os
 import sys
 import re
+import json
 import time
 import asyncio
 import warnings
@@ -96,7 +97,41 @@ class LiveSession:
         self.session = None
         self.send_lock = asyncio.Lock()
         self.stop_event = asyncio.Event()
+        self.user_stopped = False
+        self.is_first_connect = True
         self.recent_assistant_responses = deque(maxlen=8)
+        self.sent_alert_cooldown = {}
+
+    async def _send_initial_welcome(self, session):
+        """Dispatches the dynamic Tony Stark/Jarvis executive startup briefing."""
+        try:
+            await asyncio.sleep(0.4)
+            briefing_directive = self.bridge.build_jarvis_startup_briefing(video_mode=self.video_mode)
+            console.print("\n[bold cyan]⚡ F.R.I.D.A.Y Jarvis Executive Welcome Initiated...[/bold cyan]\n")
+            async with self.send_lock:
+                await session.send_client_content(
+                    turns=[types.Content(role="user", parts=[types.Part(text=briefing_directive)])],
+                    turn_complete=True
+                )
+        except Exception as e:
+            console.print(f"[dim yellow]Initial briefing dispatch note: {e}[/dim yellow]")
+
+    async def _send_reconnect_ack(self, session):
+        """Dispatches short seamless acknowledgement after automatic reconnection."""
+        try:
+            await asyncio.sleep(0.4)
+            ack_directive = (
+                "[SYSTEM STATUS NOTIFICATION: Live Multimodal connection has been automatically re-established. "
+                "Deliver a brief, sleek, 1-sentence acknowledgment to Shubham sir in your confident, charismatic voice. "
+                "E.g., 'Neural connection re-established, Sir. All systems standing by.']"
+            )
+            async with self.send_lock:
+                await session.send_client_content(
+                    turns=[types.Content(role="user", parts=[types.Part(text=ack_directive)])],
+                    turn_complete=True
+                )
+        except Exception as e:
+            pass
 
     def is_self_echo(self, text: str) -> bool:
         """
@@ -165,22 +200,43 @@ class LiveSession:
                     except Exception:
                         pass
 
-                if alert_item and self.session:
+                if alert_item:
                     clean_alert = str(alert_item).strip()
+                    now = time.time()
+                    cooldown_key = clean_alert.lower()[:80]
+                    if cooldown_key in self.sent_alert_cooldown and (now - self.sent_alert_cooldown[cooldown_key]) < 45.0:
+                        continue
+                    self.sent_alert_cooldown[cooldown_key] = now
+
                     console.print(f"\n[bold magenta]⚡ Live Sentinel Injected:[/bold magenta] [white]{clean_alert}[/white]\n")
                     self.bridge.emit_alert(clean_alert)
 
-                    prompt_text = (
-                        f"[URGENT BACKGROUND SYSTEM ALERT: {clean_alert}. "
-                        f"Announce this proactively to Shubham sir right now in your natural, witty, and caring live voice. "
-                        f"Keep it 1 concise sentence.]"
-                    )
-
-                    async with self.send_lock:
-                        await self.session.send_client_content(
-                            turns=[types.Content(role="user", parts=[types.Part(text=prompt_text)])],
-                            turn_complete=True
+                    if self.session:
+                        prompt_text = (
+                            f"[URGENT BACKGROUND SYSTEM ALERT: {clean_alert}. "
+                            f"Announce this proactively to Shubham sir right now in your natural, witty, and caring live voice. "
+                            f"Keep it 1 concise sentence.]"
                         )
+                        try:
+                            async with self.send_lock:
+                                await self.session.send_client_content(
+                                    turns=[types.Content(role="user", parts=[types.Part(text=prompt_text)])],
+                                    turn_complete=True
+                                )
+                        except Exception as forward_err:
+                            console.print(f"[dim yellow]Live alert forward error: {forward_err}, falling back to voice[/dim yellow]")
+                            try:
+                                from voice.speak import speak
+                                speak(clean_alert, allow_interrupt=True, priority=3, block=False, is_private=False)
+                            except Exception:
+                                pass
+                    else:
+                        # Session not yet established or reconnecting, speak aloud directly!
+                        try:
+                            from voice.speak import speak
+                            speak(clean_alert, allow_interrupt=True, priority=3, block=False, is_private=False)
+                        except Exception:
+                            pass
                     await asyncio.sleep(1.0)
             except (asyncio.CancelledError, KeyboardInterrupt):
                 break
@@ -197,6 +253,11 @@ class LiveSession:
                 # Read from sys.stdin in a separate thread
                 text = await asyncio.to_thread(sys.stdin.readline)
                 if not text:
+                    if sys.stdin and hasattr(sys.stdin, "isatty") and not sys.stdin.isatty():
+                        # Subprocess pipe closed by parent
+                        self.user_stopped = True
+                        self.stop_event.set()
+                        break
                     await asyncio.sleep(0.1)
                     continue
 
@@ -207,11 +268,18 @@ class LiveSession:
                 clean_t = text.lower().strip()
                 if clean_t in ["stop", "exit", "quit", "/exit", "/stop", "q", "back"]:
                     console.print("\n[bold yellow]🛑 Stopping Live Session...[/bold yellow]")
+                    self.user_stopped = True
                     self.stop_event.set()
                     break
 
                 if text.startswith("[SYSTEM_ALERT]") or text.startswith("[ALERT]"):
                     clean_alert = text.replace("[SYSTEM_ALERT]", "").replace("[ALERT]", "").strip()
+                    now = time.time()
+                    cooldown_key = clean_alert.lower()[:80]
+                    if cooldown_key in self.sent_alert_cooldown and (now - self.sent_alert_cooldown[cooldown_key]) < 45.0:
+                        continue
+                    self.sent_alert_cooldown[cooldown_key] = now
+
                     prompt_text = (
                         f"[URGENT BACKGROUND SYSTEM ALERT: {clean_alert}. "
                         f"Announce this proactively to Shubham sir right now in your natural, witty, and caring live voice. "
@@ -439,11 +507,12 @@ class LiveSession:
             pass
         except Exception as e:
             if not self.stop_event.is_set():
-                console.print(f"\n[dim red]⚠️ Live connection closed: {e}[/dim red]")
+                if not self.user_stopped:
+                    console.print(f"\n[dim yellow]⚡ Live stream connection interrupted: {e}[/dim yellow]")
                 self.stop_event.set()
 
     async def run(self):
-        """Main connection and streaming loop."""
+        """Main connection and streaming loop with autonomous auto-reconnect supervisor."""
         api_key = get_gemini_api_key()
         if not api_key:
             console.print("[bold red]❌ Google Gemini API Key (starts with 'AIza') not found.[/bold red]")
@@ -480,59 +549,96 @@ class LiveSession:
 
         loop = asyncio.get_running_loop()
         FridayBridge.set_live_active(True, bridge_instance=self.bridge, loop=loop)
-        connected = False
-        for current_model in LIVE_MODELS:
-            try:
-                console.print(f"[bold cyan]🔗 Connecting to Gemini Live ({current_model})...[/bold cyan]")
-                self.bridge.emit_status("CONNECTING")
 
-                async with (
-                    client.aio.live.connect(model=current_model, config=config) as session,
-                    asyncio.TaskGroup() as tg,
-                ):
-                    connected = True
-                    self.session = session
-                    self.bridge.emit_status("CONNECTED")
+        reconnect_delay = 1.0
+        max_reconnect_delay = 10.0
 
-                    # Launch concurrent multimodal tasks
-                    send_text_task = tg.create_task(self.send_text_loop())
-                    tg.create_task(self.audio.listen_audio_loop(session, self.send_lock, self.stop_event))
+        # Autonomous continuous supervisor loop: keeps live session alive until manual user termination
+        while not self.user_stopped:
+            self.stop_event = asyncio.Event()
+            connected = False
 
-                    if self.video_mode == "camera":
-                        tg.create_task(self.vision.stream_camera(session, self.send_lock, self.stop_event))
-                    elif self.video_mode == "screen":
-                        tg.create_task(self.vision.stream_screen(session, self.send_lock, self.stop_event))
-
-                    tg.create_task(self.receive_loop())
-                    tg.create_task(self.audio.play_audio_loop(self.stop_event))
-                    tg.create_task(self.sentinel_alert_loop())
-
-                    # Keep live session running continuously until stop_event is triggered
-                    await self.stop_event.wait()
-                    send_text_task.cancel()
+            for current_model in LIVE_MODELS:
+                if self.user_stopped:
                     break
+                try:
+                    console.print(f"[bold cyan]🔗 Connecting to Gemini Live ({current_model})...[/bold cyan]")
+                    self.bridge.emit_status("CONNECTING")
 
-            except (asyncio.CancelledError, KeyboardInterrupt):
+                    async with (
+                        client.aio.live.connect(model=current_model, config=config) as session,
+                        asyncio.TaskGroup() as tg,
+                    ):
+                        connected = True
+                        reconnect_delay = 1.0
+                        self.session = session
+                        self.bridge.emit_status("CONNECTED")
+
+                        # Deliver cool Jarvis Welcome on initial boot, or subtle acknowledgement on reconnect
+                        if self.is_first_connect:
+                            self.is_first_connect = False
+                            tg.create_task(self._send_initial_welcome(session))
+                        else:
+                            tg.create_task(self._send_reconnect_ack(session))
+
+                        # Launch concurrent multimodal tasks
+                        send_text_task = tg.create_task(self.send_text_loop())
+                        tg.create_task(self.audio.listen_audio_loop(session, self.send_lock, self.stop_event))
+
+                        if self.video_mode == "camera":
+                            tg.create_task(self.vision.stream_camera(session, self.send_lock, self.stop_event))
+                        elif self.video_mode == "screen":
+                            tg.create_task(self.vision.stream_screen(session, self.send_lock, self.stop_event))
+
+                        tg.create_task(self.receive_loop())
+                        tg.create_task(self.audio.play_audio_loop(self.stop_event))
+                        tg.create_task(self.sentinel_alert_loop())
+
+                        # Keep live session running continuously until stop_event is triggered
+                        await self.stop_event.wait()
+                        send_text_task.cancel()
+                        break
+
+                except (asyncio.CancelledError, KeyboardInterrupt):
+                    self.user_stopped = True
+                    break
+                except ExceptionGroup as eg:
+                    if connected:
+                        for exc in eg.exceptions:
+                            if isinstance(exc, (asyncio.CancelledError, KeyboardInterrupt)):
+                                self.user_stopped = True
+                            else:
+                                console.print(f"\n[dim red]⚠️ Live stream notice: {exc}[/dim red]")
+                        break
+                    else:
+                        console.print(f"[dim yellow]Model {current_model} connection error. Trying fallback...[/dim yellow]")
+                        continue
+                except Exception as e:
+                    if connected:
+                        console.print(f"\n[dim red]⚠️ Live Mode notice: {e}[/dim red]")
+                        break
+                    else:
+                        console.print(f"[dim yellow]Model {current_model} failed: {e}. Trying fallback...[/dim yellow]")
+                        continue
+
+            if self.user_stopped:
+                console.print("\n[bold yellow]🛑 Live session terminated by operator.[/bold yellow]")
                 break
-            except ExceptionGroup as eg:
-                if connected:
-                    for exc in eg.exceptions:
-                        if not isinstance(exc, (asyncio.CancelledError, KeyboardInterrupt)):
-                            console.print(f"\n[bold red]⚠️ Notice: {exc}[/bold red]")
-                    break
-                else:
-                    console.print(f"[dim yellow]Model {current_model} connection error. Trying fallback...[/dim yellow]")
-                    continue
-            except Exception as e:
-                if connected:
-                    console.print(f"\n[bold red]⚠️ Live Mode Notice: {e}[/bold red]")
-                    break
-                else:
-                    console.print(f"[dim yellow]Model {current_model} failed: {e}. Trying fallback...[/dim yellow]")
-                    continue
-        else:
-            if not connected:
-                console.print("[bold red]❌ Unable to connect to Gemini Live models. Please check your network and GEMINI_KEY.[/bold red]")
+
+            # Session cut off unexpectedly: initiate automatic background reconnection
+            self.session = None
+            self.audio.clear_playback()
+            self.bridge.emit_status("RECONNECTING")
+            console.print(
+                f"\n[bold yellow]⚡ Live stream connection interrupted. Auto-reconnecting in {reconnect_delay:.1f}s...[/bold yellow] "
+                f"[dim](Type 'stop' or press Ctrl+C to terminate)[/dim]"
+            )
+            try:
+                await asyncio.sleep(reconnect_delay)
+            except (asyncio.CancelledError, KeyboardInterrupt):
+                self.user_stopped = True
+                break
+            reconnect_delay = min(reconnect_delay * 1.5, max_reconnect_delay)
 
         self.stop_event.set()
         FridayBridge.set_live_active(False)

@@ -19,7 +19,21 @@ if not exist "%PYTHONW_BIN%" (
     set "PYTHON_BIN=python.exe"
 )
 
-:: Check CLI flag
+:: Check CLI / Mode flags
+if "%~1"=="--live" (
+    echo [F.R.I.D.A.Y] Starting directly in Live Multimodal Mode...
+    "%PYTHON_BIN%" Live_mode.py
+    pause
+    exit /b
+)
+
+if "%~1"=="--core" (
+    echo [F.R.I.D.A.Y] Starting in Core Terminal Mode...
+    "%PYTHON_BIN%" index.py --core
+    pause
+    exit /b
+)
+
 if "%~1"=="--cli" (
     echo [F.R.I.D.A.Y] Starting in Interactive Terminal Mode...
     "%PYTHON_BIN%" index.py

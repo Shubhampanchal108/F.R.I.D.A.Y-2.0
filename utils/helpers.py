@@ -177,7 +177,9 @@ Default_Data = {
       "phone_number": "",
       "github": "",
       "linkedin": ""
-    }
+    },
+
+  "DEFAULT_MODE": "live"
 }
 
 

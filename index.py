@@ -110,6 +110,9 @@ def main():
 
         if password == AUTH_PASSWORD:
             console.print("✅ [bold green]Authentication successful! Welcome back, Sir.[/bold green]\n")
+            daemon_instance.set_authenticated(True)
+            from voice.speak import set_authenticated as speak_set_auth
+            speak_set_auth(True)
             break
         else:
             attempts += 1
@@ -121,7 +124,38 @@ def main():
     # ===== START BACKGROUND DAEMON =====
     daemon_instance.start()
 
-    # ===== INITIAL PROACTIVE EXECUTIVE BRIEFING =====
+    # ===== DEFAULT OPERATING MODE: LIVE MULTIMODAL MODE =====
+    default_mode = "live"
+    try:
+        from config.config_driver import load_data
+        cfg = load_data()
+        default_mode = cfg.get("DEFAULT_MODE", "live").lower()
+    except Exception:
+        default_mode = "live"
+
+    force_core = "--core" in sys.argv
+
+    if default_mode == "live" and not force_core:
+        console.print("\n[bold bright_cyan]⚡ Launching F.R.I.D.A.Y in LIVE MULTIMODAL MODE (Real-Time Vision & Audio)...[/bold bright_cyan]")
+        console.print("[dim white]Tip: Run with '--core' to launch directly in Terminal CLI typing mode.[/dim white]\n")
+        try:
+            from Live import run_live_mode
+            run_live_mode(video_mode="screen")
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Live Mode stopped by operator.[/yellow]")
+        except Exception as live_err:
+            console.print(f"[bold red]❌ Live Mode note: {live_err}[/bold red]")
+            console.print("[dim cyan]Falling back to Core Terminal Protocol...[/dim cyan]")
+        else:
+            console.print("\n[bold yellow]Live stream concluded. Press Enter for Core CLI or type 'exit' to quit: [/bold yellow]", end="")
+            try:
+                choice = input().strip().lower()
+                if choice in ["exit", "quit", "q"]:
+                    sys.exit(0)
+            except (KeyboardInterrupt, EOFError):
+                sys.exit(0)
+
+    # ===== INITIAL PROACTIVE EXECUTIVE BRIEFING (CORE MODE) =====
     greeting = greet()
     cli.print_banner()
     

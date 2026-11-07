@@ -131,7 +131,7 @@ class NotificationEngine:
         title: str,
         desktop_text: str,
         voice_text: str = None,
-        is_private: bool = True,
+        is_private: bool = False,
         priority: int = 3,
         event_type: str = None,
         details: dict = None,

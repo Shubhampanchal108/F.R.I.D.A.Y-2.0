@@ -653,9 +653,9 @@ def speak(text, allow_interrupt=True, priority=1, block=True, on_start=None, on_
 
     clean_text = str(text).strip()
 
-    # Determine privacy: default to True for ambient priority 3 alerts (email, reminders, etc.)
+    # Determine privacy: default to False so system announcements are never dropped
     if is_private is None:
-        is_private = (priority >= 3)
+        is_private = False
 
     # 1. Master Voice Output Check
     if not _is_voice_enabled:
