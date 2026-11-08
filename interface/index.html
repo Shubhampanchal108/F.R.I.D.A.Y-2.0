@@ -627,7 +627,6 @@
             <div class="setting-row">
               <div class="setting-meta">
                 <span class="setting-name">Hands-Free Wake Word</span>
-                <span class="setting-desc">Listen in background for "Hey Friday" summon trigger</span>
               </div>
               <label class="hud-toggle">
                 <input type="checkbox" id="setting-wakeword-enabled">
@@ -638,7 +637,6 @@
             <div class="setting-row">
               <div class="setting-meta">
                 <span class="setting-name">Multimodal Live Vision Protocol</span>
-                <span class="setting-desc">Stream real-time screen or camera frames via Gemini</span>
               </div>
               <div class="settings-btn-group">
                 <button class="mini-hud-btn" id="btn-start-screen-vision">🖥️ Screen</button>
@@ -649,7 +647,6 @@
             <div class="setting-row">
               <div class="setting-meta">
                 <span class="setting-name">Proactive Executive Briefing</span>
-                <span class="setting-desc">Trigger comprehensive audio-visual status overview</span>
               </div>
               <button class="mini-hud-btn" id="btn-trigger-briefing-settings">Launch Now</button>
             </div>
@@ -657,7 +654,6 @@
             <div class="setting-row">
               <div class="setting-meta">
                 <span class="setting-name">Global Desktop Hotkey</span>
-                <span class="setting-desc">Summon or dismiss anywhere on Windows</span>
               </div>
               <div class="hotkey-display-pill">Ctrl + Space</div>
             </div>
@@ -673,7 +669,6 @@
             <div class="setting-row">
               <div class="setting-meta">
                 <span class="setting-name">Voice Audio Drive (TTS)</span>
-                <span class="setting-desc">Enable spoken responses from F.R.I.D.A.Y</span>
               </div>
               <label class="hud-toggle">
                 <input type="checkbox" id="setting-voice-enabled" checked>
@@ -683,16 +678,14 @@
 
             <div class="setting-row">
               <div class="setting-meta">
-                <span class="setting-name">Speech Rate</span>
-                <span class="setting-desc">Voice playback speed (<span id="val-speech-rate">185</span> WPM)</span>
+                <span class="setting-name">Speech Rate (<span id="val-speech-rate">185</span> WPM)</span>
               </div>
               <input type="range" class="hud-slider" id="setting-speech-rate" min="130" max="240" value="185">
             </div>
 
             <div class="setting-row">
               <div class="setting-meta">
-                <span class="setting-name">Synthesizer Pitch</span>
-                <span class="setting-desc">Vocal tone frequency (<span id="val-speech-pitch">50</span>%)</span>
+                <span class="setting-name">Synthesizer Pitch (<span id="val-speech-pitch">50</span>%)</span>
               </div>
               <input type="range" class="hud-slider" id="setting-speech-pitch" min="20" max="90" value="50">
             </div>
@@ -700,7 +693,6 @@
             <div class="setting-row">
               <div class="setting-meta">
                 <span class="setting-name">Holographic Sound Effects (SFX)</span>
-                <span class="setting-desc">Futuristic audio beeps on mode toggle & clicks</span>
               </div>
               <label class="hud-toggle">
                 <input type="checkbox" id="setting-sfx-enabled" checked>
@@ -715,7 +707,6 @@
               <span class="sec-icon">⚡</span>
               <span>Autonomous Neural Core Cascade (Zero-Downtime Multi-Key Engine)</span>
             </div>
-            <p class="section-subtext">F.R.I.D.A.Y automatically shifts load: <b>Groq (P1) → Google Gemini (P2) → Hugging Face (P3) → OpenRouter (P4)</b> across all model pools. Store multiple keys per provider for infinite quota failover.</p>
 
             <div class="neural-providers-container">
               <!-- PROVIDER 1: GROQ -->
@@ -724,7 +715,6 @@
                   <div class="provider-info">
                     <span class="provider-badge p1">P1</span>
                     <span class="provider-title">⚡ Groq Cloud LPUs</span>
-                    <span class="provider-tag">Ultra-High Speed Inference (Llama 3.3, DeepSeek R1, Gemma 2)</span>
                   </div>
                   <span class="keys-count-badge" id="count-GROQ">0 Keys</span>
                 </div>
@@ -741,7 +731,6 @@
                   <div class="provider-info">
                     <span class="provider-badge p2">P2</span>
                     <span class="provider-title">🔷 Google Gemini Official</span>
-                    <span class="provider-tag">All Gemini Models (2.5 Flash, 2.0 Flash) • 1M Context</span>
                   </div>
                   <span class="keys-count-badge" id="count-GEMINI">0 Keys</span>
                 </div>
@@ -758,7 +747,6 @@
                   <div class="provider-info">
                     <span class="provider-badge p3">P3</span>
                     <span class="provider-title">🤗 Hugging Face Serverless</span>
-                    <span class="provider-tag">30+ Reasoning Models (DeepSeek-R1, Qwen 2.5, Llama 3.3)</span>
                   </div>
                   <span class="keys-count-badge" id="count-HUGGINGFACE">0 Keys</span>
                 </div>
@@ -775,7 +763,6 @@
                   <div class="provider-info">
                     <span class="provider-badge p4">P4</span>
                     <span class="provider-title">🌐 OpenRouter Resilient Pool</span>
-                    <span class="provider-tag">26+ Resilient Free Models Backup</span>
                   </div>
                   <span class="keys-count-badge" id="count-OPENROUTER">0 Keys</span>
                 </div>
@@ -795,7 +782,6 @@
               <span class="sec-icon">🛠️</span>
               <span>External Tools & System Credentials</span>
             </div>
-            <p class="section-subtext">Configure search, weather, email, calendar and security credentials.</p>
 
             <div class="api-keys-grid">
               <div class="config-field">

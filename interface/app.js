@@ -699,8 +699,10 @@ async function handleSendPrompt() {
       response = `Directive acknowledged, Sir. All local neural parameters are operational for: "${prompt}".`;
     }
 
-    appendAssistantMessage(response);
-    playSfx('ping');
+    if (response && response.trim()) {
+      appendAssistantMessage(response);
+      playSfx('ping');
+    }
 
     // If speech is not triggered or already completed, revert to standby
     if (!isAgentSpeaking) {
@@ -1752,6 +1754,7 @@ function setupLiveModeHandlers() {
 
 window.fridayOnLiveMessage = function(reply) {
   if (reply) {
+    appendAssistantMessage(reply);
     const liveStage = document.getElementById('live-hud-stage');
     const statusBadge = document.getElementById('live-stream-status-badge');
     if (liveStage) {

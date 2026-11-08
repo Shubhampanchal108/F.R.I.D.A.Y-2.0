@@ -1651,23 +1651,33 @@ pre code {
   color: var(--text-muted);
 }
 
-/* SETTINGS ACTION BUTTONS */
+/* SETTINGS & PROFILE ACTION BUTTONS */
 .settings-actions-bar,
 .profile-actions-bar {
   display: flex;
-  gap: 8px;
-  margin-top: 4px;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .settings-btn {
   flex: 1;
-  padding: 8px 12px;
+  width: 100%;
+  padding: 9px 14px;
   border-radius: var(--radius-md);
   font-family: var(--font-main);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-smooth);
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 .settings-btn.primary {
   background: var(--accent-primary);
@@ -1689,6 +1699,12 @@ pre code {
 }
 .settings-btn.full-w {
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  padding: 9px 14px;
+  box-sizing: border-box;
 }
 
 .settings-toast,
@@ -3295,6 +3311,8 @@ body.mode-expanded .profile-scroll-container {
 }
 
 .btn-add-neural-key {
+  flex: 0 0 auto !important;
+  width: auto !important;
   padding: 6px 12px;
   font-size: 10px;
   white-space: nowrap;

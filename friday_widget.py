@@ -320,12 +320,9 @@ class FridayWidgetApi:
         return {"status": "locked"}
 
     def send_query(self, query: str) -> str:
-        """Processes user prompt through Brain and returns the response."""
+        """Processes user prompt through Brain or Live Mode depending on active operating mode."""
         if not self.is_authenticated:
             return "🔒 Security Gate Active: Please authenticate with your password first."
-
-        if getattr(self, "current_mode", "core") == "live":
-            return "⚠️ Live Vision Mode is currently running. Please stop Live Mode before sending core chat directives."
 
         if not query or not query.strip():
             return "Sir, I did not receive any input."
@@ -334,6 +331,19 @@ class FridayWidgetApi:
         daemon = get_daemon()
         if daemon:
             daemon.record_user_activity()
+
+        # Check if Live Multimodal Mode is currently active
+        mode = getattr(self, "current_mode", "core")
+        is_live = mode in ["live", "live_screen", "live_camera"] or str(mode).startswith("live")
+        has_live_proc = getattr(self, "live_process", None) and self.live_process.poll() is None
+
+        if is_live and has_live_proc:
+            # Forward directly to Live Multimodal Mode — Core Brain is completely bypassed!
+            res = self.send_live_text(q)
+            if res.get("status") == "sent":
+                return ""  # Handled live by Gemini Live audio + Live reply stream
+            else:
+                return f"⚠️ Live stream issue: {res.get('message', 'Failed to pipe input to Live session')}"
 
         # 0. Immediately interrupt any previous speech or alert before processing new directive
         try:
@@ -990,7 +1000,23 @@ class FridayWidgetApi:
 
     # ---------------- EXECUTIVE BRIEFING & REMINDERS ---------------- #
     def trigger_morning_briefing(self) -> str:
-        """Generates proactive executive morning briefing."""
+        """Generates proactive executive morning briefing corresponding to the active mode."""
+        mode = getattr(self, "current_mode", "core")
+        is_live = (mode in ["live", "live_screen", "live_camera"] or str(mode).startswith("live")) and (getattr(self, "live_process", None) and self.live_process.poll() is None)
+
+        if is_live:
+            # Active mode is LIVE MODE: Trigger Live Multimodal Jarvis Briefing!
+            try:
+                from Live.bridge import FridayBridge
+                b = FridayBridge()
+                cam_mode = "camera" if "camera" in mode else "screen"
+                briefing_prompt = b.build_jarvis_startup_briefing(video_mode=cam_mode)
+                self.send_live_text(f"[SYSTEM_ALERT] {briefing_prompt}")
+                return "⚡ Live Jarvis Multimodal Executive Briefing triggered via active live uplink."
+            except Exception as e:
+                pass
+
+        # Core Mode Briefing
         try:
             daemon = get_daemon()
             if daemon:

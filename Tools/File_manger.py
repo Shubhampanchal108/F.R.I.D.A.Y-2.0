@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime
 import sys
 
@@ -16,6 +17,44 @@ os.makedirs(BASE_DIR, exist_ok=True)
 # ==============================
 # UTILITY
 # ==============================
+
+def clean_file_content(content: str, filename: str = "") -> str:
+    """
+    Cleans raw LLM markdown artifacts (*, #, **, etc.) before saving to file,
+    ensuring clean, professional human-readable text.
+    Preserves markdown only if file extension is explicitly .md.
+    """
+    if not content or not isinstance(content, str):
+        return content or ""
+
+    if filename and str(filename).lower().endswith(".md"):
+        return content
+
+    text = content
+
+    # 1. Remove markdown code fences if wrapped: ```python ... ```
+    text = re.sub(r"^```[a-zA-Z0-9_-]*\n", "", text)
+    text = re.sub(r"\n```$", "", text)
+
+    # 2. Convert markdown headers: '# Header', '## Subheader', '### Topic' -> 'Header'
+    text = re.sub(r"^(#{1,6})\s+(.+)$", r"\2", text, flags=re.MULTILINE)
+
+    # 3. Bold/Italics: '***text***' -> 'text', '**text**' -> 'text', '*text*' -> 'text'
+    text = re.sub(r"\*{3}(.*?)\*{3}", r"\1", text)
+    text = re.sub(r"\*{2}(.*?)\*{2}", r"\1", text)
+    text = re.sub(r"_{2}(.*?)_{2}", r"\1", text)
+
+    # 4. Bullet lists: lines starting with '* ' -> '• '
+    text = re.sub(r"^(\s*)\*\s+", r"\1• ", text, flags=re.MULTILINE)
+
+    # 5. Standalone single asterisks around words: '*word*' -> 'word'
+    text = re.sub(r"(?<!\*)\*(?!\*)([^\n*]+?)(?<!\*)\*(?!\*)", r"\1", text)
+
+    # 6. Backticks: `code` -> 'code'
+    text = re.sub(r"`([^`\n]+)`", r"'\1'", text)
+
+    return text
+
 
 def _file_path(filename):
     return os.path.join(BASE_DIR, filename)
@@ -57,9 +96,12 @@ def create_and_open_file(filename, content):
                 "message": f"{filename} already exists"
             }
 
+        # Sanitize markdown artifacts for clean output
+        sanitized = clean_file_content(content, filename)
+
         # Create file
         with open(path, "w", encoding="utf-8") as f:
-            f.write(content)
+            f.write(sanitized)
 
         # Auto open file (Windows)
         os.startfile(path)
@@ -131,9 +173,12 @@ def update_file(filename, new_content):
                 f"{filename} does not exist"
             )
 
+        # Sanitize markdown artifacts for clean output
+        sanitized = clean_file_content(new_content, filename)
+
         # Update content
         with open(path, "w", encoding="utf-8") as f:
-            f.write(new_content)
+            f.write(sanitized)
 
         # Auto open updated file (Windows)
         os.startfile(path)
